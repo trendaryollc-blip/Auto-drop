@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HuntDrop AI — Complete Dropshipping Intelligence Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- CSS: Base styles first, then components, then features -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/navigation.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/placeholders.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/search-results.css">
+  <link rel="stylesheet" href="css/product-detail.css">
+  <!-- Plugin CSS: loaded async for performance -->
+  <link rel="stylesheet" href="css/plugin-coach.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-financial.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-store.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-intelligence.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-marketing.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-sourcing.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-research.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-market-gap.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-lifecycle.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/plugin-settings.css" media="print" onload="this.media='all'">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <!-- Top Navigation (Shell only — never modified by plugins) -->
+  <nav class="topnav">
+    <div class="nav-left">
+      <button class="nav-back-btn" id="navBackBtn" style="display:none" title="Go back">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="logo">
+        <span class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L26 8V20L14 26L2 20V8L14 2Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M14 2V26M2 8L26 20M26 8L2 20" stroke="currentColor" stroke-width="0.75" opacity="0.4"/>
+            <circle cx="14" cy="14" r="4" fill="currentColor" opacity="0.8"/>
+            <circle cx="14" cy="14" r="2" fill="var(--bg-primary)"/>
+          </svg>
+        </span>
+        <span class="logo-text">HUNT<span class="logo-accent">DROP</span><span class="logo-ai">AI</span></span>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-link active" data-section="dashboard">Dashboard</a>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Research
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="product-hunt"><span class="nav-item-icon">🔍</span>Find Products</a>
+            <a href="#" class="nav-dropdown-item" data-section="niche-radar"><span class="nav-item-icon">⭐</span>Niche Finder</a>
+            <a href="#" class="nav-dropdown-item" data-section="market-gaps"><span class="nav-item-icon">📦</span>Market Gaps</a>
+            <a href="#" class="nav-dropdown-item" data-section="lifecycle"><span class="nav-item-icon">📈</span>Product Life Cycle</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Intelligence
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="ai-analyst"><span class="nav-item-icon">🧠</span>AI Analysis</a>
+            <a href="#" class="nav-dropdown-item" data-section="spy-center"><span class="nav-item-icon">👁</span>Store Spy</a>
+            <a href="#" class="nav-dropdown-item" data-section="battlefield"><span class="nav-item-icon">⚔</span>Rival Check</a>
+            <a href="#" class="nav-dropdown-item" data-section="personas"><span class="nav-item-icon">👤</span>Customer Profiles</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Financial
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="profit-lab"><span class="nav-item-icon">💰</span>Profit Calculator</a>
+            <a href="#" class="nav-dropdown-item" data-section="time-machine"><span class="nav-item-icon">⏰</span>Sales Forecast</a>
+            <a href="#" class="nav-dropdown-item" data-section="elasticity"><span class="nav-item-icon">📊</span>Price Calculator</a>
+            <a href="#" class="nav-dropdown-item" data-section="budget"><span class="nav-item-icon">💳</span>Budget Planner</a>
+            <a href="#" class="nav-dropdown-item" data-section="simulator"><span class="nav-item-icon">🎯</span>Business Simulator</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Sourcing
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="supplier-hub"><span class="nav-item-icon">🏭</span>Find Suppliers</a>
+            <a href="#" class="nav-dropdown-item" data-section="supplier-intel"><span class="nav-item-icon">🛡</span>Supplier Check</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Marketing
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="ad-studio"><span class="nav-item-icon">🎬</span>Ad Creator</a>
+            <a href="#" class="nav-dropdown-item" data-section="calendar"><span class="nav-item-icon">📅</span>Content Planner</a>
+            <a href="#" class="nav-dropdown-item" data-section="objections"><span class="nav-item-icon">💬</span>FAQ Builder</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Store
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="store-gen"><span class="nav-item-icon">🏠</span>Store Builder</a>
+            <a href="#" class="nav-dropdown-item" data-section="health"><span class="nav-item-icon">❤</span>Store Health</a>
+            <a href="#" class="nav-dropdown-item" data-section="bundles"><span class="nav-item-icon">📦</span>Bundle Ideas</a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <a href="#" class="nav-link nav-dropdown-trigger">Strategy
+            <svg class="nav-dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </a>
+          <div class="nav-dropdown-menu">
+            <a href="#" class="nav-dropdown-item" data-section="coach"><span class="nav-item-icon">📖</span>AI Coach</a>
+            <a href="#" class="nav-dropdown-item" data-section="ai-settings"><span class="nav-item-icon">⚙️</span>AI Settings</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="credits-badge">
+        <span class="credit-dot"></span>
+        <span>5,000 credits</span>
+      </div>
+      <button class="btn-upgrade">Pro</button>
+    </div>
+  </nav>
+
+  <!-- ===== SECTION: Dashboard (Shell — stays in HTML) ===== -->
+  <section class="section section-dashboard active" id="section-dashboard">
+
+    <!-- #9: Hero Animated Background -->
+    <div class="hero-search">
+      <div class="hero-bg-orbs">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-orb hero-orb-3"></div>
+      </div>
+      <div class="hero-content">
+        <h1 class="hero-title">
+          <span class="hero-line-1">AI-Powered</span>
+          <span class="hero-line-2">Product Intelligence<span class="hero-dot">.</span></span>
+        </h1>
+        <p class="hero-sub">Search <strong>10 platforms simultaneously</strong> — get AI analysis, pricing, trends, competition, suppliers & ad creatives in seconds.</p>
+        <div class="search-container">
+          <div class="search-box">
+            <div class="search-platform-select">
+              <select id="platformSelect">
+                <option value="all">All 10 Platforms</option>
+                <option value="aliexpress">AliExpress</option>
+                <option value="amazon">Amazon</option>
+                <option value="shopify">Shopify Stores</option>
+                <option value="ebay">eBay</option>
+                <option value="temu">Temu</option>
+                <option value="tiktok">TikTok Shop</option>
+                <option value="etsy">Etsy</option>
+                <option value="cjdropshipping">CJ Dropshipping</option>
+                <option value="dhgate">DHgate</option>
+                <option value="wish">Wish</option>
+              </select>
+            </div>
+            <input type="text" id="searchInput" placeholder="Search products, niches, keywords, URLs..." autocomplete="off">
+            <!-- #13: Voice search button -->
+            <button class="voice-search-btn" id="voiceSearchBtn" title="Voice search">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </button>
+            <button class="search-btn" id="searchBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <span>Hunt</span>
+            </button>
+          </div>
+          <!-- #13: Search autocomplete / recent searches dropdown -->
+          <div class="search-dropdown" id="searchDropdown" style="display:none">
+            <div class="search-dropdown-section" id="recentSearchesDropdown" style="display:none">
+              <div class="search-dropdown-label">Recent Searches</div>
+              <div class="search-dropdown-items" id="recentSearchItems"></div>
+            </div>
+            <div class="search-dropdown-section" id="suggestionsDropdown" style="display:none">
+              <div class="search-dropdown-label">Suggestions</div>
+              <div class="search-dropdown-items" id="suggestionItems"></div>
+            </div>
+          </div>
+          <div class="search-tags">
+            <div class="search-chips-scroll">
+              <!-- #3: Dynamic recent searches chips (injected by JS) -->
+              <div id="recentChips" class="recent-chips-row" style="display:none"></div>
+              <div class="static-chips">
+                <span class="search-chip" data-query="wireless earbuds"><span class="chip-icon">🎧</span>wireless earbuds</span>
+                <span class="search-chip" data-query="pet gadgets"><span class="chip-icon">🐾</span>pet gadgets</span>
+                <span class="search-chip" data-query="kitchen organizer"><span class="chip-icon">🍳</span>kitchen organizer</span>
+                <span class="search-chip" data-query="car accessories"><span class="chip-icon">🚗</span>car accessories</span>
+                <span class="search-chip" data-query="beauty tool"><span class="chip-icon">💄</span>beauty tool</span>
+                <span class="search-chip" data-query="phone accessories"><span class="chip-icon">📱</span>phone accessories</span>
+                <span class="search-chip" data-query="home decor"><span class="chip-icon">🏠</span>home decor</span>
+                <span class="search-chip" data-query="fitness gadget"><span class="chip-icon">💪</span>fitness gadget</span>
+              </div>
+            </div>
+            <!-- #13: I'm Feeling Lucky button -->
+            <button class="feeling-lucky-btn" id="feelingLuckyBtn" title="Search a random trending query">
+              <span class="lucky-icon">🎲</span> I'm Feeling Lucky
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- #1: KPI Stats Bar -->
+    <div class="kpi-bar" id="kpiBar">
+      <a href="#" class="kpi-card" data-section="section-search">
+        <div class="kpi-icon-wrap kpi-icon-cyan"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiProducts">48,291</span><span class="kpi-label">Products Scanned</span></div>
+      </a>
+      <a href="#" class="kpi-card" data-scroll-to="trendingSection">
+        <div class="kpi-icon-wrap kpi-icon-green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiTrending">127</span><span class="kpi-label">Trending Today</span></div>
+      </a>
+      <a href="#" class="kpi-card" data-section="section-profit-lab">
+        <div class="kpi-icon-wrap kpi-icon-orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiMargin">43%</span><span class="kpi-label">Avg Profit Margin</span></div>
+      </a>
+      <a href="#" class="kpi-card" data-platform="tiktok" data-section="section-search">
+        <div class="kpi-icon-wrap kpi-icon-purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiTopPlatform">TikTok</span><span class="kpi-label">Top Platform</span></div>
+      </a>
+      <a href="#" class="kpi-card" data-scroll-to="trendingSection">
+        <div class="kpi-icon-wrap kpi-icon-yellow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiSaved">0</span><span class="kpi-label">Saved Products</span></div>
+      </a>
+      <a href="#" class="kpi-card" data-section="section-ai-analyst">
+        <div class="kpi-icon-wrap kpi-icon-red"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z"/></svg></div>
+        <div class="kpi-info"><span class="kpi-value" id="kpiAnalyses">0</span><span class="kpi-label">AI Analyses</span></div>
+      </a>
+    </div>
+
+
+
+    <!-- #6: Welcome State for New Users -->
+    <div class="welcome-card" id="welcomeCard" style="display:none">
+      <div class="welcome-close" id="welcomeClose">&times;</div>
+      <div class="welcome-content">
+        <div class="welcome-icon">🚀</div>
+        <h2 class="welcome-title">Welcome to HuntDrop AI!</h2>
+        <p class="welcome-sub">Here's how to get started finding winning products</p>
+        <div class="welcome-steps">
+          <div class="welcome-step" id="welcomeStep1">
+            <div class="step-number">1</div>
+            <div class="step-info">
+              <div class="step-title">Set up AI Keys</div>
+              <div class="step-desc">Configure your API keys in AI Settings</div>
+            </div>
+            <button class="step-btn" onclick="window.HuntDrop.navigateTo('section-ai-settings')">Configure</button>
+          </div>
+          <div class="welcome-step" id="welcomeStep2">
+            <div class="step-number">2</div>
+            <div class="step-info">
+              <div class="step-title">Search Your First Product</div>
+              <div class="step-desc">Try searching "wireless earbuds" above</div>
+            </div>
+            <button class="step-btn" id="welcomeSearchBtn">Search</button>
+          </div>
+          <div class="welcome-step" id="welcomeStep3">
+            <div class="step-number">3</div>
+            <div class="step-info">
+              <div class="step-title">Analyze a Competitor</div>
+              <div class="step-desc">Use Store Spy to research competitors</div>
+            </div>
+            <button class="step-btn" onclick="window.HuntDrop.navigateTo('section-spy-center')">Spy Now</button>
+          </div>
+        </div>
+        <div class="welcome-progress">
+          <div class="welcome-progress-bar" id="welcomeProgress"></div>
+          <span class="welcome-progress-text" id="welcomeProgressText">0/3 completed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- #5: Quick Tools Access — Collapsible -->
+    <section class="quick-tools">
+      <div class="quick-tools-header">
+        <h2 class="quick-tools-title">
+          Quick Access
+          <button class="qt-collapse-toggle" id="qtCollapseToggle" title="Toggle Quick Access">
+            <svg class="qt-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </h2>
+        <div class="quick-tools-tabs">
+          <button class="qt-tab active" data-cat="all">All</button>
+          <button class="qt-tab" data-cat="research">Research</button>
+          <button class="qt-tab" data-cat="intelligence">Intelligence</button>
+          <button class="qt-tab" data-cat="financial">Financial</button>
+          <button class="qt-tab" data-cat="sourcing">Sourcing</button>
+          <button class="qt-tab" data-cat="marketing">Marketing</button>
+          <button class="qt-tab" data-cat="store">Store</button>
+          <button class="qt-tab" data-cat="strategy">Strategy</button>
+        </div>
+      </div>
+      <div class="qt-categories" id="qtCategories">
+
+        <!-- Research -->
+        <div class="qt-category qt-visible" data-cat="research">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-research"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="qt-cat-name">Research</span><span class="qt-cat-count">4</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="product-hunt" data-cat="research"><div class="qt-icon qt-icon-research"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><span class="qt-name">Find Products</span><span class="qt-desc">AI-powered product discovery across 10 platforms</span></a>
+            <a href="#" class="qt-card" data-section="niche-radar" data-cat="research"><div class="qt-icon qt-icon-research"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><span class="qt-name">Niche Finder</span><span class="qt-desc">Discover untapped niches with low competition</span></a>
+            <a href="#" class="qt-card" data-section="market-gaps" data-cat="research"><div class="qt-icon qt-icon-research"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><span class="qt-name">Market Gaps</span><span class="qt-desc">Find underserved markets and opportunities</span></a>
+            <a href="#" class="qt-card" data-section="lifecycle" data-cat="research"><div class="qt-icon qt-icon-research"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><span class="qt-name">Product Life Cycle</span><span class="qt-desc">Track where products are in their lifecycle</span></a>
+          </div>
+        </div>
+
+        <!-- Intelligence -->
+        <div class="qt-category qt-visible" data-cat="intelligence">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-intelligence"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z"/></svg></span><span class="qt-cat-name">Intelligence</span><span class="qt-cat-count">4</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="ai-analyst" data-cat="intelligence"><div class="qt-icon qt-icon-intelligence"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z"/></svg></div><span class="qt-name">AI Analysis</span><span class="qt-desc">Deep AI-powered product analysis and scoring</span></a>
+            <a href="#" class="qt-card" data-section="spy-center" data-cat="intelligence"><div class="qt-icon qt-icon-intelligence"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div><span class="qt-name">Store Spy</span><span class="qt-desc">Spy on competitor stores and their best products</span></a>
+            <a href="#" class="qt-card" data-section="battlefield" data-cat="intelligence"><div class="qt-icon qt-icon-intelligence"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="qt-name">Rival Check</span><span class="qt-desc">Compare your products against competitors</span></a>
+            <a href="#" class="qt-card" data-section="personas" data-cat="intelligence"><div class="qt-icon qt-icon-intelligence"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><span class="qt-name">Customer Profiles</span><span class="qt-desc">Generate detailed buyer personas for any product</span></a>
+          </div>
+        </div>
+
+        <!-- Financial -->
+        <div class="qt-category qt-visible" data-cat="financial">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-financial"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="qt-cat-name">Financial</span><span class="qt-cat-count">5</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="profit-lab" data-cat="financial"><div class="qt-icon qt-icon-financial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><span class="qt-name">Profit Calculator</span><span class="qt-desc">Calculate exact profit margins with all fees included</span></a>
+            <a href="#" class="qt-card" data-section="time-machine" data-cat="financial"><div class="qt-icon qt-icon-financial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="qt-name">Sales Forecast</span><span class="qt-desc">Predict future sales with AI-powered models</span></a>
+            <a href="#" class="qt-card" data-section="elasticity" data-cat="financial"><div class="qt-icon qt-icon-financial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><span class="qt-name">Price Calculator</span><span class="qt-desc">Find the optimal price point for maximum revenue</span></a>
+            <a href="#" class="qt-card" data-section="budget" data-cat="financial"><div class="qt-icon qt-icon-financial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><span class="qt-name">Budget Planner</span><span class="qt-desc">Plan ad spend and inventory investment</span></a>
+            <a href="#" class="qt-card" data-section="simulator" data-cat="financial"><div class="qt-icon qt-icon-financial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg></div><span class="qt-name">Business Simulator</span><span class="qt-desc">Simulate different business scenarios and outcomes</span></a>
+          </div>
+        </div>
+
+        <!-- Sourcing -->
+        <div class="qt-category qt-visible" data-cat="sourcing">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-sourcing"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="qt-cat-name">Sourcing</span><span class="qt-cat-count">2</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="supplier-hub" data-cat="sourcing"><div class="qt-icon qt-icon-sourcing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="qt-name">Find Suppliers</span><span class="qt-desc">Search verified suppliers across all platforms</span></a>
+            <a href="#" class="qt-card" data-section="supplier-intel" data-cat="sourcing"><div class="qt-icon qt-icon-sourcing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="qt-name">Supplier Check</span><span class="qt-desc">Verify supplier reliability and shipping times</span></a>
+          </div>
+        </div>
+
+        <!-- Marketing -->
+        <div class="qt-category qt-visible" data-cat="marketing">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-marketing"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></span><span class="qt-cat-name">Marketing</span><span class="qt-cat-count">3</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="ad-studio" data-cat="marketing"><div class="qt-icon qt-icon-marketing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></div><span class="qt-name">Ad Creator</span><span class="qt-desc">Generate high-converting ad copy for any platform</span></a>
+            <a href="#" class="qt-card" data-section="calendar" data-cat="marketing"><div class="qt-icon qt-icon-marketing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><span class="qt-name">Content Planner</span><span class="qt-desc">Plan seasonal content and social media calendar</span></a>
+            <a href="#" class="qt-card" data-section="objections" data-cat="marketing"><div class="qt-icon qt-icon-marketing"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><span class="qt-name">FAQ Builder</span><span class="qt-desc">Auto-generate product FAQs and objection handlers</span></a>
+          </div>
+        </div>
+
+        <!-- Store -->
+        <div class="qt-category qt-visible" data-cat="store">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-store"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="qt-cat-name">Store</span><span class="qt-cat-count">3</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="store-gen" data-cat="store"><div class="qt-icon qt-icon-store"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="qt-name">Store Builder</span><span class="qt-desc">One-click store setup with winning products</span></a>
+            <a href="#" class="qt-card" data-section="health" data-cat="store"><div class="qt-icon qt-icon-store"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><span class="qt-name">Store Health</span><span class="qt-desc">Audit your store for speed, SEO and conversion</span></a>
+            <a href="#" class="qt-card" data-section="bundles" data-cat="store"><div class="qt-icon qt-icon-store"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><span class="qt-name">Bundle Ideas</span><span class="qt-desc">AI-generated product bundles to increase AOV</span></a>
+          </div>
+        </div>
+
+        <!-- Strategy -->
+        <div class="qt-category qt-visible" data-cat="strategy">
+          <div class="qt-cat-header"><span class="qt-cat-icon qt-icon-strategy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span><span class="qt-cat-name">Strategy</span><span class="qt-cat-count">2</span></div>
+          <div class="qt-grid">
+            <a href="#" class="qt-card" data-section="coach" data-cat="strategy"><div class="qt-icon qt-icon-strategy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><span class="qt-name">AI Coach</span><span class="qt-desc">Get personalized strategy advice from AI mentor</span></a>
+            <a href="#" class="qt-card" data-section="ai-settings" data-cat="strategy"><div class="qt-icon qt-icon-strategy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><span class="qt-name">AI Settings</span><span class="qt-desc">Configure API keys, preferences and AI provider settings</span></a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="trending-section" id="trendingSection">
+      <div class="trending-header">
+        <h2 class="trending-title"><span class="trending-fire">🔥</span> Trending Now</h2>
+        <span class="trending-subtitle">Hot products across all platforms</span>
+        <button class="trending-refresh" id="trendingRefresh" title="Refresh trending">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+      <div class="trending-grid" id="trendingGrid"></div>
+    </section>
+
+    <!-- Recent Searches -->
+    <div class="recent-searches" id="recentSearchesSection" style="display:none">
+      <div class="recent-header">
+        <span class="recent-label">🕒 Recent Searches</span>
+        <button class="recent-clear" id="clearRecentSearches">Clear</button>
+      </div>
+      <div class="recent-items" id="recentItems"></div>
+    </div>
+
+  </section>
+
+  <!-- ===== SECTION: Search Results ===== -->
+  <section class="section section-search" id="section-search">
+
+    <!-- Top Search Bar -->
+    <div class="sr-topbar">
+      <div class="sr-topbar-left">
+        <button class="back-btn" id="searchBackBtn" onclick="window.HuntDrop.goBack()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Dashboard
+        </button>
+        <div class="sr-breadcrumb" id="srBreadcrumb">
+          <span class="sr-bc-sep">/</span>
+          <span class="sr-bc-page">Search Results</span>
+        </div>
+      </div>
+      <div class="sr-search-bar">
+        <div class="sr-platform-select">
+          <select id="searchPagePlatform">
+            <option value="all">All Platforms</option>
+            <option value="aliexpress">AliExpress</option>
+            <option value="amazon">Amazon</option>
+            <option value="shopify">Shopify</option>
+            <option value="ebay">eBay</option>
+            <option value="temu">Temu</option>
+            <option value="tiktok">TikTok</option>
+            <option value="etsy">Etsy</option>
+            <option value="cjdropshipping">CJ Drop</option>
+            <option value="dhgate">DHgate</option>
+            <option value="wish">Wish</option>
+          </select>
+        </div>
+        <div class="sr-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchPageInput" placeholder="Search products..." autocomplete="off">
+        </div>
+        <button class="sr-hunt-btn" id="searchPageBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Hunt
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Filters Bar -->
+    <div class="sr-active-filters" id="srActiveFilters">
+      <span class="sr-af-label">Active Filters:</span>
+      <div class="sr-af-chips" id="srFilterChips"></div>
+      <button class="sr-af-clear" id="resetFilters">Clear All</button>
+    </div>
+
+    <!-- Results Summary Bar -->
+    <div class="sr-summary-bar" id="srSummaryBar">
+      <div class="sr-summary-stat">
+        <span class="sr-summary-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </span>
+        <div class="sr-summary-data">
+          <span class="sr-summary-value" id="srTotalCount">0</span>
+          <span class="sr-summary-label">Products Found</span>
+        </div>
+      </div>
+      <div class="sr-summary-divider"></div>
+      <div class="sr-summary-stat">
+        <span class="sr-summary-icon sr-icon-green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </span>
+        <div class="sr-summary-data">
+          <span class="sr-summary-value" id="srAvgMargin">0%</span>
+          <span class="sr-summary-label">Avg Margin</span>
+        </div>
+      </div>
+      <div class="sr-summary-divider"></div>
+      <div class="sr-summary-stat">
+        <span class="sr-summary-icon sr-icon-cyan">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z"/></svg>
+        </span>
+        <div class="sr-summary-data">
+          <span class="sr-summary-value" id="srAvgScore">0</span>
+          <span class="sr-summary-label">Avg AI Score</span>
+        </div>
+      </div>
+      <div class="sr-summary-divider"></div>
+      <div class="sr-summary-stat">
+        <span class="sr-summary-icon sr-icon-orange">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </span>
+        <div class="sr-summary-data">
+          <span class="sr-summary-value" id="srTopPlatform">—</span>
+          <span class="sr-summary-label">Top Platform</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Layout: Sidebar + Content -->
+    <div class="sr-layout">
+
+      <!-- Filters Sidebar -->
+      <aside class="sr-sidebar" id="filtersPanel">
+        <div class="sr-sidebar-header">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            Filters
+          </h3>
+          <button class="sr-sidebar-close" id="filterClose" aria-label="Close filters">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- Price Range -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Price Range</label>
+          <div class="sr-price-inputs">
+            <div class="sr-price-field">
+              <span class="sr-price-prefix">$</span>
+              <input type="number" id="priceMin" placeholder="Min" min="0" class="sr-price-input">
+            </div>
+            <span class="sr-price-sep">to</span>
+            <div class="sr-price-field">
+              <span class="sr-price-prefix">$</span>
+              <input type="number" id="priceMax" placeholder="Max" min="0" class="sr-price-input">
+            </div>
+          </div>
+          <input type="range" id="priceRange" min="0" max="200" value="200" class="sr-range">
+          <div class="sr-range-labels"><span>$0</span><span id="priceRangeVal">$200</span></div>
+        </div>
+
+        <!-- Profit Margin -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Profit Margin</label>
+          <div class="sr-pill-group">
+            <button class="sr-pill active" data-margin="all">All</button>
+            <button class="sr-pill" data-margin="30">30%+</button>
+            <button class="sr-pill" data-margin="50">50%+</button>
+            <button class="sr-pill" data-margin="70">70%+</button>
+          </div>
+        </div>
+
+        <!-- Competition Level -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Competition</label>
+          <div class="sr-pill-group">
+            <button class="sr-pill comp-pill active" data-comp="all">All</button>
+            <button class="sr-pill comp-pill" data-comp="low"><span class="sr-dot sr-dot-green"></span>Low</button>
+            <button class="sr-pill comp-pill" data-comp="medium"><span class="sr-dot sr-dot-yellow"></span>Med</button>
+            <button class="sr-pill comp-pill" data-comp="high"><span class="sr-dot sr-dot-red"></span>High</button>
+          </div>
+        </div>
+
+        <!-- AI Score -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Minimum AI Score</label>
+          <input type="range" id="scoreRange" min="0" max="100" value="0" class="sr-range">
+          <div class="sr-range-labels"><span>Any</span><span id="scoreValue">0</span></div>
+        </div>
+
+        <!-- Sort By -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Sort By</label>
+          <select id="sortSelect" class="sr-select">
+            <option value="score">AI Score (Best)</option>
+            <option value="trending">Trending Now</option>
+            <option value="profit">Highest Profit</option>
+            <option value="velocity">Sales Velocity</option>
+            <option value="competition">Low Competition</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+          </select>
+        </div>
+
+        <!-- Platform (duplicate of top bar for sidebar access) -->
+        <div class="sr-filter-group">
+          <label class="sr-filter-label">Platform</label>
+          <select id="sortSelectSearch" class="sr-select">
+            <option value="all">All Platforms</option>
+            <option value="aliexpress">AliExpress</option>
+            <option value="amazon">Amazon</option>
+            <option value="shopify">Shopify</option>
+            <option value="ebay">eBay</option>
+            <option value="temu">Temu</option>
+            <option value="tiktok">TikTok</option>
+            <option value="etsy">Etsy</option>
+            <option value="cjdropshipping">CJ Drop</option>
+            <option value="dhgate">DHgate</option>
+            <option value="wish">Wish</option>
+          </select>
+        </div>
+      </aside>
+
+      <!-- Products Content Area -->
+      <div class="sr-content">
+        <!-- Content Header -->
+        <div class="sr-content-header">
+          <div class="sr-results-info">
+            <span id="resultsCount">0 products found</span>
+          </div>
+          <div class="sr-content-actions">
+            <button class="sr-filter-toggle" id="filterMobileToggle">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filters
+            </button>
+            <div class="sr-view-toggle">
+              <button class="sr-view-btn active" data-view="grid" title="Grid View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+              </button>
+              <button class="sr-view-btn" data-view="list" title="List View">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="sr-products-grid" id="productsGrid"></div>
+
+        <!-- Skeleton Loading -->
+        <div class="sr-skeleton" id="productsSkeleton">
+          <div class="sr-sk-card"><div class="sr-sk-img"></div><div class="sr-sk-body"><div class="sr-sk-line sr-sk-w80"></div><div class="sr-sk-line sr-sk-w50"></div><div class="sr-sk-metrics"><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div></div><div class="sr-sk-footer"><div class="sr-sk-btn"></div></div></div></div>
+          <div class="sr-sk-card"><div class="sr-sk-img"></div><div class="sr-sk-body"><div class="sr-sk-line sr-sk-w80"></div><div class="sr-sk-line sr-sk-w50"></div><div class="sr-sk-metrics"><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div></div><div class="sr-sk-footer"><div class="sr-sk-btn"></div></div></div></div>
+          <div class="sr-sk-card"><div class="sr-sk-img"></div><div class="sr-sk-body"><div class="sr-sk-line sr-sk-w80"></div><div class="sr-sk-line sr-sk-w50"></div><div class="sr-sk-metrics"><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div></div><div class="sr-sk-footer"><div class="sr-sk-btn"></div></div></div></div>
+          <div class="sr-sk-card"><div class="sr-sk-img"></div><div class="sr-sk-body"><div class="sr-sk-line sr-sk-w80"></div><div class="sr-sk-line sr-sk-w50"></div><div class="sr-sk-metrics"><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div><div class="sr-sk-metric"></div></div><div class="sr-sk-footer"><div class="sr-sk-btn"></div></div></div></div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="sr-empty" id="productsEmpty">
+          <div class="sr-empty-icon">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </div>
+          <h3 class="sr-empty-title">No products match your criteria</h3>
+          <p class="sr-empty-desc">Try adjusting your filters or search for something different</p>
+          <div class="sr-empty-suggestions">
+            <h4>Popular Searches</h4>
+            <div class="sr-empty-grid">
+              <div class="sr-empty-card" data-query="wireless earbuds"><span>&#127911;</span><span>Wireless Earbuds</span></div>
+              <div class="sr-empty-card" data-query="pet gadgets"><span>&#128062;</span><span>Pet Gadgets</span></div>
+              <div class="sr-empty-card" data-query="kitchen organizer"><span>&#127859;</span><span>Kitchen Organizer</span></div>
+              <div class="sr-empty-card" data-query="LED strip lights"><span>&#128161;</span><span>LED Strip Lights</span></div>
+              <div class="sr-empty-card" data-query="phone accessories"><span>&#128241;</span><span>Phone Accessories</span></div>
+              <div class="sr-empty-card" data-query="fitness gadget"><span>&#128170;</span><span>Fitness Gadget</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related Tools -->
+        <div class="sr-related-tools" id="srRelatedTools"></div>
+      </div>
+    </div>
+
+    <!-- Filter Overlay (mobile) -->
+    <div class="sr-filter-overlay" id="filterOverlay"></div>
+
+  </section>
+
+  <!-- ===== SECTION: Product Detail ===== -->
+  <section class="section section-product-detail" id="section-product-detail">
+    <div class="pd-page-header">
+      <button class="back-btn" id="detailBackBtn" onclick="window.HuntDrop.goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+    </div>
+    <div class="pd-container" id="productDetailContent"></div>
+  </section>
+
+  <!-- Plugin sections are dynamically injected here by each plugin's mount() -->
+  <div id="sections-container"></div>
+
+  <!-- Modal overlay (used by plugins) -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="productModal">
+      <button class="modal-close" id="modalClose">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Chart.js: Must load BEFORE plugins that use Chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <!-- CORE: Never modify this. Features are added via plugins. -->
+  <script src="core.js"></script>
+  <!-- MOCK API: Simulated backend with 200+ products, competitors, suppliers -->
+  <script src="mock-api.js"></script>
+  <!-- PLUGINS: Each plugin self-registers and injects its own DOM -->
+  <script src="plugins/data-adapters.js"></script>
+  <script src="plugins/search-engine.js"></script>
+  <script src="plugins/product-grid.js"></script>
+  <script src="plugins/product-detail.js"></script>
+  <script src="plugins/product-hunt.js"></script>
+  <script src="plugins/ai-analyst.js"></script>
+  <script src="plugins/profit-calculator.js"></script>
+  <script src="plugins/ad-studio.js"></script>
+  <script src="plugins/ai-key-manager.js"></script>
+  <script src="plugins/ai-web-search.js"></script>
+  <script src="plugins/ai-context-builder.js"></script>
+  <script src="plugins/ai-system-health.js"></script>
+  <script src="plugins/ai-risk-analyzer.js"></script>
+  <script src="plugins/ai-chat-service.js"></script>
+  <script src="plugins/ai-business-coach.js"></script>
+  <script src="plugins/ai-settings.js"></script>
+  <script src="plugins/profit-time-machine.js"></script>
+  <script src="plugins/store-generator.js"></script>
+  <script src="plugins/cb-intelligence-service.js"></script>
+  <script src="plugins/competitor-battlefield.js"></script>
+  <script src="plugins/customer-persona.js"></script>
+  <script src="plugins/bundle-intelligence.js"></script>
+  <script src="plugins/price-elasticity.js"></script>
+  <script src="plugins/product-lifecycle.js"></script>
+  <script src="plugins/ad-budget-allocator.js"></script>
+  <script src="plugins/store-health.js"></script>
+  <script src="plugins/content-calendar.js"></script>
+  <script src="plugins/supplier-intelligence.js"></script>
+  <script src="plugins/objection-handler.js"></script>
+  <script src="plugins/market-gap-finder.js"></script>
+  <script src="plugins/business-simulator.js"></script>
+  <script src="plugins/spy-center.js"></script>
+  <script src="plugins/supplier-hub.js"></script>
+  <script src="plugins/niche-radar.js"></script>
+  <!-- APP: Wires everything together -->
+  <script src="app.js"></script>
+</body>
+</html>

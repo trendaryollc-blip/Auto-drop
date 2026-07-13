@@ -1,0 +1,31 @@
+{
+  "name": "huntdrop-ai",
+  "version": "1.0.0",
+  "description": "Dropshipping intelligence platform — AI-powered product research, competitor analysis, and profit optimization",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint \"**/*.js\"",
+    "lint:fix": "eslint \"**/*.js\" --fix",
+    "format": "prettier --write \"**/*.{js,css,html,json}\"",
+    "format:check": "prettier --check \"**/*.{js,css,html,json}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/ui": "^2.1.9",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.5.3",
+    "vite": "^6.3.5",
+    "vitest": "^2.1.9"
+  }
+}

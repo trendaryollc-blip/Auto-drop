@@ -1,0 +1,153 @@
+﻿
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/trendaryo/Desktop/hunting app[39m
+
+node.exe : (node:5388) Warning: `--localstorage-file` was provided without a valid path
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:5388) War...ut a valid path:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning was created)
+[90mstdout[2m | tests/integration.test.js[2m > [22m[2mIntegration ΓÇö Full App Boot
+[22m[39m[MockAPI] Loaded 235 products, 10 competitors, 51 suppliers
+[DataAdapters] Registered 10 adapters. Products: 235
+Γ£ª HuntDrop AI v3.0.0 ΓÇö Booting...
+
+[90mstdout[2m | tests/integration.test.js[2m > [22m[2mIntegration ΓÇö Full App Boot[2m > [22m[2mAll plugins registered[2m > [22m[2mshould have profit-calculator registered
+[22m[39mΓ£ª HuntDrop AI Ready ΓÇö 32 plugins loaded
+
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have all 30+ plugins registered
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have data-adapters registered
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have search-engine registered
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have product-grid registered[33m 1296[2mms[22m[39m
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have profit-calculator registered[33m 430[2mms[22m[39m
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAll plugins registered[2m > [22mshould have ai-key-manager registered
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mALL_PRODUCTS available[2m > [22mshould have products loaded from data-adapters
+ [31m├ù[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mSearch flow integration[2m > [22mshould search and return results via EventBus
+[31m   ΓåÆ expected "spy" to be called at least once[39m
+ [31m├ù[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mSearch flow integration[2m > [22mshould filter:changed trigger search and return results
+[31m   ΓåÆ expected "spy" to be called at least once[39m
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mSearch + Product Grid integration[2m > [22mshould render product cards when search results arrive
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mConfig integration[2m > [22mshould have app config set by app.js
+ [31m├ù[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mConfig integration[2m > [22mshould have search config set
+[31m   ΓåÆ expected 10 to be greater than 10[39m
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mFeature flags integration[2m > [22mshould have all feature flags registered
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mNavigation integration[2m > [22mshould navigate between sections
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mNavigation integration[2m > [22mshould support back navigation
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAI services integration[2m > [22mshould have APIKeyManager available
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAI services integration[2m > [22mshould have AIContextBuilder available
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAI services integration[2m > [22mshould have AIChatService available
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAI services integration[2m > [22mshould have AIWebSearch available
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mAI services integration[2m > [22mshould build full context
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mExport helpers integration[2m > [22mshould export CSV
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mExport helpers integration[2m > [22mshould export JSON
+ [32mΓ£ô[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > [22mFull plugin init + mount cycle[2m > [22mshould init and mount all plugins without errors
+[90mstderr[2m | tests/integration.test.js
+[22m[39mNot implemented: navigation to another Document
+Not implemented: navigation to another Document
+
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Failed Tests 3 [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > 
+[22mSearch flow integration[2m > [22mshould search and return results via EventBus
+[31m[1mAssertionError[22m: expected "spy" to be called at least once[39m
+[36m [2mΓ¥»[22m tests/integration.test.js:[2m111:25[22m[39m
+    [90m109| [39m      [35mawait[39m 
+[33mHuntDrop[39m[33m.[39m[33mEventBus[39m[33m.[39m[34memit[39m([32m'search:query'[39m[33m,[39m { 
+query[33m:[39m [32m''[39m[33m,[39m filterΓÇª
+    [90m110| [39m
+    [90m111| [39m      [34mexpect[39m(resultsCb)[33m.[39m[34mtoHaveBeenCalled[39m()[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m112| [39m      [35mconst[39m callArg [33m=[39m 
+resultsCb[33m.[39mmock[33m.[39mcalls[[34m0[39m][[34m0[39m][33m;[39m
+    [90m113| [39m      [34mexpect[39m(callArg[33m.[39mresults)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > 
+[22mSearch flow integration[2m > [22mshould filter:changed trigger search and return results
+[31m[1mAssertionError[22m: expected "spy" to be called at least once[39m
+[36m [2mΓ¥»[22m tests/integration.test.js:[2m126:25[22m[39m
+    [90m124| [39m      [35mawait[39m 
+[33mHuntDrop[39m[33m.[39m[33mEventBus[39m[33m.[39m[34memit[39m([32m'filter:changed'[39m[33m,[39m { 
+filters[33m:[39m { sortΓÇª
+    [90m125| [39m
+    [90m126| [39m      [34mexpect[39m(resultsCb)[33m.[39m[34mtoHaveBeenCalled[39m()[33m;[39m
+    [90m   | [39m                        [31m^[39m
+    [90m127| [39m    })[33m;[39m
+    [90m128| [39m  })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»[22m[39m
+
+[31m[1m[7m FAIL [27m[22m[39m tests/integration.test.js[2m > [22mIntegration ΓÇö Full App Boot[2m > 
+[22mConfig integration[2m > [22mshould have search config set
+[31m[1mAssertionError[22m: expected 10 to be greater than 10[39m
+[36m [2mΓ¥»[22m tests/integration.test.js:[2m154:32[22m[39m
+    [90m152| [39m      [35mconst[39m platforms [33m=[39m 
+[33mHuntDrop[39m[33m.[39m[33mConfig[39m[33m.[39m[35mget[39m([32m'search.platforms'[39m)[33m;[39m
+    [90m153| [39m      [34mexpect[39m(platforms)[33m.[39m[34mtoContain[39m([32m'aliexpress'[39m)[33m;[39m
+    [90m154| [39m      
+[34mexpect[39m(platforms[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m10[39m)[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m155| [39m    })[33m;[39m
+    [90m156| [39m  })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Unhandled Errors [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[31m[1m
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Uncaught Exception [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[31m[1mTypeError[22m: Cannot read properties of undefined (reading 'escape')[39m
+[36m [2mΓ¥»[22m eval tests/setup.js:[2m184:14[22m[39m
+    [90m182| [39m  [35mconst[39m code [33m=[39m [34mreadFileSync[39m(filePath[33m,[39m 
+[32m'utf-8'[39m)[33m;[39m
+    [90m183| [39m  [90m// eslint-disable-next-line no-new-func[39m
+    [90m184| [39m  [35mconst[39m fn [33m=[39m [35mnew[39m [33mFunction[39m(code)[33m;[39m
+    [90m   | [39m             [31m^[39m
+    [90m185| [39m  fn[33m.[39m[34mcall[39m(window)[33m;[39m
+    [90m186| [39m}
+[90m [2mΓ¥»[22m renderSparklines tests/setup.js:[2m184:14[22m[39m
+[90m [2mΓ¥»[22m Timeout.eval [as _onTimeout] tests/setup.js:[2m184:14[22m[39m
+[90m [2mΓ¥»[22m listOnTimeout node:internal/timers:[2m605:17[22m[39m
+[90m [2mΓ¥»[22m processTimers node:internal/timers:[2m541:7[22m[39m
+
+[31mThis error originated in "[1mtests/integration.test.js[22m" test file. It doesn't mean the error was thrown 
+inside the file itself, but while it was running.[39m
+[31mThe latest test that might've caused the error is "[1mtests/integration.test.js[22m". It might mean one of the 
+following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Uncaught Exception [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[31m[1mReferenceError[22m: requestAnimationFrame is not defined[39m
+[36m [2mΓ¥»[22m step tests/setup.js:[2m184:14[22m[39m
+    [90m182| [39m  [35mconst[39m code [33m=[39m [34mreadFileSync[39m(filePath[33m,[39m 
+[32m'utf-8'[39m)[33m;[39m
+    [90m183| [39m  [90m// eslint-disable-next-line no-new-func[39m
+    [90m184| [39m  [35mconst[39m fn [33m=[39m [35mnew[39m [33mFunction[39m(code)[33m;[39m
+    [90m   | [39m             [31m^[39m
+    [90m185| [39m  fn[33m.[39m[34mcall[39m(window)[33m;[39m
+    [90m186| [39m}
+[90m [2mΓ¥»[22m Timeout._onTimeout tests/setup.js:[2m16:57[22m[39m
+[90m [2mΓ¥»[22m listOnTimeout node:internal/timers:[2m605:17[22m[39m
+[90m [2mΓ¥»[22m processTimers node:internal/timers:[2m541:7[22m[39m
+
+[31mThis error originated in "[1mtests/integration.test.js[22m" test file. It doesn't mean the error was thrown 
+inside the file itself, but while it was running.[39m
+[31mThis error was caught after test environment was torn down. Make sure to cancel any running tasks before test 
+finishes:
+- cancel timeouts using clearTimeout and clearInterval
+- wait for promises to resolve using the await keyword[39m
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (23)[39m
+[2m     Errors [22m [1m[31m2 errors[39m[22m
+[2m   Start at [22m 06:33:15
+[2m   Duration [22m 5.48s[2m (transform 48ms, setup 44ms, collect 20ms, tests 3.43s, environment 939ms, prepare 95ms)[22m
+

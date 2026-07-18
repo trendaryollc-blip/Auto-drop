@@ -2,8 +2,9 @@
 // PLUGIN: FAQ Builder — Objection Handler Generator
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+let _section = null;
 
 const ObjectionCategories = {
   trust: {
@@ -76,14 +77,84 @@ function findProduct(query,products){
   return products.find(p=>p.title.toLowerCase().includes(q)||p.keywords.some(k=>k.toLowerCase().includes(q)))||[...products].sort((a,b)=>b.score-a.score)[0];
 }
 
+function generate(query){
+  if(!query.trim()) return;
+  const products=window.HuntDrop.ALL_PRODUCTS||[];
+  if(!products.length) return;
+  const product=findProduct(query,products);
+  if(!product) return;
+  const el=_section?_section.querySelector('#ohResults'):null;
+  if(!el) return;
+
+  const allObjections=Object.entries(ObjectionCategories).map(([key,cat])=>({
+    ...cat,key,objections:cat.objections.map(o=>({...o}))
+  }));
+
+  const totalObjections=allObjections.reduce((sum,c)=>sum+c.objections.length,0);
+
+  el.innerHTML=`
+    <!-- Summary Stats -->
+    <div class="oh-summary-row">
+      <div class="oh-summary-card oh-sum-cyan"><div class="oh-sum-icon">🛡️</div><div class="oh-sum-val">${allObjections.length}</div><div class="oh-sum-label">Categories</div></div>
+      <div class="oh-summary-card oh-sum-purple"><div class="oh-sum-icon">💬</div><div class="oh-sum-val">${totalObjections}</div><div class="oh-sum-label">Objections Covered</div></div>
+      <div class="oh-summary-card oh-sum-green"><div class="oh-sum-icon">📋</div><div class="oh-sum-val">4</div><div class="oh-sum-label">Output Formats</div></div>
+      <div class="oh-summary-card oh-sum-orange"><div class="oh-sum-icon">🎯</div><div class="oh-sum-val">100%</div><div class="oh-sum-label">Objection Coverage</div></div>
+    </div>
+
+    <!-- Category Cards -->
+    <div class="oh-section">
+      <h3>📂 Objection Categories</h3>
+      <p class="oh-section-sub">28 pre-written responses across 7 categories</p>
+      <div class="oh-category-grid">
+        ${allObjections.map(cat=>`
+          <div class="oh-cat-card" style="border-left:4px solid ${cat.color}">
+            <div class="oh-cat-card-header">
+              <span class="oh-cat-card-icon">${esc(cat.icon)}</span>
+              <span class="oh-cat-card-name">${esc(cat.label)}</span>
+            </div>
+            <div class="oh-cat-card-count">${cat.objections.length} objections</div>
+            <div class="oh-cat-card-preview">${esc(cat.objections[0].q)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="oh-tabs">
+      <button class="oh-tab active" data-tab="all">📋 All Objections</button>
+      <button class="oh-tab" data-tab="page-copy">📄 Page Copy</button>
+      <button class="oh-tab" data-tab="ad-scripts">🎯 Ad Scripts</button>
+      <button class="oh-tab" data-tab="cs-templates">💬 CS Templates</button>
+    </div>
+
+    <div id="ohTabContent">
+      ${renderAllObjections(allObjections)}
+    </div>
+  `;
+
+  el.querySelectorAll('.oh-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      el.querySelectorAll('.oh-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const content=el.querySelector('#ohTabContent');
+      switch(tab.dataset.tab){
+        case 'all': content.innerHTML=renderAllObjections(allObjections); break;
+        case 'page-copy': content.innerHTML=renderPageCopy(allObjections,product); break;
+        case 'ad-scripts': content.innerHTML=renderAdScripts(allObjections,product); break;
+        case 'cs-templates': content.innerHTML=renderCSTemplates(allObjections,product); break;
+      }
+    });
+  });
+}
+
 const ObjectionHandlerPlugin = {
   id:'objection-handler',name:'FAQ Builder',version:'2.0.0',
   description:'Generate responses to every customer objection for any product',
-  dependencies:['search-engine'],_section:null,
+  dependencies:['search-engine'],
 
-  init(ctx){Config.defaults('objectionHandler',{enabled:true});},
+  init(_ctx){Config.defaults('objectionHandler',{enabled:true});},
 
-  mount(ctx){
+  mount(_ctx){
     const container=UI.$('sections-container');
     if(!container) return;
     const section=document.createElement('section');
@@ -144,91 +215,22 @@ const ObjectionHandlerPlugin = {
         ])}
       </div>`;
     container.appendChild(section);
-    const self=ObjectionHandlerPlugin;
-    self._section=section;
+    _section=section;
     const btn=section.querySelector('#ohGenerateBtn');
     const input=section.querySelector('#ohInput');
-    if(btn) btn.addEventListener('click',()=>self.generate(input?.value||''));
-    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')self.generate(input.value);});
+    if(btn) btn.addEventListener('click',()=>generate(input?.value||''));
+    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')generate(input.value);});
     section.querySelectorAll('.oh-quick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.q;self.generate(b.dataset.q);});
+      b.addEventListener('click',()=>{input.value=b.dataset.q;generate(b.dataset.q);});
     });
   },
 
-  unmount(ctx){if(ObjectionHandlerPlugin._section){ObjectionHandlerPlugin._section.remove();ObjectionHandlerPlugin._section=null;}},
+  unmount(_ctx){if(_section){_section.remove();_section=null;}},
 
-  generate(query){
-    if(!query.trim()) return;
-    const products=window.HuntDrop.ALL_PRODUCTS||[];
-    if(!products.length) return;
-    const product=findProduct(query,products);
-    if(!product) return;
-    const el=this._section?this._section.querySelector('#ohResults'):null;
-    if(!el) return;
+  generate(query){generate(query);}
+};
 
-    const allObjections=Object.entries(ObjectionCategories).map(([key,cat])=>({
-      ...cat,key,objections:cat.objections.map(o=>({...o}))
-    }));
-
-    const totalObjections=allObjections.reduce((sum,c)=>sum+c.objections.length,0);
-
-    el.innerHTML=`
-      <!-- Summary Stats -->
-      <div class="oh-summary-row">
-        <div class="oh-summary-card oh-sum-cyan"><div class="oh-sum-icon">🛡️</div><div class="oh-sum-val">${allObjections.length}</div><div class="oh-sum-label">Categories</div></div>
-        <div class="oh-summary-card oh-sum-purple"><div class="oh-sum-icon">💬</div><div class="oh-sum-val">${totalObjections}</div><div class="oh-sum-label">Objections Covered</div></div>
-        <div class="oh-summary-card oh-sum-green"><div class="oh-sum-icon">📋</div><div class="oh-sum-val">4</div><div class="oh-sum-label">Output Formats</div></div>
-        <div class="oh-summary-card oh-sum-orange"><div class="oh-sum-icon">🎯</div><div class="oh-sum-val">100%</div><div class="oh-sum-label">Objection Coverage</div></div>
-      </div>
-
-      <!-- Category Cards -->
-      <div class="oh-section">
-        <h3>📂 Objection Categories</h3>
-        <p class="oh-section-sub">28 pre-written responses across 7 categories</p>
-        <div class="oh-category-grid">
-          ${allObjections.map(cat=>`
-            <div class="oh-cat-card" style="border-left:4px solid ${cat.color}">
-              <div class="oh-cat-card-header">
-                <span class="oh-cat-card-icon">${esc(cat.icon)}</span>
-                <span class="oh-cat-card-name">${esc(cat.label)}</span>
-              </div>
-              <div class="oh-cat-card-count">${cat.objections.length} objections</div>
-              <div class="oh-cat-card-preview">${esc(cat.objections[0].q)}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="oh-tabs">
-        <button class="oh-tab active" data-tab="all">📋 All Objections</button>
-        <button class="oh-tab" data-tab="page-copy">📄 Page Copy</button>
-        <button class="oh-tab" data-tab="ad-scripts">🎯 Ad Scripts</button>
-        <button class="oh-tab" data-tab="cs-templates">💬 CS Templates</button>
-      </div>
-
-      <div id="ohTabContent">
-        ${this.renderAllObjections(allObjections)}
-      </div>
-    `;
-
-    const self=this;
-    el.querySelectorAll('.oh-tab').forEach(tab=>{
-      tab.addEventListener('click',()=>{
-        el.querySelectorAll('.oh-tab').forEach(t=>t.classList.remove('active'));
-        tab.classList.add('active');
-        const content=el.querySelector('#ohTabContent');
-        switch(tab.dataset.tab){
-          case 'all': content.innerHTML=self.renderAllObjections(allObjections); break;
-          case 'page-copy': content.innerHTML=self.renderPageCopy(allObjections,product); break;
-          case 'ad-scripts': content.innerHTML=self.renderAdScripts(allObjections,product); break;
-          case 'cs-templates': content.innerHTML=self.renderCSTemplates(allObjections,product); break;
-        }
-      });
-    });
-  },
-
-  renderAllObjections(categories){
+function renderAllObjections(categories){
     return `<div class="oh-categories">
       ${categories.map(cat=>`
         <div class="oh-category">
@@ -257,103 +259,102 @@ const ObjectionHandlerPlugin = {
         </div>
       `).join('')}
     </div>`;
-  },
-
-  renderPageCopy(categories,product){
-    const topObjections=categories.flatMap(c=>c.objections).slice(0,8);
-    return `
-      <div class="oh-page-section">
-        <h3 class="oh-section-title">📋 Product Page — Trust Section Copy</h3>
-
-        <div class="oh-copy-block">
-          <div class="oh-copy-label">Suggested Trust Bar (top of product page)</div>
-          <div class="oh-copy-text">✓ 30-Day Money-Back Guarantee &nbsp;|&nbsp; ✓ 12,847+ Happy Customers &nbsp;|&nbsp; ✓ Free Shipping Over $50 &nbsp;|&nbsp; ✓ 24/7 Support</div>
-        </div>
-
-        <div class="oh-copy-block">
-          <div class="oh-copy-label">FAQ Section — Objection-Handling Answers</div>
-          <div class="oh-copy-faq">
-            ${topObjections.map(o=>`
-              <div class="oh-faq-item">
-                <div class="oh-faq-q">${esc(o.q)}</div>
-                <div class="oh-faq-a">${esc(o.a)}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="oh-copy-block">
-          <div class="oh-copy-label">Guarantee Badge Text</div>
-          <div class="oh-copy-text">🛡️ <strong>"Love It or Leave It"</strong> — 60-Day 100% Money-Back Guarantee. No questions asked. No hoops to jump through. If this product doesn't blow your mind, email us and we'll refund every penny.</div>
-        </div>
-
-        <div class="oh-copy-block">
-          <div class="oh-copy-label">Social Proof Widget</div>
-          <div class="oh-copy-text">🔥 <span id="ohLiveSales">${Math.floor(8+Math.random()*12)}</span> people are viewing this right now &nbsp;|&nbsp; ⏰ ${Math.floor(3+Math.random()*5)} bought in the last hour &nbsp;|&nbsp; 📦 ${Math.floor(85+Math.random()*10)}% in stock</div>
-        </div>
-      </div>
-    `;
-  },
-
-  renderAdScripts(categories,product){
-    const scripts=[
-      {platform:'Facebook/Instagram',icon:'📘',angle:'Fear-based',copy:`Stop wasting money on products that don't work. This ${product.title.split(' ').slice(0,3).join(' ')} has helped 12,847+ people save time every single day. 60-day money-back guarantee. Try it risk-free →`},
-      {platform:'Facebook/Instagram',icon:'📘',angle:'Social proof',copy:`"I can't believe I waited this long to buy this." — That's what 4,200+ 5-star reviewers said. Join 25,000+ customers who already made the switch. Free shipping today only →`},
-      {platform:'TikTok',icon:'🎵',angle:'Hook',copy:`POV: you found the ${product.title.split(' ').slice(0,3).join(' ')} that actually works. 12,847+ 5-star reviews can't be wrong. Link in bio before it sells out again →`},
-      {platform:'TikTok',icon:'🎵',angle:'Myth-busting',copy:`"You can't find quality products online" — Wrong. This ${product.title.split(' ').slice(0,3).join(' ')} has a 4.8/5 rating across 3 platforms. 60-day guarantee proves we're not lying →`},
-      {platform:'Google Ads',icon:'🔍',angle:'Search intent',copy:`Looking for ${product.title.split(' ').slice(0,3).join(' ')}? Join 25,000+ customers. 60-day money-back guarantee. Free shipping over $50. ★★★★★ 4.8/5 rating.`},
-    ];
-
-    return `
-      <div class="oh-ad-section">
-        <h3 class="oh-section-title">🎯 Ad Copy — Preemptively Addresses Objections</h3>
-        <div class="oh-ad-grid">
-          ${scripts.map(s=>`
-            <div class="oh-ad-card">
-              <div class="oh-ad-header">
-                <span class="oh-ad-platform">${s.icon} ${s.platform}</span>
-                <span class="oh-ad-angle">${s.angle}</span>
-              </div>
-              <div class="oh-ad-copy">${s.copy}</div>
-              <div class="oh-ad-note">✅ Addresses: Trust + Social proof + Risk reversal</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  },
-
-  renderCSTemplates(categories,product){
-    const templates=[
-      {trigger:'Customer asks about return policy',icon:'🔄',response:`Hi [Name], thank you for reaching out! We offer a 60-day hassle-free return policy. If you're not completely satisfied, we'll send you a prepaid return label and process your refund within 3 business days. Would you like me to start the return process for you?`,priority:'High'},
-      {trigger:'Customer complains about quality',icon:'⚠️',response:`Hi [Name], I'm sorry to hear that. Your satisfaction is our top priority. I'd like to send you a replacement at no cost — or if you prefer, a full refund. Which would you prefer? We also have a troubleshooting guide that might help if you'd like to try that first.`,priority:'Critical'},
-      {trigger:'Customer asks if product is safe',icon:'🛡️',response:`Hi [Name], great question! This product is made with [non-toxic/eco-friendly] materials and has been independently tested and certified. It meets all US and EU safety standards. We also include a safety data sheet with every order. Let me know if you have any other concerns!`,priority:'High'},
-      {trigger:'Customer wants a discount',icon:'💰',response:`Hi [Name]! I appreciate your interest. We're currently running a bundle deal: buy 2, save 15% with code BUNDLE15. I can also add you to our VIP list for exclusive early access to sales. Would either of those work for you?`,priority:'Medium'},
-      {trigger:'Customer says it\'s too expensive',icon:'💸',response:`Hi [Name], I understand budget is a concern. Here's the thing: this product replaces $150+ worth of alternatives. At our price, that's less than $0.15 per use over its lifetime. Plus, our 60-day guarantee means you can try it completely risk-free. If it doesn't pay for itself, we'll refund you.`,priority:'High'},
-      {trigger:'Customer asks about shipping time',icon:'🚚',response:`Hi [Name]! Standard shipping: 3-5 business days. Express: 1-2 days ($4.99). Every order includes real-time tracking. I just checked — orders placed before 2 PM EST ship same day. Where are you located? I can give you an exact delivery estimate.`,priority:'Medium'}
-    ];
-
-    return `
-      <div class="oh-cs-section">
-        <h3 class="oh-section-title">💬 Customer Service Response Templates</h3>
-        <div class="oh-cs-grid">
-          ${templates.map(t=>`
-            <div class="oh-cs-card">
-              <div class="oh-cs-header">
-                <span class="oh-cs-trigger">${t.icon} ${t.trigger}</span>
-                <span class="oh-cs-priority oh-cs-priority-${t.priority.toLowerCase()}">${t.priority}</span>
-              </div>
-              <div class="oh-cs-response">${t.response}</div>
-              <div class="oh-cs-actions">
-                <button class="oh-copy-btn" onclick="const r=this.closest('.oh-cs-card').querySelector('.oh-cs-response');navigator.clipboard.writeText(r.textContent);this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Template',1500)">📋 Copy Template</button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
   }
-};
+
+function renderPageCopy(categories,_product){
+  const topObjections=categories.flatMap(c=>c.objections).slice(0,8);
+  return `
+    <div class="oh-page-section">
+      <h3 class="oh-section-title">📋 Product Page — Trust Section Copy</h3>
+
+      <div class="oh-copy-block">
+        <div class="oh-copy-label">Suggested Trust Bar (top of product page)</div>
+        <div class="oh-copy-text">✓ 30-Day Money-Back Guarantee &nbsp;|&nbsp; ✓ 12,847+ Happy Customers &nbsp;|&nbsp; ✓ Free Shipping Over $50 &nbsp;|&nbsp; ✓ 24/7 Support</div>
+      </div>
+
+      <div class="oh-copy-block">
+        <div class="oh-copy-label">FAQ Section — Objection-Handling Answers</div>
+        <div class="oh-copy-faq">
+          ${topObjections.map(o=>`
+            <div class="oh-faq-item">
+              <div class="oh-faq-q">${esc(o.q)}</div>
+              <div class="oh-faq-a">${esc(o.a)}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="oh-copy-block">
+        <div class="oh-copy-label">Guarantee Badge Text</div>
+        <div class="oh-copy-text">🛡️ <strong>"Love It or Leave It"</strong> — 60-Day 100% Money-Back Guarantee. No questions asked. No hoops to jump through. If this product doesn't blow your mind, email us and we'll refund every penny.</div>
+      </div>
+
+      <div class="oh-copy-block">
+        <div class="oh-copy-label">Social Proof Widget</div>
+        <div class="oh-copy-text">🔥 <span id="ohLiveSales">${Math.floor(8+Math.random()*12)}</span> people are viewing this right now &nbsp;|&nbsp; ⏰ ${Math.floor(3+Math.random()*5)} bought in the last hour &nbsp;|&nbsp; 📦 ${Math.floor(85+Math.random()*10)}% in stock</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAdScripts(categories,product){
+  const scripts=[
+    {platform:'Facebook/Instagram',icon:'📘',angle:'Fear-based',copy:`Stop wasting money on products that don't work. This ${product.title.split(' ').slice(0,3).join(' ')} has helped 12,847+ people save time every single day. 60-day money-back guarantee. Try it risk-free →`},
+    {platform:'Facebook/Instagram',icon:'📘',angle:'Social proof',copy:`"I can't believe I waited this long to buy this." — That's what 4,200+ 5-star reviewers said. Join 25,000+ customers who already made the switch. Free shipping today only →`},
+    {platform:'TikTok',icon:'🎵',angle:'Hook',copy:`POV: you found the ${product.title.split(' ').slice(0,3).join(' ')} that actually works. 12,847+ 5-star reviews can't be wrong. Link in bio before it sells out again →`},
+    {platform:'TikTok',icon:'🎵',angle:'Myth-busting',copy:`"You can't find quality products online" — Wrong. This ${product.title.split(' ').slice(0,3).join(' ')} has a 4.8/5 rating across 3 platforms. 60-day guarantee proves we're not lying →`},
+    {platform:'Google Ads',icon:'🔍',angle:'Search intent',copy:`Looking for ${product.title.split(' ').slice(0,3).join(' ')}? Join 25,000+ customers. 60-day money-back guarantee. Free shipping over $50. ★★★★★ 4.8/5 rating.`},
+  ];
+
+  return `
+    <div class="oh-ad-section">
+      <h3 class="oh-section-title">🎯 Ad Copy — Preemptively Addresses Objections</h3>
+      <div class="oh-ad-grid">
+        ${scripts.map(s=>`
+          <div class="oh-ad-card">
+            <div class="oh-ad-header">
+              <span class="oh-ad-platform">${s.icon} ${s.platform}</span>
+              <span class="oh-ad-angle">${s.angle}</span>
+            </div>
+            <div class="oh-ad-copy">${s.copy}</div>
+            <div class="oh-ad-note">✅ Addresses: Trust + Social proof + Risk reversal</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderCSTemplates(_categories,_product){
+  const templates=[
+    {trigger:'Customer asks about return policy',icon:'🔄',response:`Hi [Name], thank you for reaching out! We offer a 60-day hassle-free return policy. If you're not completely satisfied, we'll send you a prepaid return label and process your refund within 3 business days. Would you like me to start the return process for you?`,priority:'High'},
+    {trigger:'Customer complains about quality',icon:'⚠️',response:`Hi [Name], I'm sorry to hear that. Your satisfaction is our top priority. I'd like to send you a replacement at no cost — or if you prefer, a full refund. Which would you prefer? We also have a troubleshooting guide that might help if you'd like to try that first.`,priority:'Critical'},
+    {trigger:'Customer asks if product is safe',icon:'🛡️',response:`Hi [Name], great question! This product is made with [non-toxic/eco-friendly] materials and has been independently tested and certified. It meets all US and EU safety standards. We also include a safety data sheet with every order. Let me know if you have any other concerns!`,priority:'High'},
+    {trigger:'Customer wants a discount',icon:'💰',response:`Hi [Name]! I appreciate your interest. We're currently running a bundle deal: buy 2, save 15% with code BUNDLE15. I can also add you to our VIP list for exclusive early access to sales. Would either of those work for you?`,priority:'Medium'},
+    {trigger:'Customer says it\'s too expensive',icon:'💸',response:`Hi [Name], I understand budget is a concern. Here's the thing: this product replaces $150+ worth of alternatives. At our price, that's less than $0.15 per use over its lifetime. Plus, our 60-day guarantee means you can try it completely risk-free. If it doesn't pay for itself, we'll refund you.`,priority:'High'},
+    {trigger:'Customer asks about shipping time',icon:'🚚',response:`Hi [Name]! Standard shipping: 3-5 business days. Express: 1-2 days ($4.99). Every order includes real-time tracking. I just checked — orders placed before 2 PM EST ship same day. Where are you located? I can give you an exact delivery estimate.`,priority:'Medium'}
+  ];
+
+  return `
+    <div class="oh-cs-section">
+      <h3 class="oh-section-title">💬 Customer Service Response Templates</h3>
+      <div class="oh-cs-grid">
+        ${templates.map(t=>`
+          <div class="oh-cs-card">
+            <div class="oh-cs-header">
+              <span class="oh-cs-trigger">${t.icon} ${t.trigger}</span>
+              <span class="oh-cs-priority oh-cs-priority-${t.priority.toLowerCase()}">${t.priority}</span>
+            </div>
+            <div class="oh-cs-response">${t.response}</div>
+            <div class="oh-cs-actions">
+              <button class="oh-copy-btn" onclick="const r=this.closest('.oh-cs-card').querySelector('.oh-cs-response');navigator.clipboard.writeText(r.textContent);this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Template',1500)">📋 Copy Template</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
 
 PluginRegistry.register('objection-handler',ObjectionHandlerPlugin);
 })();

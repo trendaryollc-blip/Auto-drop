@@ -2,8 +2,9 @@
 // PLUGIN: Customer Persona Simulator
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+let _section = null;
 
 const PersonaTemplates = [
   {
@@ -263,7 +264,7 @@ function findProduct(query, products) {
   return { ...match, extraData };
 }
 
-function renderPersonaCard(persona, product, index) {
+function renderPersonaCard(persona, product, _index) {
   const pName = product.title?.split('—')[0]?.trim() || 'product';
   return `<div class="cps-persona-card">
     <div class="cps-persona-header">
@@ -356,11 +357,10 @@ const CustomerPersonaPlugin = {
   version:'1.2.0',
   description:'AI-generated psychographic buyer profiles with targeting, language, pricing, and journey insights',
   dependencies:['search-engine'],
-  _section:null,
 
-  init(ctx){Config.defaults('customerPersona',{enabled:true});},
+  init(_ctx){Config.defaults('customerPersona',{enabled:true});},
 
-  mount(ctx){
+  mount(_ctx){
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -400,27 +400,26 @@ const CustomerPersonaPlugin = {
         {section:'section-battlefield',name:'Competitor Battlefield',desc:"Analyze competitors' audiences",icon:'⚔️',color:'#ff3366'}
       ])}`;
     container.appendChild(section);
-    const self = CustomerPersonaPlugin;
-    self._section = section;
+    _section = section;
     const btn = section.querySelector('#cpsGenerateBtn');
     const input = section.querySelector('#cpsInput');
-    if(btn) btn.addEventListener('click',()=>self.generate(input?.value||''));
-    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')self.generate(input.value);});
+    if(btn) btn.addEventListener('click',()=>generate(input?.value||''));
+    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')generate(input.value);});
     section.querySelectorAll('.cps-quick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.q;self.generate(b.dataset.q);});
+      b.addEventListener('click',()=>{input.value=b.dataset.q;generate(b.dataset.q);});
     });
   },
 
-  unmount(ctx){
-    if(CustomerPersonaPlugin._section){CustomerPersonaPlugin._section.remove();CustomerPersonaPlugin._section=null;}
-    this._section=null;
-  },
+  unmount(_ctx){
+    if(_section){_section.remove();_section=null;}
+  }
+};
 
-  generate(query){
+function generate(query){
     if(!query.trim()) return;
     const products = window.HuntDrop.ALL_PRODUCTS || [];
     const product = findProduct(query, products);
-    const el = this._section?.querySelector('#cpsResults');
+    const el = _section?.querySelector('#cpsResults');
     if(!el) return;
 
     const shuffled = [...PersonaTemplates].sort(()=>Math.random()-0.5);
@@ -458,43 +457,42 @@ const CustomerPersonaPlugin = {
         </div>
       </div>`;
 
-    const self = this;
     el.querySelectorAll('.cps-tab').forEach(tab=>{
       tab.addEventListener('click',()=>{
         el.querySelectorAll('.cps-tab').forEach(t=>t.classList.remove('active'));
         tab.classList.add('active');
-        const content = self._section.querySelector('#cpsTabContent');
+        const content = _section.querySelector('#cpsTabContent');
         if(!content) return;
         switch(tab.dataset.tab){
           case 'personas':
             content.innerHTML=`<div class="cps-personas-grid">${personas.map((p,i)=>renderPersonaCard(p,product,i)).join('')}</div>`;
             break;
           case 'journey':
-            content.innerHTML=self.renderJourney(personas,product);
+            content.innerHTML=renderJourney(personas,product);
             break;
           case 'language':
-            content.innerHTML=self.renderLanguage(personas,product);
+            content.innerHTML=renderLanguage(personas,product);
             break;
           case 'checkout':
-            content.innerHTML=self.renderCheckout(personas,product);
+            content.innerHTML=renderCheckout(personas,product);
             break;
           case 'competitors':
-            content.innerHTML=self.renderCompetitors(personas,product);
+            content.innerHTML=renderCompetitors(personas,product);
             break;
           case 'demographics':
-            content.innerHTML=self.renderDemographics(personas,product);
+            content.innerHTML=renderDemographics(personas,product);
             break;
           case 'adcreatives':
-            content.innerHTML=self.renderAdCreatives(personas,product);
+            content.innerHTML=renderAdCreatives(personas,product);
             break;
           case 'emails':
-            content.innerHTML=self.renderEmails(personas,product);
+            content.innerHTML=renderEmails(personas,product);
             break;
           case 'landing':
-            content.innerHTML=self.renderLanding(product);
+            content.innerHTML=renderLanding(product);
             break;
           case 'platforms':
-            content.innerHTML=self.renderPlatforms(personas,product);
+            content.innerHTML=renderPlatforms(personas,product);
             break;
         }
       });
@@ -504,7 +502,7 @@ const CustomerPersonaPlugin = {
       tab.addEventListener('click',()=>{
         el.querySelectorAll('.cps-plat-tab').forEach(t=>t.classList.remove('active'));
         tab.classList.add('active');
-        const pContent = self._section.querySelector('#cpsPlatContent');
+        const pContent = _section.querySelector('#cpsPlatContent');
         if(!pContent) return;
         const platform = tab.dataset.platform;
         const strat = PlatformStrategies[personas[0].name] || PlatformStrategies['Sarah Mitchell'];
@@ -526,10 +524,9 @@ const CustomerPersonaPlugin = {
           </div>`;
       });
     });
-  },
+}
 
-  renderJourney(personas, product){
-    const pName = product.title?.split('—')[0]?.trim() || 'product';
+function renderJourney(_personas, _product){
     const stages = [
       {icon:'👀',title:'Awareness',desc:'They scroll TikTok/Instagram and see a creator using this product',color:'var(--accent-purple)',actions:['See a creator mention it in a GRWM video','Friend shares a link in group chat','Ad appears in Stories/Reels feed','Browse Reddit and see a recommendation']},
       {icon:'🔍',title:'Research',desc:'They Google it, check reviews, compare alternatives',color:'var(--accent-cyan)',actions:['Google "[product] review" and read 3+ sources','Watch YouTube unboxing/comparison','Read Amazon reviews (focus on 3-star for balance)','Check Reddit for honest opinions','Compare prices across 2-3 platforms']},
@@ -561,12 +558,12 @@ const CustomerPersonaPlugin = {
         <div class="cps-journey-tips-grid">
           <div class="cps-journey-tip"><div class="cps-journey-tip-stage">Research → Consideration</div><div class="cps-journey-tip-text">Weak product page. No reviews visible, no comparison to competitors, generic stock photos. Fix: Add real customer photos, comparison tables, and trust badges.</div></div>
           <div class="cps-journey-tip"><div class="cps-journey-tip-stage">Consideration → Purchase</div><div class="cps-journey-tip-text">High shipping cost revealed at checkout. Fix: Offer free shipping threshold or bake shipping into price.</div></div>
-          <div class="cps-journey-tip"><div class="cps-journey-tip-stage">Purchase → Post-Purchase</div><div class="cps-journey-tip-text">Product doesn\'t match the ad promise. Fix: Use honest product photos, set accurate expectations in ad copy.</div></div>
+          <div class="cps-journey-tip"><div class="cps-journey-tip-stage">Purchase → Post-Purchase</div><div class="cps-journey-tip-text">Product doesn't match the ad promise. Fix: Use honest product photos, set accurate expectations in ad copy.</div></div>
         </div>
       </div>`;
-  },
+}
 
-  renderLanguage(personas, product){
+function renderLanguage(personas, product){
     const allLang = [...new Set(personas.flatMap(p=>p.language))];
     const allTriggers = [...new Set([...personas.flatMap(p=>p.buyingTriggers),...(product.extraData?.triggers||[])])].slice(0,10);
     const allObjections = [...new Set([...personas.flatMap(p=>p.objections),...(product.extraData?.objections||[])])].slice(0,8);
@@ -598,9 +595,9 @@ const CustomerPersonaPlugin = {
         <h4 class="cps-section-title">🎯 Best Persuasion Angles</h4>
         <div class="cps-lang-list">${allAngles.map((a,i)=>`<div class="cps-lang-item"><span class="cps-lang-num cps-lang-num-green">${i+1}</span><div class="cps-lang-text">${esc(a)}</div></div>`).join('')}</div>
       </div>`;
-  },
+}
 
-  renderCheckout(personas, product){
+function renderCheckout(personas, _product){
     const allAbandons = [...new Set(personas.flatMap(p=>p.checkoutBehavior.abandons))];
     const allCompletes = [...new Set(personas.flatMap(p=>p.checkoutBehavior.completes))];
     const allWindows = personas.map(p=>({best:p.purchaseWindow.best,worst:p.purchaseWindow.worst,seasonal:p.purchaseWindow.seasonal}));
@@ -652,9 +649,9 @@ const CustomerPersonaPlugin = {
           <div class="cps-checklist-item"><input type="checkbox" id="chk8"><label for="chk8">Mobile checkout tested</label></div>
         </div>
       </div>`;
-  },
+}
 
-  renderCompetitors(personas, product){
+function renderCompetitors(personas, _product){
     const allCompete = [...new Set(personas.flatMap(p=>p.competitorMindset))];
 
     return `
@@ -689,9 +686,9 @@ const CustomerPersonaPlugin = {
           </div>
         </div>
       </div>`;
-  },
+}
 
-  renderDemographics(personas, product){
+function renderDemographics(personas, _product){
     const allPersonaNames = ['Sarah Mitchell','Jason Park','Maria Rodriguez','Alex Thompson'];
     const colors = ['#E74C3C','#3498DB','#F39C12','#2ECC71'];
     const demoData = [
@@ -737,7 +734,7 @@ const CustomerPersonaPlugin = {
             <thead>
               <tr>
                 <th>Metric</th>
-                ${personas.map((p,i)=>`<th style="color:${colors[allPersonaNames.indexOf(p.name)]}">${p.icon} ${p.name.split(' ')[0]}</th>`).join('')}
+                ${personas.map((p,_i)=>`<th style="color:${colors[allPersonaNames.indexOf(p.name)]}">${p.icon} ${p.name.split(' ')[0]}</th>`).join('')}
               </tr>
             </thead>
             <tbody>
@@ -763,9 +760,9 @@ const CustomerPersonaPlugin = {
           <div class="cps-demos-insight"><span class="cps-demos-insight-icon">🔁</span><div><strong>Repeat Potential:</strong> Maria segment has 41% repeat rate — invest in email sequences for this group.</div></div>
         </div>
       </div>`;
-  },
+}
 
-  renderAdCreatives(personas, product){
+function renderAdCreatives(personas, product){
     const selected = personas[0];
     const headlines = AdHeadlines[selected.name] || AdHeadlines['Sarah Mitchell'];
     const pName = product.title?.split('—')[0]?.trim() || 'product';
@@ -849,9 +846,9 @@ const CustomerPersonaPlugin = {
           <div class="cps-ads-cta-pill">Limited Offer</div>
         </div>
       </div>`;
-  },
+}
 
-  renderEmails(personas, product){
+function renderEmails(personas, product){
     const selected = personas[0];
     const seq = EmailSequences[selected.name] || EmailSequences['Sarah Mitchell'];
     const pName = product.title?.split('—')[0]?.trim() || 'product';
@@ -904,9 +901,9 @@ const CustomerPersonaPlugin = {
           <div class="cps-email-metric"><span class="cps-email-metric-value">$15-$25</span><span class="cps-email-metric-label">Revenue Per Email</span></div>
         </div>
       </div>`;
-  },
+}
 
-  renderLanding(product){
+function renderLanding(product){
     const pName = product.title?.split('—')[0]?.trim() || 'product';
 
     return `
@@ -946,9 +943,9 @@ const CustomerPersonaPlugin = {
           <label class="cps-check-item"><input type="checkbox"> Pixel/conversion tracking verified on all key pages</label>
         </div>
       </div>`;
-  },
+}
 
-  renderPlatforms(personas, product){
+function renderPlatforms(personas, _product){
     const selected = personas[0];
     const strat = PlatformStrategies[selected.name] || PlatformStrategies['Sarah Mitchell'];
 
@@ -1006,8 +1003,7 @@ const CustomerPersonaPlugin = {
           </div>
         </div>`;
     }
-  }
-};
+}
 
 PluginRegistry.register('customer-persona', CustomerPersonaPlugin);
 })();

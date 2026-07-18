@@ -18,14 +18,14 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['core.js', 'app.js', 'mock-api.js', 'plugins/**/*.js'],
-      exclude: ['plugins/gen-mock.ps1', 'plugins/mock-api.js'],
+      include: ['core.js', 'app.js', 'plugins/**/*.js'],
+      exclude: [],
       reportsDirectory: './coverage',
     },
     environmentOptions: {
       jsdom: {
         resources: 'usable',
-        runScripts: 'dangerously',
+        runScripts: 'outside-only',
       },
     },
   },

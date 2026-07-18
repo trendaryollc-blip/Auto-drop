@@ -6,183 +6,74 @@
 // Each section has specific search queries and AI prompts for data extraction.
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,Config} = window.HuntDrop;
+const {EventBus,PluginRegistry} = window.HuntDrop;
 
-const CBIntelligenceService = {
-  id: 'cb-intelligence-service',
-  name: 'CB Intelligence Service',
-  version: '1.0.0',
-  dependencies: [],
+let _cache = {};
+let _lastFetch = null;
+let _fetching = false;
+let _status = 'idle';
+let _error = null;
 
-  _cache: {},
-  _lastFetch: null,
-  _fetching: false,
-  _status: 'idle', // idle | fetching | live | demo | error
-  _error: null,
+function _hasAIKey() {
+  try {
+    const km = window.HuntDrop.APIKeyManager;
+    if (!km) return false;
+    return km.hasFeatureKey('cb-intelligence-service');
+  } catch { return false; }
+}
 
-  init(ctx) {
-    this._cache = {};
-    this._lastFetch = null;
-    this._status = 'idle';
-  },
+function _hasSearchKey() {
+  try {
+    const ws = window.HuntDrop.AIWebSearch;
+    if (!ws) return false;
+    return ws.hasKey();
+  } catch { return false; }
+}
 
-  mount(ctx) {},
-  unmount(ctx) { this._cache = {}; },
+async function _search(query, numResults = 5) {
+  try {
+    const ws = window.HuntDrop.AIWebSearch;
+    if (!ws || !ws.hasKey()) return { results: [], answer: '' };
+    return await ws.search(query, numResults);
+  } catch { return { results: [], answer: '' }; }
+}
 
-  // ========================================================================
-  // PUBLIC API
-  // ========================================================================
-
-  getStatus() {
-    return {
-      status: this._status,
-      hasAI: this._hasAIKey(),
-      hasSearch: this._hasSearchKey(),
-      lastFetch: this._lastFetch,
-      error: this._error,
-      cacheSize: Object.keys(this._cache).length
-    };
-  },
-
-  async fetchAllIntelligence(niche) {
-    if (this._fetching) return { success: false, status: 'already_fetching' };
-    if (!this._hasAIKey()) {
-      this._status = 'demo';
-      return { success: false, status: 'demo', message: 'No AI API key configured. Using demo data.' };
-    }
-
-    this._fetching = true;
-    this._status = 'fetching';
-    this._error = null;
-
-    try {
-      const results = {};
-
-      // Fetch all sections in parallel for speed
-      const [competitors, liveAds, priceChanges, newProducts] = await Promise.allSettled([
-        this._fetchCompetitors(niche),
-        this._fetchLiveAds(niche),
-        this._fetchPriceChanges(niche),
-        this._fetchNewProducts(niche)
-      ]);
-
-      results.competitors = competitors.status === 'fulfilled' ? competitors.value : null;
-      results.liveAds = liveAds.status === 'fulfilled' ? liveAds.value : null;
-      results.priceChanges = priceChanges.status === 'fulfilled' ? priceChanges.value : null;
-      results.newProducts = newProducts.status === 'fulfilled' ? newProducts.value : null;
-
-      // Sequential AI-dependent sections (need competitor data first)
-      if (results.competitors) {
-        const [revenue, adSpend, swot] = await Promise.allSettled([
-          this._fetchRevenueIntel(results.competitors),
-          this._fetchAdSpend(results.competitors, results.liveAds),
-          this._fetchSWOT(results.competitors, results.liveAds, results.priceChanges, results.newProducts)
-        ]);
-
-        results.revenue = revenue.status === 'fulfilled' ? revenue.value : null;
-        results.adSpend = adSpend.status === 'fulfilled' ? adSpend.value : null;
-        results.swot = swot.status === 'fulfilled' ? swot.value : null;
-      }
-
-      // Cache results
-      this._cache = results;
-      this._lastFetch = new Date().toISOString();
-      this._status = 'live';
-      this._fetching = false;
-
-      EventBus.emit('cb:intelligence-loaded', { results, source: 'live' });
-      return { success: true, status: 'live', results };
-
-    } catch (err) {
-      this._status = 'error';
-      this._error = err.message;
-      this._fetching = false;
-      return { success: false, status: 'error', message: err.message };
-    }
-  },
-
-  getCachedData(section) {
-    return this._cache[section] || null;
-  },
-
-  isLive() {
-    return this._status === 'live' && this._cache && Object.keys(this._cache).length > 0;
-  },
-
-  // ========================================================================
-  // INTERNAL: API Key Detection
-  // ========================================================================
-
-  _hasAIKey() {
-    try {
-      const km = window.HuntDrop.APIKeyManager;
-      if (!km) return false;
-      const provider = km.getProvider();
-      return km.hasKey(provider);
-    } catch { return false; }
-  },
-
-  _hasSearchKey() {
-    try {
-      const ws = window.HuntDrop.AIWebSearch;
-      if (!ws) return false;
-      return ws.hasKey();
-    } catch { return false; }
-  },
-
-  // ========================================================================
-  // INTERNAL: AI + Web Search Helpers
-  // ========================================================================
-
-  async _search(query, numResults = 5) {
-    try {
-      const ws = window.HuntDrop.AIWebSearch;
-      if (!ws || !ws.hasKey()) return { results: [], answer: '' };
-      return await ws.search(query, numResults);
-    } catch { return { results: [], answer: '' }; }
-  },
-
-  async _aiAnalyze(prompt) {
-    try {
-      const chat = window.HuntDrop.AIChatService;
-      if (!chat) return null;
-      const result = await chat.sendMessage(prompt, []);
-      if (result && result.success) return result.response;
-      return null;
-    } catch { return null; }
-  },
-
-  async _searchAndAnalyze(searchQuery, analysisPrompt) {
-    const searchData = await this._search(searchQuery, 5);
-    const context = searchData.results.length > 0
-      ? `Search results:\n${searchData.results.map((r, i) => `${i+1}. ${r.title}\n${r.content || r.snippet || ''}`).join('\n\n')}`
-      : `Search answer: ${searchData.answer || 'No results found'}`;
-
-    const fullPrompt = `${analysisPrompt}\n\n${context}\n\nRespond ONLY with valid JSON array. No markdown. No explanation.`;
-    const aiResponse = await this._aiAnalyze(fullPrompt);
-    return this._parseJSON(aiResponse);
-  },
-
-  _parseJSON(text) {
-    if (!text) return null;
-    // Try to extract JSON from response
-    const jsonMatch = text.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try { return JSON.parse(jsonMatch[0]); } catch (e) {}
-    }
+async function _aiAnalyze(prompt) {
+  try {
+    const chat = window.HuntDrop.AIChatService;
+    if (!chat) return null;
+    const result = await chat.sendMessage(prompt, []);
+    if (result && result.success) return result.response;
     return null;
-  },
+  } catch { return null; }
+}
 
-  // ========================================================================
-  // SECTION 1: Competitors Discovery
-  // ========================================================================
+function _parseJSON(text) {
+  if (!text) return null;
+  const jsonMatch = text.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try { return JSON.parse(jsonMatch[0]); } catch {/* ignored */}
+  }
+  return null;
+}
 
-  async _fetchCompetitors(niche = 'dropshipping') {
-    const cacheKey = `competitors_${niche}`;
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
+async function _searchAndAnalyze(searchQuery, analysisPrompt) {
+  const searchData = await _search(searchQuery, 5);
+  const context = searchData.results.length > 0
+    ? `Search results:\n${searchData.results.map((r, i) => `${i+1}. ${r.title}\n${r.content || r.snippet || ''}`).join('\n\n')}`
+    : `Search answer: ${searchData.answer || 'No results found'}`;
 
-    const searchQuery = `top successful dropshipping stores ${niche} 2025 2026 shopify woocommerce`;
-    const prompt = `Analyze these search results about successful dropshipping stores.
+  const fullPrompt = `${analysisPrompt}\n\n${context}\n\nRespond ONLY with valid JSON array. No markdown. No explanation.`;
+  const aiResponse = await _aiAnalyze(fullPrompt);
+  return _parseJSON(aiResponse);
+}
+
+async function _fetchCompetitors(niche = 'dropshipping') {
+  const cacheKey = `competitors_${niche}`;
+  if (_cache[cacheKey]) return _cache[cacheKey];
+
+  const searchQuery = `top successful dropshipping stores ${niche} 2025 2026 shopify woocommerce`;
+  const prompt = `Analyze these search results about successful dropshipping stores.
 
 For each store found, extract/create this JSON structure:
 {
@@ -212,38 +103,32 @@ For each store found, extract/create this JSON structure:
 
 Create 10 competitors. Use realistic estimates based on the search data. Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      // Ensure required fields
-      const cleaned = result.map((c, i) => ({
-        ...c,
-        id: c.id || `c${i+1}`,
-        avatar: c.avatar || c.name?.[0] || 'S',
-        color: c.color || ['var(--accent-green)','var(--accent-cyan)','var(--accent-pink)','var(--accent-orange)','var(--accent-purple)'][i % 5],
-        lastActive: c.lastActive || `${Math.floor(Math.random() * 15) + 1} min ago`
-      }));
-      this._cache[cacheKey] = cleaned;
-      return cleaned;
-    }
-    return null;
-  },
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    const cleaned = result.map((c, i) => ({
+      ...c,
+      id: c.id || `c${i+1}`,
+      avatar: c.avatar || c.name?.[0] || 'S',
+      color: c.color || ['var(--accent-green)','var(--accent-cyan)','var(--accent-pink)','var(--accent-orange)','var(--accent-purple)'][i % 5],
+      lastActive: c.lastActive || `${Math.floor(Math.random() * 15) + 1} min ago`
+    }));
+    _cache[cacheKey] = cleaned;
+    return cleaned;
+  }
+  return null;
+}
 
-  // ========================================================================
-  // SECTION 2: Live Ads Intelligence
-  // ========================================================================
+async function _fetchLiveAds(niche = 'dropshipping') {
+  const cacheKey = `liveAds_${niche}`;
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchLiveAds(niche = 'dropshipping') {
-    const cacheKey = `liveAds_${niche}`;
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
+  const searchQueries = [
+    `facebook ad library dropshipping ${niche} trending ads 2026`,
+    `tiktok creative center viral ads ${niche} dropshipping`
+  ];
 
-    // Try Facebook Ad Library + TikTok Creative Center (public, no API key)
-    const searchQueries = [
-      `facebook ad library dropshipping ${niche} trending ads 2026`,
-      `tiktok creative center viral ads ${niche} dropshipping`
-    ];
-
-    const searchQuery = searchQueries.join(' OR ');
-    const prompt = `Analyze these search results about active dropshipping ads on Facebook and TikTok.
+  const searchQuery = searchQueries.join(' OR ');
+  const prompt = `Analyze these search results about active dropshipping ads on Facebook and TikTok.
 
 For each ad found, create this JSON structure:
 {
@@ -263,32 +148,28 @@ For each ad found, create this JSON structure:
 
 Create 12 ads across different platforms. Use realistic data from the search results. Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      const cleaned = result.map(a => ({
-        ...a,
-        ctr: parseFloat(a.ctr) || (Math.random() * 3 + 2).toFixed(1),
-        spend: parseInt(a.spend) || Math.floor(Math.random() * 80 + 20),
-        engagement: parseFloat(a.engagement) || (Math.random() * 15 + 5).toFixed(1),
-        estReach: parseInt(a.estReach) || Math.floor(Math.random() * 50000 + 10000),
-        status: a.status || ['running', 'scaling', 'testing'][Math.floor(Math.random() * 3)]
-      }));
-      this._cache[cacheKey] = cleaned;
-      return cleaned;
-    }
-    return null;
-  },
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    const cleaned = result.map(a => ({
+      ...a,
+      ctr: parseFloat(a.ctr) || (Math.random() * 3 + 2).toFixed(1),
+      spend: parseInt(a.spend) || Math.floor(Math.random() * 80 + 20),
+      engagement: parseFloat(a.engagement) || (Math.random() * 15 + 5).toFixed(1),
+      estReach: parseInt(a.estReach) || Math.floor(Math.random() * 50000 + 10000),
+      status: a.status || ['running', 'scaling', 'testing'][Math.floor(Math.random() * 3)]
+    }));
+    _cache[cacheKey] = cleaned;
+    return cleaned;
+  }
+  return null;
+}
 
-  // ========================================================================
-  // SECTION 3: Price Changes
-  // ========================================================================
+async function _fetchPriceChanges(niche = 'dropshipping') {
+  const cacheKey = `priceChanges_${niche}`;
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchPriceChanges(niche = 'dropshipping') {
-    const cacheKey = `priceChanges_${niche}`;
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
-
-    const searchQuery = `dropshipping ${niche} price drops sales discounts 2026 shopify stores`;
-    const prompt = `Analyze these search results about dropshipping price changes and sales.
+  const searchQuery = `dropshipping ${niche} price drops sales discounts 2026 shopify stores`;
+  const prompt = `Analyze these search results about dropshipping price changes and sales.
 
 For each price change found, create this JSON structure:
 {
@@ -303,31 +184,27 @@ For each price change found, create this JSON structure:
 
 Create 8 price changes. Use realistic prices ($10-$80 range). Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      const cleaned = result.map(p => ({
-        ...p,
-        oldPrice: parseFloat(p.oldPrice) || 39.99,
-        newPrice: parseFloat(p.newPrice) || 29.99,
-        change: p.change != null ? parseInt(p.change) : -15,
-        impact: p.impact || (Math.abs(parseInt(p.change)) > 20 ? 'HIGH' : 'MEDIUM')
-      }));
-      this._cache[cacheKey] = cleaned;
-      return cleaned;
-    }
-    return null;
-  },
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    const cleaned = result.map(p => ({
+      ...p,
+      oldPrice: parseFloat(p.oldPrice) || 39.99,
+      newPrice: parseFloat(p.newPrice) || 29.99,
+      change: p.change != null ? parseInt(p.change) : -15,
+      impact: p.impact || (Math.abs(parseInt(p.change)) > 20 ? 'HIGH' : 'MEDIUM')
+    }));
+    _cache[cacheKey] = cleaned;
+    return cleaned;
+  }
+  return null;
+}
 
-  // ========================================================================
-  // SECTION 4: New Products
-  // ========================================================================
+async function _fetchNewProducts(niche = 'dropshipping') {
+  const cacheKey = `newProducts_${niche}`;
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchNewProducts(niche = 'dropshipping') {
-    const cacheKey = `newProducts_${niche}`;
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
-
-    const searchQuery = `new dropshipping products launched ${niche} 2026 trending aliexpress viral`;
-    const prompt = `Analyze these search results about new dropshipping products.
+  const searchQuery = `new dropshipping products launched ${niche} 2026 trending aliexpress viral`;
+  const prompt = `Analyze these search results about new dropshipping products.
 
 For each new product found, create this JSON structure:
 {
@@ -343,34 +220,28 @@ For each new product found, create this JSON structure:
 
 Create 6 new products. Use realistic data. Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      const cleaned = result.map(np => ({
-        ...np,
-        score: parseInt(np.score) || Math.floor(Math.random() * 15 + 80),
-        demandScore: parseInt(np.demandScore) || Math.floor(Math.random() * 20 + 75),
-        trend: np.trend || ['rising', 'stable'][Math.floor(Math.random() * 2)]
-      }));
-      this._cache[cacheKey] = cleaned;
-      return cleaned;
-    }
-    return null;
-  },
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    const cleaned = result.map(np => ({
+      ...np,
+      score: parseInt(np.score) || Math.floor(Math.random() * 15 + 80),
+      demandScore: parseInt(np.demandScore) || Math.floor(Math.random() * 20 + 75),
+      trend: np.trend || ['rising', 'stable'][Math.floor(Math.random() * 2)]
+    }));
+    _cache[cacheKey] = cleaned;
+    return cleaned;
+  }
+  return null;
+}
 
-  // ========================================================================
-  // SECTION 5: Revenue Intelligence
-  // ========================================================================
+async function _fetchRevenueIntel(competitors) {
+  const cacheKey = 'revenue';
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchRevenueIntel(competitors) {
-    const cacheKey = 'revenue';
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
+  if (!competitors || !Array.isArray(competitors)) return null;
 
-    if (!competitors || !Array.isArray(competitors)) return null;
-
-    // Revenue is already estimated in competitor data
-    // Enhance with AI analysis
-    const searchQuery = `ecommerce store revenue estimates similarweb traffic conversion rates 2026`;
-    const prompt = `Based on this competitor data, estimate accurate revenue intelligence:
+  const searchQuery = `ecommerce store revenue estimates similarweb traffic conversion rates 2026`;
+  const prompt = `Based on this competitor data, estimate accurate revenue intelligence:
 
 ${competitors.slice(0, 5).map(c => `${c.name}: Traffic ~${c.traffic}/mo, Conv: ${c.convRate}%, Products: ${c.products}`).join('\n')}
 
@@ -387,34 +258,29 @@ For each competitor, provide:
 
 Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      this._cache[cacheKey] = result;
-      return result;
-    }
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    _cache[cacheKey] = result;
+    return result;
+  }
 
-    // Fallback: derive from competitor data
-    return competitors.map(c => ({
-      competitor: c.name,
-      revenue: c.revenue,
-      traffic: c.traffic,
-      convRate: c.convRate,
-      aov: Math.round(c.revenue / (c.traffic * c.convRate / 100)),
-      dailyRev: Math.round(c.revenue / 30),
-      growthTrend: 'stable'
-    }));
-  },
+  return competitors.map(c => ({
+    competitor: c.name,
+    revenue: c.revenue,
+    traffic: c.traffic,
+    convRate: c.convRate,
+    aov: Math.round(c.revenue / (c.traffic * c.convRate / 100)),
+    dailyRev: Math.round(c.revenue / 30),
+    growthTrend: 'stable'
+  }));
+}
 
-  // ========================================================================
-  // SECTION 6: Ad Spend Intelligence
-  // ========================================================================
+async function _fetchAdSpend(competitors, _liveAds) {
+  const cacheKey = 'adSpend';
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchAdSpend(competitors, liveAds) {
-    const cacheKey = 'adSpend';
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
-
-    const searchQuery = `facebook ads library ad spend estimates dropshipping ${competitors?.[0]?.name || ''}`;
-    const prompt = `Estimate ad spending for these dropshipping stores:
+  const searchQuery = `facebook ads library ad spend estimates dropshipping ${competitors?.[0]?.name || ''}`;
+  const prompt = `Estimate ad spending for these dropshipping stores:
 
 ${competitors?.slice(0, 5).map(c => `${c.name}: ${c.ads} active ads, Revenue: $${c.revenue}/mo`).join('\n') || 'No competitor data'}
 
@@ -432,31 +298,27 @@ For each store, provide:
 
 Return JSON array only.`;
 
-    const result = await this._searchAndAnalyze(searchQuery, prompt);
-    if (result && Array.isArray(result) && result.length >= 3) {
-      const cleaned = result.map(s => ({
-        ...s,
-        daily: parseInt(s.daily) || parseInt(s.totalSpend) || 50,
-        weekly: parseInt(s.weekly) || (parseInt(s.daily) || 50) * 7,
-        monthly: parseInt(s.monthly) || (parseInt(s.daily) || 50) * 30,
-        platforms: s.platforms || { facebook: 20, tiktok: 20, instagram: 10 },
-        estROI: parseFloat(s.estROI) || (Math.random() * 2 + 2).toFixed(1)
-      }));
-      this._cache[cacheKey] = cleaned;
-      return cleaned;
-    }
-    return null;
-  },
+  const result = await _searchAndAnalyze(searchQuery, prompt);
+  if (result && Array.isArray(result) && result.length >= 3) {
+    const cleaned = result.map(s => ({
+      ...s,
+      daily: parseInt(s.daily) || parseInt(s.totalSpend) || 50,
+      weekly: parseInt(s.weekly) || (parseInt(s.daily) || 50) * 7,
+      monthly: parseInt(s.monthly) || (parseInt(s.daily) || 50) * 30,
+      platforms: s.platforms || { facebook: 20, tiktok: 20, instagram: 10 },
+      estROI: parseFloat(s.estROI) || (Math.random() * 2 + 2).toFixed(1)
+    }));
+    _cache[cacheKey] = cleaned;
+    return cleaned;
+  }
+  return null;
+}
 
-  // ========================================================================
-  // SECTION 7: SWOT Analysis
-  // ========================================================================
+async function _fetchSWOT(competitors, liveAds, priceChanges, newProducts) {
+  const cacheKey = 'swot';
+  if (_cache[cacheKey]) return _cache[cacheKey];
 
-  async _fetchSWOT(competitors, liveAds, priceChanges, newProducts) {
-    const cacheKey = 'swot';
-    if (this._cache[cacheKey]) return this._cache[cacheKey];
-
-    const prompt = `Generate a SWOT analysis for these top dropshipping competitors:
+  const prompt = `Generate a SWOT analysis for these top dropshipping competitors:
 
 Competitors: ${competitors?.map(c => `${c.name} (${c.cat}, $${c.revenue}/mo, ${c.convRate}% conv)`).join(', ') || 'Unknown'}
 Recent Price Changes: ${priceChanges?.map(p => `${p.product} ${p.change}%`).join(', ') || 'None'}
@@ -474,13 +336,104 @@ For each competitor, provide:
 
 Return JSON array only.`;
 
-    const result = await this._aiAnalyze(prompt);
-    const parsed = this._parseJSON(result);
-    if (parsed && Array.isArray(parsed) && parsed.length >= 3) {
-      this._cache[cacheKey] = parsed;
-      return parsed;
+  const result = await _aiAnalyze(prompt);
+  const parsed = _parseJSON(result);
+  if (parsed && Array.isArray(parsed) && parsed.length >= 3) {
+    _cache[cacheKey] = parsed;
+    return parsed;
+  }
+  return null;
+}
+
+const CBIntelligenceService = {
+  id: 'cb-intelligence-service',
+  name: 'CB Intelligence Service',
+  version: '1.0.0',
+  dependencies: [],
+
+  get _cache() { return _cache; },
+  set _cache(v) { _cache = v; },
+
+  init(_ctx) {
+    _cache = {};
+    _lastFetch = null;
+    _status = 'idle';
+  },
+
+  mount(_ctx) {},
+  unmount(_ctx) { _cache = {}; },
+
+  getStatus() {
+    return {
+      status: _status,
+      hasAI: _hasAIKey(),
+      hasSearch: _hasSearchKey(),
+      lastFetch: _lastFetch,
+      error: _error,
+      cacheSize: Object.keys(_cache).length
+    };
+  },
+
+  async fetchAllIntelligence(niche) {
+    if (_fetching) return { success: false, status: 'already_fetching' };
+    if (!_hasAIKey()) {
+      _status = 'demo';
+      return { success: false, status: 'demo', message: 'No AI API key configured. Using demo data.' };
     }
-    return null;
+
+    _fetching = true;
+    _status = 'fetching';
+    _error = null;
+
+    try {
+      const results = {};
+
+      const [competitors, liveAds, priceChanges, newProducts] = await Promise.allSettled([
+        _fetchCompetitors(niche),
+        _fetchLiveAds(niche),
+        _fetchPriceChanges(niche),
+        _fetchNewProducts(niche)
+      ]);
+
+      results.competitors = competitors.status === 'fulfilled' ? competitors.value : null;
+      results.liveAds = liveAds.status === 'fulfilled' ? liveAds.value : null;
+      results.priceChanges = priceChanges.status === 'fulfilled' ? priceChanges.value : null;
+      results.newProducts = newProducts.status === 'fulfilled' ? newProducts.value : null;
+
+      if (results.competitors) {
+        const [revenue, adSpend, swot] = await Promise.allSettled([
+          _fetchRevenueIntel(results.competitors),
+          _fetchAdSpend(results.competitors, results.liveAds),
+          _fetchSWOT(results.competitors, results.liveAds, results.priceChanges, results.newProducts)
+        ]);
+
+        results.revenue = revenue.status === 'fulfilled' ? revenue.value : null;
+        results.adSpend = adSpend.status === 'fulfilled' ? adSpend.value : null;
+        results.swot = swot.status === 'fulfilled' ? swot.value : null;
+      }
+
+      _cache = results;
+      _lastFetch = new Date().toISOString();
+      _status = 'live';
+      _fetching = false;
+
+      EventBus.emit('cb:intelligence-loaded', { results, source: 'live' });
+      return { success: true, status: 'live', results };
+
+    } catch (err) {
+      _status = 'error';
+      _error = err.message;
+      _fetching = false;
+      return { success: false, status: 'error', message: err.message };
+    }
+  },
+
+  getCachedData(section) {
+    return _cache[section] || null;
+  },
+
+  isLive() {
+    return _status === 'live' && _cache && Object.keys(_cache).length > 0;
   }
 };
 

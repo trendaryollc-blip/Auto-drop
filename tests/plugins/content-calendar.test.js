@@ -95,7 +95,8 @@ describe('content-calendar plugin', () => {
       await HuntDrop.PluginRegistry.init('content-calendar');
       await HuntDrop.PluginRegistry.mount('content-calendar');
       await HuntDrop.PluginRegistry.unmount('content-calendar');
-      expect(plugin._section).toBeNull();
+      expect(document.getElementById('section-calendar')).toBeNull();
+      expect(HuntDrop.PluginRegistry.get('content-calendar')._mounted).toBe(false);
     });
   });
 });

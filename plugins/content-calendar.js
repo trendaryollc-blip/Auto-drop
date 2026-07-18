@@ -2,8 +2,11 @@
 // PLUGIN: Seasonal Content Calendar Generator
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+
+let _calendar = null;
+let _section = null;
 
 const HOLIDAYS = [
   {month:0,day:1,name:"New Year's Day",emoji:"🎆",color:"#f59e0b"},
@@ -128,7 +131,7 @@ function generateCalendar(product) {
   return cal;
 }
 
-function generateHook(product,holiday,type,cat){
+function generateHook(product,holiday,type,_cat){
   const name=product.title.split("—")[0].trim();
   const shortName=name.length>30?name.substring(0,30):name;
   const kw=product.keywords[0]||"product";
@@ -165,7 +168,7 @@ function generateHook(product,holiday,type,cat){
   return hook;
 }
 
-function generateCaption(product,holiday,platform,hashtags){
+function generateCaption(product,holiday,platform,_hashtags){
   const caps={
     "TikTok":"This "+product.keywords[0]+" is going viral for a reason 🔥 Only $"+product.price.toFixed(2)+" — link in bio before it sells out! "+product.rating+"★ from "+product.reviews.toLocaleString()+" reviews",
     "Instagram":"Your new favorite "+product.keywords[0]+" has arrived ✨ Premium quality at factory prices. Tap to shop 👆\n\n"+product.rating+"★ rated • "+product.orders+" orders • Free shipping",
@@ -187,112 +190,30 @@ function shuffleHashtags(arr,count){
   return result;
 }
 
-const ContentCalendarPlugin = {
-  id:'content-calendar',name:'Content Planner',version:'2.0.0',
-  description:'AI-generated 90-day content and ad calendar with platform-specific strategies',
-  _calendar:null,_section:null,
+function generateFn(query){
+  if(!query||!query.trim()) return;
+  const products=window.HuntDrop.ALL_PRODUCTS||[];
+  const match=products.find(p=>
+    p.title.toLowerCase().includes(query.toLowerCase())||
+    p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
+  )||products.sort((a,b)=>b.score-a.score)[0];
+  if(!match) return;
+  _calendar=generateCalendar(match);
+  renderFn(match);
+}
 
-  init(ctx){Config.defaults('contentCalendar',{enabled:true});},
+function renderFn(_product){
+  const cal=_calendar;
+  const el=_section?_section.querySelector('#ccResults'):null;
+  if(!el||!cal) return;
 
-  mount(ctx){
-    const container=UI.$('sections-container');
-    if(!container) return;
-    const section=document.createElement('section');
-    section.className='section section-content-calendar';
-    section.id='section-calendar';
-    section.innerHTML=`
-      <div class="section-inner">
-        <div class="cc-hero">
-          <div class="cc-hero-content">
-            <div class="cc-hero-badge">📅 Content Intelligence</div>
-            <h1 class="cc-hero-title">Seasonal Content Planner</h1>
-            <p class="cc-hero-desc">AI-generated 90-day content + ad calendar with platform-specific strategies, hooks, hashtags, and posting schedules. Never run out of content ideas again.</p>
-          </div>
-          <div class="cc-hero-cards">
-            <div class="cc-hero-card"><div class="cc-hero-card-icon">📅</div><div class="cc-hero-card-num">90</div><div class="cc-hero-card-label">Days Planned</div></div>
-            <div class="cc-hero-card"><div class="cc-hero-card-icon">📱</div><div class="cc-hero-card-num">5</div><div class="cc-hero-card-label">Platforms</div></div>
-            <div class="cc-hero-card"><div class="cc-hero-card-icon">🎯</div><div class="cc-hero-card-num">30+</div><div class="cc-hero-card-label">Content Types</div></div>
-            <div class="cc-hero-card"><div class="cc-hero-card-icon">🎄</div><div class="cc-hero-card-num">25</div><div class="cc-hero-card-label">Holidays</div></div>
-          </div>
-        </div>
+  const todayPosts=cal.filter(d=>d.isToday||d.urgency==="post-today");
+  const thisWeek=cal.filter(d=>d.urgency==="post-today"||d.urgency==="this-week");
+  const holidays=cal.filter(d=>d.holiday);
+  const platformBreakdown={};
+  cal.forEach(d=>{const n=d.platform.name;platformBreakdown[n]=(platformBreakdown[n]||0)+1;});
 
-        <div class="cc-feat-list">
-          <div class="cc-feat-item"><span class="cc-feat-icon">📱</span> 5 Platforms</div>
-          <div class="cc-feat-item"><span class="cc-feat-icon">🎯</span> 30+ Content Types</div>
-          <div class="cc-feat-item"><span class="cc-feat-icon">🎄</span> 25 Holiday Events</div>
-          <div class="cc-feat-item"><span class="cc-feat-icon">#️⃣</span> Smart Hashtags</div>
-          <div class="cc-feat-item"><span class="cc-feat-icon">✍️</span> AI Hooks & Captions</div>
-          <div class="cc-feat-item"><span class="cc-feat-icon">⏰</span> Best Posting Times</div>
-        </div>
-
-        <div class="cc-input-card">
-          <h3>🔍 Enter Your Product</h3>
-          <div class="cc-input-row">
-            <div class="cc-input-wrap">
-              <svg class="cc-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input type="text" class="cc-input" id="ccInput" placeholder="Type a product keyword to generate 90-day calendar...">
-              <button class="cc-generate-btn" id="ccGenerateBtn">📅 Generate Calendar</button>
-            </div>
-          </div>
-          <div class="cc-quick-picks">
-            <span class="cc-quick-label">Quick try:</span>
-            <button class="cc-quick-btn" data-q="wireless earbuds">🎧 Earbuds</button>
-            <button class="cc-quick-btn" data-q="pet gadgets">🐾 Pet Gadgets</button>
-            <button class="cc-quick-btn" data-q="kitchen organizer">🍳 Kitchen</button>
-            <button class="cc-quick-btn" data-q="posture corrector">🧍 Posture</button>
-            <button class="cc-quick-btn" data-q="galaxy projector">🌌 Galaxy Light</button>
-          </div>
-        </div>
-
-        <div id="ccResults"></div>
-
-        ${window.HuntDrop.renderRelatedTools([
-          { section:'section-ad-studio', name:'Ad Studio', desc:'Create ad creatives', icon:'🎯', color:'#f59e0b' },
-          { section:'section-personas', name:'Customer Persona', desc:'Know your audience', icon:'👤', color:'#ec4899' },
-          { section:'section-objections', name:'Objection Handler', desc:'Overcome objections', icon:'🛡️', color:'#06b6d4' },
-          { section:'section-budget', name:'Ad Budget Allocator', desc:'Plan ad budget', icon:'📊', color:'#a855f7' }
-        ])}
-      </div>`;
-    container.appendChild(section);
-    const self=ContentCalendarPlugin;
-    self._section=section;
-    const btn=section.querySelector('#ccGenerateBtn');
-    const input=section.querySelector('#ccInput');
-    if(btn) btn.addEventListener('click',()=>self.generate(input?.value||''));
-    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')self.generate(input.value);});
-    section.querySelectorAll('.cc-quick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.q;self.generate(b.dataset.q);});
-    });
-  },
-
-  unmount(ctx){if(ContentCalendarPlugin._section){ContentCalendarPlugin._section.remove();ContentCalendarPlugin._section=null;} this._section=null;},
-
-  generate(query){
-    if(!query||!query.trim()) return;
-    const products=window.HuntDrop.ALL_PRODUCTS||[];
-    const match=products.find(p=>
-      p.title.toLowerCase().includes(query.toLowerCase())||
-      p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
-    )||products.sort((a,b)=>b.score-a.score)[0];
-    if(!match) return;
-    this._calendar=generateCalendar(match);
-    this.render(match);
-  },
-
-  render(product){
-    const cal=this._calendar;
-    const el=this._section?this._section.querySelector('#ccResults'):null;
-    if(!el||!cal) return;
-
-    const todayPosts=cal.filter(d=>d.isToday||d.urgency==="post-today");
-    const thisWeek=cal.filter(d=>d.urgency==="post-today"||d.urgency==="this-week");
-    const holidays=cal.filter(d=>d.holiday);
-    const platformBreakdown={};
-    cal.forEach(d=>{const n=d.platform.name;platformBreakdown[n]=(platformBreakdown[n]||0)+1;});
-    const uniquePlatforms=[...new Set(cal.map(d=>d.platform.name))];
-    const avgPostsPerWeek=Math.round(cal.length/13*10)/10;
-
-    el.innerHTML=`
+  el.innerHTML=`
       <!-- Summary Stats -->
       <div class="cc-summary-row">
         <div class="cc-summary-card cc-sum-red"><div class="cc-sum-icon">⚡</div><div class="cc-sum-val">${todayPosts.length}</div><div class="cc-sum-label">Post Today</div></div>
@@ -404,43 +325,47 @@ const ContentCalendarPlugin = {
           }).join('')}
         </div>
       </div>
+
+      <!-- Detail Panel -->
+      <div id="ccDetailPanel" class="cc-detail-panel"></div>
     `;
 
-    this.renderUrgency(todayPosts);
-    this.renderCalendarView(cal);
-    this.renderListView(cal);
-    this.renderPlatformView(cal,platformBreakdown);
-    this.setupTabs();
-  },
+  renderUrgencyFn(todayPosts);
+  renderCalendarViewFn(cal);
+  renderListViewFn(cal);
+  renderPlatformViewFn(cal,platformBreakdown);
+  setupTabsFn();
+  bindCardClicksFn(cal);
+}
 
-  renderUrgency(todayPosts){
-    const el=this._section?.querySelector('#ccUrgencyBanner');
-    if(!el) return;
-    if(!todayPosts.length){
-      el.innerHTML='<div class="cc-urgency cc-urgency-none">✅ No urgent posts — your next post is scheduled.</div>';
-      return;
-    }
-    el.innerHTML=todayPosts.map(p=>`
+function renderUrgencyFn(todayPosts){
+  const el=_section?.querySelector('#ccUrgencyBanner');
+  if(!el) return;
+  if(!todayPosts.length){
+    el.innerHTML='<div class="cc-urgency cc-urgency-none">✅ No urgent posts — your next post is scheduled.</div>';
+    return;
+  }
+  el.innerHTML=todayPosts.map(p=>`
       <div class="cc-urgency cc-urgency-active">
         <span class="cc-urgency-icon">⚡</span>
         <span class="cc-urgency-text">POST TODAY on <strong>${esc(p.platform.name)}</strong> — ${esc(p.contentType.type)}: "${esc(p.hook)}"</span>
       </div>
     `).join('');
-  },
+}
 
-  renderCalendarView(cal){
-    const el=this._section?.querySelector('#ccPanelCalendar');
-    if(!el) return;
-    const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
-    let html='', currentMonth=-1;
-    cal.forEach(day=>{
-      const m=day.date.getMonth();
-      if(m!==currentMonth){currentMonth=m;html+=`<div class="cc-month-header">${months[m]} ${day.date.getFullYear()}</div>`;}
-      const classes=['cc-day-card'];
-      if(day.isToday) classes.push('cc-day-today');
-      if(day.holiday) classes.push('cc-day-holiday');
-      if(day.isWeekend) classes.push('cc-day-weekend');
-      html+=`<div class="${classes.join(' ')}">
+function renderCalendarViewFn(cal){
+  const el=_section?.querySelector('#ccPanelCalendar');
+  if(!el) return;
+  const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  let html='', currentMonth=-1;
+  cal.forEach((day,i)=>{
+    const m=day.date.getMonth();
+    if(m!==currentMonth){currentMonth=m;html+=`<div class="cc-month-header">${months[m]} ${day.date.getFullYear()}</div>`;}
+    const classes=['cc-day-card'];
+    if(day.isToday) classes.push('cc-day-today');
+    if(day.holiday) classes.push('cc-day-holiday');
+    if(day.isWeekend) classes.push('cc-day-weekend');
+    html+=`<div class="${classes.join(' ')}" tabindex="0" role="button" aria-label="Day ${day.day}: ${day.contentType.type} on ${day.platform.name}" data-idx="${i}">
         <div class="cc-day-top">
           <span class="cc-day-date">${esc(day.dateStr)}</span>
           <span class="cc-day-name">${esc(day.dayName)}</span>
@@ -453,17 +378,23 @@ const ContentCalendarPlugin = {
           <span class="cc-day-time">⏰ ${day.contentType.best}</span>
           <span class="cc-day-diff cc-diff-${day.contentType.difficulty.toLowerCase()}">${day.contentType.difficulty}</span>
         </div>
+        <div class="cc-day-view">View Details →</div>
       </div>`;
-    });
-    el.innerHTML=html;
-  },
+  });
+  el.innerHTML=html;
+  el.querySelectorAll('.cc-day-card').forEach(card=>{
+    const handler=()=>{const idx=parseInt(card.dataset.idx);showDetailFn(cal[idx]);};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+}
 
-  renderListView(cal){
-    const el=this._section?.querySelector('#ccPanelList');
-    if(!el) return;
-    el.innerHTML=`<div class="cc-list">${cal.map(day=>{
-      const tags=day.hashtags.map(h=>`<span class="cc-tag">${esc(h)}</span>`).join('');
-      return `<div class="cc-list-item${day.isToday?' cc-list-today':''}">
+function renderListViewFn(cal){
+  const el=_section?.querySelector('#ccPanelList');
+  if(!el) return;
+  el.innerHTML=`<div class="cc-list">${cal.map((day,i)=>{
+    const tags=day.hashtags.map(h=>`<span class="cc-tag">${esc(h)}</span>`).join('');
+    return `<div class="cc-list-item${day.isToday?' cc-list-today':''}" tabindex="0" role="button" aria-label="Day ${day.day}: ${day.contentType.type} on ${day.platform.name}" data-idx="${i}">
         <div class="cc-list-left">
           <div class="cc-list-day">Day ${day.day}</div>
           <div class="cc-list-date">${esc(day.dateStr)} ${esc(day.dayName)}</div>
@@ -478,17 +409,23 @@ const ContentCalendarPlugin = {
           ${day.holiday?`<span class="cc-list-holiday">${esc(day.holiday.emoji)}</span>`:''}
           <span class="cc-list-time">⏰ ${day.contentType.best}</span>
           <span class="cc-type-badge cc-diff-${day.contentType.difficulty.toLowerCase()}">${day.contentType.difficulty}</span>
+          <span class="cc-list-view">View →</span>
         </div>
       </div>`;
-    }).join('')}</div>`;
-  },
+  }).join('')}</div>`;
+  el.querySelectorAll('.cc-list-item').forEach(item=>{
+    const handler=()=>{const idx=parseInt(item.dataset.idx);showDetailFn(cal[idx]);};
+    item.addEventListener('click',handler);
+    item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+}
 
-  renderPlatformView(cal,breakdown){
-    const el=this._section?.querySelector('#ccPanelPlatforms');
-    if(!el) return;
-    el.innerHTML=`<div class="cc-platform-grid">${PLATFORMS.map(pl=>{
-      const posts=cal.filter(d=>d.platform.name===pl.name);
-      return `<div class="cc-platform-card" style="border-top:3px solid ${pl.color}">
+function renderPlatformViewFn(cal,_breakdown){
+  const el=_section?.querySelector('#ccPanelPlatforms');
+  if(!el) return;
+  el.innerHTML=`<div class="cc-platform-grid">${PLATFORMS.map(pl=>{
+    const posts=cal.filter(d=>d.platform.name===pl.name);
+    return `<div class="cc-platform-card" tabindex="0" role="button" aria-label="View ${pl.name} content in Ad Studio" data-platform="${esc(pl.name)}" style="border-top:3px solid ${pl.color}">
         <div class="cc-platform-header">
           <span class="cc-platform-icon">${esc(pl.icon)}</span>
           <span class="cc-platform-name">${esc(pl.name)}</span>
@@ -504,24 +441,196 @@ const ContentCalendarPlugin = {
           `).join('')}
           ${posts.length>5?`<div class="cc-platform-more">+${posts.length-5} more posts</div>`:''}
         </div>
+        <div class="cc-platform-cta">Create ${esc(pl.name)} Ads →</div>
       </div>`;
-    }).join('')}</div>`;
+  }).join('')}</div>`;
+  el.querySelectorAll('.cc-platform-card').forEach(card=>{
+    const handler=()=>{window.HuntDrop.navigateTo('section-ad-studio');};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+}
+
+function showDetailFn(day){
+  const panel=_section?.querySelector('#ccDetailPanel');
+  if(!panel||!day) return;
+  const tags=day.hashtags.map(h=>`<span class="cc-detail-tag">${esc(h)}</span>`).join('');
+  panel.innerHTML=`
+      <div class="cc-detail-overlay" id="ccDetailClose"></div>
+      <div class="cc-detail-content">
+        <button class="cc-detail-close" id="ccDetailCloseBtn" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="cc-detail-hero" style="border-left:4px solid ${day.platform.color}">
+          <div class="cc-detail-hero-info">
+            <div class="cc-detail-day-badge">Day ${day.day}</div>
+            <h2 class="cc-detail-title">${esc(day.contentType.type)}</h2>
+            <div class="cc-detail-meta">${esc(day.dateStr)} ${esc(day.dayName)} • <span style="color:${day.platform.color}">${esc(day.platform.icon)} ${esc(day.platform.name)}</span></div>
+            <div class="cc-detail-badges">
+              <span class="cc-detail-badge cc-diff-${day.contentType.difficulty.toLowerCase()}">${day.contentType.difficulty}</span>
+              <span class="cc-detail-badge cc-reach-${day.contentType.reach.toLowerCase().replace(' ','')}">${day.contentType.reach} Reach</span>
+              ${day.holiday?`<span class="cc-detail-badge cc-detail-holiday-badge">${esc(day.holiday.emoji)} ${esc(day.holiday.name)}</span>`:''}
+            </div>
+          </div>
+        </div>
+        <div class="cc-detail-grid">
+          <div class="cc-detail-card">
+            <h4>🎣 Hook</h4>
+            <div class="cc-detail-hook">"${esc(day.hook)}"</div>
+          </div>
+          <div class="cc-detail-card">
+            <h4>📝 Caption</h4>
+            <div class="cc-detail-caption">${esc(day.caption)}</div>
+          </div>
+          <div class="cc-detail-card">
+            <h4>#️⃣ Hashtags</h4>
+            <div class="cc-detail-tags">${tags}</div>
+          </div>
+          <div class="cc-detail-card">
+            <h4>📋 Details</h4>
+            <div class="cc-detail-metrics">
+              <div class="cc-detail-m"><span>Content Type</span><span>${esc(day.contentType.type)}</span></div>
+              <div class="cc-detail-m"><span>Description</span><span>${esc(day.contentType.desc)}</span></div>
+              <div class="cc-detail-m"><span>Best Time</span><span>${esc(day.contentType.best)}</span></div>
+              <div class="cc-detail-m"><span>Difficulty</span><span>${esc(day.contentType.difficulty)}</span></div>
+              <div class="cc-detail-m"><span>Expected Reach</span><span>${esc(day.contentType.reach)}</span></div>
+              <div class="cc-detail-m"><span>Platform</span><span style="color:${day.platform.color}">${esc(day.platform.icon)} ${esc(day.platform.name)}</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="cc-detail-actions">
+          <button class="cc-detail-btn cc-detail-primary" onclick="window.HuntDrop.navigateTo('section-ad-studio')">🎬 Create Ad for ${esc(day.platform.name)}</button>
+          <button class="cc-detail-btn" onclick="window.HuntDrop.navigateTo('section-personas')">👤 Audience Research</button>
+          <button class="cc-detail-btn" onclick="window.HuntDrop.navigateTo('section-budget')">📊 Plan Budget</button>
+        </div>
+      </div>`;
+  panel.classList.add('cc-detail-open');
+  const closeBtn=panel.querySelector('#ccDetailCloseBtn');
+  const overlay=panel.querySelector('#ccDetailClose');
+  const closeDetail=()=>{panel.classList.remove('cc-detail-open');panel.innerHTML='';};
+  if(closeBtn) closeBtn.addEventListener('click',closeDetail);
+  if(overlay) overlay.addEventListener('click',closeDetail);
+}
+
+function bindCardClicksFn(_cal){
+  if(!_section) return;
+  _section.querySelectorAll('.cc-strat-card').forEach(card=>{
+    const handler=()=>{window.HuntDrop.navigateTo('section-ad-studio');};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+  _section.querySelectorAll('.cc-holiday-card').forEach((card,_i)=>{
+    const handler=()=>{window.HuntDrop.navigateTo('section-product-hunt');};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+  _section.querySelectorAll('.cc-urgency-active').forEach(card=>{
+    const handler=()=>{window.HuntDrop.navigateTo('section-ad-studio');};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+  _section.querySelectorAll('.cc-type-item').forEach(card=>{
+    const handler=()=>{window.HuntDrop.navigateTo('section-ad-studio');};
+    card.addEventListener('click',handler);
+    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();handler();}});
+  });
+}
+
+function setupTabsFn(){
+  if(!_section) return;
+  const tabs=_section.querySelectorAll('.cc-tab');
+  tabs.forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      tabs.forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      const view=tab.getAttribute('data-view') || '';
+      _section.querySelectorAll('.cc-panel').forEach(p=>p.classList.remove('active'));
+      const panel=_section.querySelector('#ccPanel'+view.charAt(0).toUpperCase()+view.slice(1));
+      if(panel) panel.classList.add('active');
+    });
+  });
+}
+
+const ContentCalendarPlugin = {
+  id:'content-calendar',name:'Content Planner',version:'2.0.0',
+  description:'AI-generated 90-day content and ad calendar with platform-specific strategies',
+
+  get _section() { return _section; },
+  set _section(v) { _section = v; },
+
+  init(_ctx){Config.defaults('contentCalendar',{enabled:true});},
+
+  mount(_ctx){
+    const container=UI.$('sections-container');
+    if(!container) return;
+    const section=document.createElement('section');
+    section.className='section section-content-calendar';
+    section.id='section-calendar';
+    section.innerHTML=`
+      <div class="section-inner">
+        <div class="cc-hero">
+          <div class="cc-hero-content">
+            <div class="cc-hero-badge">📅 Content Intelligence</div>
+            <h1 class="cc-hero-title">Seasonal Content Planner</h1>
+            <p class="cc-hero-desc">AI-generated 90-day content + ad calendar with platform-specific strategies, hooks, hashtags, and posting schedules. Never run out of content ideas again.</p>
+          </div>
+          <div class="cc-hero-cards">
+            <div class="cc-hero-card"><div class="cc-hero-card-icon">📅</div><div class="cc-hero-card-num">90</div><div class="cc-hero-card-label">Days Planned</div></div>
+            <div class="cc-hero-card"><div class="cc-hero-card-icon">📱</div><div class="cc-hero-card-num">5</div><div class="cc-hero-card-label">Platforms</div></div>
+            <div class="cc-hero-card"><div class="cc-hero-card-icon">🎯</div><div class="cc-hero-card-num">30+</div><div class="cc-hero-card-label">Content Types</div></div>
+            <div class="cc-hero-card"><div class="cc-hero-card-icon">🎄</div><div class="cc-hero-card-num">25</div><div class="cc-hero-card-label">Holidays</div></div>
+          </div>
+        </div>
+
+        <div class="cc-feat-list">
+          <div class="cc-feat-item"><span class="cc-feat-icon">📱</span> 5 Platforms</div>
+          <div class="cc-feat-item"><span class="cc-feat-icon">🎯</span> 30+ Content Types</div>
+          <div class="cc-feat-item"><span class="cc-feat-icon">🎄</span> 25 Holiday Events</div>
+          <div class="cc-feat-item"><span class="cc-feat-icon">#️⃣</span> Smart Hashtags</div>
+          <div class="cc-feat-item"><span class="cc-feat-icon">✍️</span> AI Hooks & Captions</div>
+          <div class="cc-feat-item"><span class="cc-feat-icon">⏰</span> Best Posting Times</div>
+        </div>
+
+        <div class="cc-input-card">
+          <h3>🔍 Enter Your Product</h3>
+          <div class="cc-input-row">
+            <div class="cc-input-wrap">
+              <svg class="cc-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" class="cc-input" id="ccInput" placeholder="Type a product keyword to generate 90-day calendar...">
+              <button class="cc-generate-btn" id="ccGenerateBtn">📅 Generate Calendar</button>
+            </div>
+          </div>
+          <div class="cc-quick-picks">
+            <span class="cc-quick-label">Quick try:</span>
+            <button class="cc-quick-btn" data-q="wireless earbuds">🎧 Earbuds</button>
+            <button class="cc-quick-btn" data-q="pet gadgets">🐾 Pet Gadgets</button>
+            <button class="cc-quick-btn" data-q="kitchen organizer">🍳 Kitchen</button>
+            <button class="cc-quick-btn" data-q="posture corrector">🧍 Posture</button>
+            <button class="cc-quick-btn" data-q="galaxy projector">🌌 Galaxy Light</button>
+          </div>
+        </div>
+
+        <div id="ccResults"></div>
+
+        ${window.HuntDrop.renderRelatedTools([
+          { section:'section-ad-studio', name:'Ad Studio', desc:'Create ad creatives', icon:'🎯', color:'#f59e0b' },
+          { section:'section-personas', name:'Customer Persona', desc:'Know your audience', icon:'👤', color:'#ec4899' },
+          { section:'section-objections', name:'Objection Handler', desc:'Overcome objections', icon:'🛡️', color:'#06b6d4' },
+          { section:'section-budget', name:'Ad Budget Allocator', desc:'Plan ad budget', icon:'📊', color:'#a855f7' }
+        ])}
+      </div>`;
+    container.appendChild(section);
+    _section=section;
+    const btn=section.querySelector('#ccGenerateBtn');
+    const input=section.querySelector('#ccInput');
+    if(btn) btn.addEventListener('click',()=>generateFn(input?.value||''));
+    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')generateFn(input.value);});
+    section.querySelectorAll('.cc-quick-btn').forEach(b=>{
+      b.addEventListener('click',()=>{input.value=b.dataset.q;generateFn(b.dataset.q);});
+    });
   },
 
-  setupTabs(){
-    if(!this._section) return;
-    const tabs=this._section.querySelectorAll('.cc-tab');
-    tabs.forEach(tab=>{
-      tab.addEventListener('click',()=>{
-        tabs.forEach(t=>t.classList.remove('active'));
-        tab.classList.add('active');
-        const view=tab.getAttribute('data-view') || '';
-        this._section.querySelectorAll('.cc-panel').forEach(p=>p.classList.remove('active'));
-        const panel=this._section.querySelector('#ccPanel'+view.charAt(0).toUpperCase()+view.slice(1));
-        if(panel) panel.classList.add('active');
-      });
-    });
-  }
+  unmount(_ctx){if(_section){_section.remove();_section=null;} _calendar=null;}
 };
 
 PluginRegistry.register('content-calendar',ContentCalendarPlugin);

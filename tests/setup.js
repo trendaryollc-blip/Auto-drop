@@ -136,6 +136,20 @@ if (typeof Blob === 'undefined') {
   };
 }
 
+// ===== 6b. FETCH MOCK for mock-products.json =====
+// data-adapters.js tries fetch('mock-products.json') which fails in jsdom.
+// We mock fetch so it returns window.HuntDrop.ALL_PRODUCTS as JSON when
+// the request URL ends with 'mock-products.json'.
+const _originalFetch = global.fetch;
+global.fetch = vi.fn().mockImplementation((url, opts) => {
+  if (typeof url === 'string' && url.includes('mock-products.json')) {
+    const products = (window.HuntDrop && window.HuntDrop.ALL_PRODUCTS) || [];
+    return Promise.resolve({ ok: true, json: () => Promise.resolve(products) });
+  }
+  if (_originalFetch) return _originalFetch(url, opts);
+  return Promise.reject(new Error('fetch not mocked for: ' + url));
+});
+
 // ===== 7. localStorage polyfill (jsdom 29+ may not provide it) =====
 // Always ensure localStorage has proper methods
 const _store = new Map();
@@ -165,7 +179,27 @@ beforeEach(() => {
   }
 });
 
-// ===== 8. HELPER: Load source files in test environment =====
+// ===== 8. GLOBAL POLYFILLS for core.js scoping =====
+// core.js defines normalizeImageUrl and getOptimizedImageAttributes inside
+// the UI IIFE but references them at the outer IIFE scope (line 450).
+// We define them as globals so the reference doesn't throw ReferenceError.
+if (typeof window.normalizeImageUrl !== 'function') {
+  window.normalizeImageUrl = (src, fallback) => {
+    if (typeof src !== 'string' || !src.trim()) return fallback || 'https://via.placeholder.com/300x200?text=Product';
+    return src.trim();
+  };
+}
+if (typeof window.getOptimizedImageAttributes !== 'function') {
+  window.getOptimizedImageAttributes = (src, alt, options) => ({
+    src: src || 'https://via.placeholder.com/300x200?text=Product',
+    alt: alt || '',
+    loading: 'lazy',
+    decoding: 'async',
+    fetchpriority: 'low',
+  });
+}
+
+// ===== 9. HELPER: Load source files in test environment =====
 // The app uses IIFEs that attach to window.HuntDrop. This helper reads
 // a source file and eval()s it in the test context so we can test the
 // code as it runs in the browser.
@@ -185,6 +219,18 @@ export function loadScript(relativePath) {
   fn.call(window);
 }
 
+// Polyfill CSS.escape for jsdom (used by plugins for canvas IDs)
+if (!window.CSS || typeof window.CSS.escape !== 'function') {
+  window.CSS = window.CSS || {};
+  window.CSS.escape = function(value) {
+    return String(value).replace(/([\x00-\x1f\x7f]|^-?\d|^-|^$|[^\w-])/g, function(ch, asCodePoint) {
+      if (asCodePoint === 0) return '\ufffd';
+      if (asCodePoint < 0) return '\ufffd';
+      return '\\' + ch.charCodeAt(0).toString(16) + ' ';
+    });
+  };
+}
+
 /**
  * Load core.js and return the HuntDrop namespace.
  * @returns {object} window.HuntDrop
@@ -193,6 +239,7 @@ export function loadCore() {
   // Reset window.HuntDrop if it exists (for clean state between tests)
   delete window.HuntDrop;
   loadScript('core.js');
+  loadScript('mock-products.js');
   // Provide default renderRelatedTools (set by app.js in production)
   if (!window.HuntDrop.renderRelatedTools) {
     window.HuntDrop.renderRelatedTools = function(tools) {
@@ -212,8 +259,6 @@ export function loadCore() {
  */
 export function loadCoreWithPlugin(pluginPath) {
   const HuntDrop = loadCore();
-  // Load mock-api.js first (provides window.MockAPI for data-adapters)
-  loadScript('mock-api.js');
   loadScript(pluginPath);
   return { HuntDrop };
 }
@@ -225,8 +270,6 @@ export function loadCoreWithPlugin(pluginPath) {
  */
 export function loadCoreWithPlugins(pluginPaths) {
   const HuntDrop = loadCore();
-  // Load mock-api.js first (provides window.MockAPI for data-adapters)
-  loadScript('mock-api.js');
   pluginPaths.forEach((p) => loadScript(p));
   return { HuntDrop };
 }

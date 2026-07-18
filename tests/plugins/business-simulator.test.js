@@ -103,7 +103,8 @@ describe('business-simulator plugin', () => {
       await HuntDrop.PluginRegistry.init('business-simulator');
       await HuntDrop.PluginRegistry.mount('business-simulator');
       await HuntDrop.PluginRegistry.unmount('business-simulator');
-      expect(plugin._section).toBeNull();
+      expect(document.getElementById('section-simulator')).toBeNull();
+      expect(HuntDrop.PluginRegistry.get('business-simulator')._mounted).toBe(false);
     });
   });
 });

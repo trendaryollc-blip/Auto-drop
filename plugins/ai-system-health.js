@@ -2,21 +2,21 @@
 // PLUGIN: AI System Health — Detects issues that could cause problems
 // ============================================================================
 (function(){
-const {PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry} = window.HuntDrop;
 
 const AISystemHealth = {
   id: 'ai-system-health',
   name: 'AI System Health',
   version: '1.0.0',
 
-  init(ctx) {},
+  init(_ctx) {},
 
-  mount(ctx) {},
+  mount(_ctx) {},
 
-  unmount(ctx) {},
+  unmount(_ctx) {},
 
   runAllChecks() {
-    var results = [];
+    const results = [];
     results.push(this.checkProductData());
     results.push(this.checkAdapters());
     results.push(this.checkPlugins());
@@ -29,8 +29,8 @@ const AISystemHealth = {
   },
 
   checkProductData() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var issues = [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const issues = [];
     products.forEach(function(p) {
       if (!p.title) issues.push('Product missing title');
       if (!p.price || p.price <= 0) issues.push(p.title + ': invalid price ($' + p.price + ')');
@@ -44,15 +44,15 @@ const AISystemHealth = {
   },
 
   checkAdapters() {
-    var adapterCount = window.HuntDrop.DataLayer ? window.HuntDrop.DataLayer.getAdapters().length : 0;
-    var issues = [];
+    const adapterCount = window.HuntDrop.DataLayer ? window.HuntDrop.DataLayer.getAdapters().length : 0;
+    const issues = [];
     if (adapterCount < 10) issues.push('Only ' + adapterCount + '/10 platform adapters loaded');
     return { id: 'adapters', name: 'Platform Adapters', pass: adapterCount >= 10, issues: issues, severity: adapterCount < 10 ? 'medium' : 'none' };
   },
 
   checkPlugins() {
-    var plugins = window.HuntDrop.PluginRegistry ? window.HuntDrop.PluginRegistry.getAll() : [];
-    var issues = [];
+    const plugins = window.HuntDrop.PluginRegistry ? window.HuntDrop.PluginRegistry.getAll() : [];
+    const issues = [];
     plugins.forEach(function(p) {
       if (p.error) issues.push('Plugin ' + p.id + ': ' + p.error);
     });
@@ -60,9 +60,9 @@ const AISystemHealth = {
   },
 
   checkProfitData() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var issues = [];
-    var warnings = [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const issues = [];
+    const warnings = [];
     products.forEach(function(p) {
       if (p.margin > 90) warnings.push(p.title + ': margin suspiciously high (' + p.margin + '%)');
       if (p.margin < 5) issues.push(p.title + ': margin too low (' + p.margin + '%)');
@@ -79,8 +79,8 @@ const AISystemHealth = {
   },
 
   checkSupplierData() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var issues = [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const issues = [];
     products.forEach(function(p) {
       (p.suppliers || []).forEach(function(s) {
         if (s.rating < 4.0) issues.push(s.name + ': low rating (' + s.rating + ')');
@@ -91,13 +91,13 @@ const AISystemHealth = {
   },
 
   checkNavigation() {
-    var sections = document.querySelectorAll('.section[id]');
-    var navItems = document.querySelectorAll('[data-section]');
-    var sectionIds = [];
+    const sections = document.querySelectorAll('.section[id]');
+    const navItems = document.querySelectorAll('[data-section]');
+    const sectionIds = [];
     sections.forEach(function(s) { sectionIds.push(s.id); });
-    var issues = [];
+    const issues = [];
     navItems.forEach(function(n) {
-      var targetId = 'section-' + n.getAttribute('data-section');
+      const targetId = 'section-' + n.getAttribute('data-section');
       if (sectionIds.indexOf(targetId) === -1) {
         issues.push('Nav link points to missing section: ' + targetId);
       }
@@ -106,14 +106,14 @@ const AISystemHealth = {
   },
 
   checkRelatedTools() {
-    var links = document.querySelectorAll('.related-tool-card[onclick]');
-    var sections = document.querySelectorAll('.section[id]');
-    var sectionIds = [];
+    const links = document.querySelectorAll('.related-tool-card[onclick]');
+    const sections = document.querySelectorAll('.section[id]');
+    const sectionIds = [];
     sections.forEach(function(s) { sectionIds.push(s.id); });
-    var issues = [];
+    const issues = [];
     links.forEach(function(link) {
-      var onclick = link.getAttribute('onclick') || '';
-      var match = onclick.match(/navigateTo\('([^']+)'\)/);
+      const onclick = link.getAttribute('onclick') || '';
+      const match = onclick.match(/navigateTo\('([^']+)'\)/);
       if (match && sectionIds.indexOf(match[1]) === -1) {
         issues.push('Broken related tool link to: ' + match[1]);
       }
@@ -122,9 +122,9 @@ const AISystemHealth = {
   },
 
   checkDataIntegrity() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var issues = [];
-    var requiredFields = ['title', 'price', 'platform', 'score', 'margin', 'competition'];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const issues = [];
+    const requiredFields = ['title', 'price', 'platform', 'score', 'margin', 'competition'];
     products.forEach(function(p) {
       requiredFields.forEach(function(f) {
         if (p[f] === undefined || p[f] === null || p[f] === '') {
@@ -136,12 +136,12 @@ const AISystemHealth = {
   },
 
   getHealthSummary() {
-    var results = this.runAllChecks();
-    var passed = results.filter(function(r) { return r.pass; }).length;
-    var failed = results.filter(function(r) { return !r.pass; });
-    var allIssues = [];
+    const results = this.runAllChecks();
+    const passed = results.filter(function(r) { return r.pass; }).length;
+    const failed = results.filter(function(r) { return !r.pass; });
+    let allIssues = [];
     failed.forEach(function(r) { allIssues = allIssues.concat(r.issues); });
-    var highSeverity = failed.filter(function(r) { return r.severity === 'high'; });
+    const highSeverity = failed.filter(function(r) { return r.severity === 'high'; });
     return {
       score: Math.round((passed / results.length) * 100),
       passed: passed,
@@ -155,8 +155,8 @@ const AISystemHealth = {
   },
 
   getProactiveWarnings() {
-    var health = this.getHealthSummary();
-    var warnings = [];
+    const health = this.getHealthSummary();
+    const warnings = [];
     if (health.highSeverity > 0) {
       warnings.push({
         type: 'critical',
@@ -176,8 +176,8 @@ const AISystemHealth = {
         message: 'Health score is ' + health.score + '/100. Some features may not work correctly.'
       });
     }
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var lowMargin = products.filter(function(p) { return p.margin < 15; });
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const lowMargin = products.filter(function(p) { return p.margin < 15; });
     if (lowMargin.length > 0) {
       warnings.push({
         type: 'info',

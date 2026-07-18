@@ -2,7 +2,18 @@
 // PLUGIN: AI Product Analyst — Deep Product Intelligence
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+
+let _cleanups = [];
+let _section = null;
+let _trendChart = null;
+let _seasonChart = null;
+
+function switchTab(panelId) {
+  if (!_section) return;
+  _section.querySelectorAll('.aa-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === panelId));
+  _section.querySelectorAll('.aa-tab-panel').forEach(p => p.classList.toggle('active', p.id === panelId));
+}
 
 const AIAnalystPlugin = {
   id: 'ai-analyst',
@@ -11,11 +22,11 @@ const AIAnalystPlugin = {
   description: 'Deep AI-powered product analysis with tabs for profit, market, competition, ads, and keywords',
   dependencies: ['search-engine'],
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('aianalyst', { enabled: true });
   },
 
-  mount(ctx) {
+  mount(_ctx) {
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -93,40 +104,42 @@ const AIAnalystPlugin = {
       </div>
     `;
     container.appendChild(section);
-    const self = AIAnalystPlugin;
-    self.section = section;
+    _section = section;
 
     const btn = section.querySelector('#aiAnalyzeBtn');
     const input = section.querySelector('#aiInput');
-    if (btn) btn.addEventListener('click', () => self.runAnalysis(input?.value || ''));
-    if (input) input.addEventListener('keypress', e => { if(e.key==='Enter') self.runAnalysis(input.value); });
+    if (btn) btn.addEventListener('click', () => runAnalysis(input?.value || ''));
+    if (input) input.addEventListener('keypress', e => { if(e.key==='Enter') runAnalysis(input.value); });
 
     section.querySelectorAll('.aa-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const q = chip.dataset.query;
         if (input) input.value = q;
-        self.runAnalysis(q);
+        runAnalysis(q);
       });
     });
+
+    const c = [];
+    c.push(
+      EventBus.on('ai-analyst:run', (data) => {
+        if (data && data.query) runAnalysis(data.query);
+      })
+    );
+    _cleanups = c;
   },
 
-  unmount(ctx) {
-    if (AIAnalystPlugin._trendChart) { AIAnalystPlugin._trendChart.destroy(); AIAnalystPlugin._trendChart = null; }
-    if (AIAnalystPlugin._seasonChart) { AIAnalystPlugin._seasonChart.destroy(); AIAnalystPlugin._seasonChart = null; }
-    if (AIAnalystPlugin.section) { AIAnalystPlugin.section.remove(); AIAnalystPlugin.section = null; }
-    this.section = null;
-  },
-
-  _switchTab(panelId) {
-    if (!this.section) return;
-    this.section.querySelectorAll('.aa-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === panelId));
-    this.section.querySelectorAll('.aa-tab-panel').forEach(p => p.classList.toggle('active', p.id === panelId));
+  unmount(_ctx) {
+    if (_trendChart) { _trendChart.destroy(); _trendChart = null; }
+    if (_seasonChart) { _seasonChart.destroy(); _seasonChart = null; }
+    if (_section) { _section.remove(); _section = null; }
+    (_cleanups||[]).forEach(function(fn){ try{fn();}catch{/* ignored */} });
+    _cleanups = [];
   },
 
   async runAnalysis(query) {
     if (!query.trim()) return;
     const esc = s => UI.escapeHtml(String(s));
-    const resultsEl = this.section ? this.section.querySelector('#aiResults') : null;
+    const resultsEl = _section ? _section.querySelector('#aiResults') : null;
     if (resultsEl) {
       resultsEl.innerHTML = '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing product...</div><div class="aa-loading-sub">Scanning platforms, suppliers, and market data</div></div>';
     }
@@ -137,7 +150,7 @@ const AIAnalystPlugin = {
       p.keywords.some(k => k.toLowerCase().includes(query.toLowerCase()))
     ) || products[Math.floor(Math.random() * products.length)];
 
-    const el = this.section ? this.section.querySelector('#aiResults') : null;
+    const el = _section ? _section.querySelector('#aiResults') : null;
     if (!el) return;
 
     el.innerHTML = '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing ' + esc(match.title.split('—')[0].trim()) + '...</div><div class="aa-loading-sub">Deep-scanning market data, trends, suppliers, and competition</div></div>';
@@ -157,12 +170,12 @@ const AIAnalystPlugin = {
     const roi = productCost > 0 ? +((netProfit / productCost) * 100).toFixed(0) : 0;
     const breakEven = adCost > 0 ? Math.ceil((productCost + shippingCost + platformFee + refundBuffer) / (sellPrice - productCost - shippingCost - platformFee - refundBuffer - adCost)) : 1;
     const verdict = match.score >= 75 && match.competition !== 'high' && netProfit > 5;
-    const riskLevel = match.riskScore < 25 ? 'low' : match.riskScore < 50 ? 'med' : 'high';
+    const _riskLevel = match.riskScore < 25 ? 'low' : match.riskScore < 50 ? 'med' : 'high';
 
     const relatedProducts = products.filter(p => p.id !== match.id && p.category === match.category).slice(0, 3);
 
     const competitionNames = ['TechGear Store','DropShip Pro','TrendHunter','QuickShip Hub','PrimeSelection'];
-    const compData = competitionNames.map((name, i) => ({
+    const compData = competitionNames.map((name) => ({
       name,
       price: +(sellPrice * (0.85 + Math.random() * 0.35)).toFixed(2),
       rating: +(3.5 + Math.random() * 1.5).toFixed(1),
@@ -324,7 +337,7 @@ const AIAnalystPlugin = {
             <div class="aa-card-header"><span class="aa-card-icon">🗓</span>Seasonality Heatmap</div>
             <div style="margin-bottom:8px;font-size:11px;color:var(--text-muted)">Demand intensity by month (darker = higher demand)</div>
             <div class="aa-heatmap">
-              ${match.seasonality.map((val, i) => {
+              ${match.seasonality.map((val) => {
                 const max = Math.max(...match.seasonality);
                 const intensity = max > 0 ? val / max : 0;
                 const bg = intensity > 0.7 ? 'rgba(0,255,136,0.35)' : intensity > 0.4 ? 'rgba(0,229,255,0.2)' : 'rgba(85,85,112,0.15)';
@@ -567,7 +580,7 @@ const AIAnalystPlugin = {
           <div class="aa-card-header"><span class="aa-card-icon">🔍</span>Related Products Worth Analyzing</div>
           <div class="aa-related-grid">
             ${relatedProducts.map(rp => `
-              <div class="aa-related-card" onclick="document.getElementById('aiInput').value='${esc(rp.title.split('—')[0].trim())}';window.HuntDrop.EventBus.emit('ai-analyst:run',{query:'${esc(rp.title.split('—')[0].trim())}'})">
+              <div class="aa-related-card" data-related-query="${esc(rp.title.split('—')[0].trim())}">
                 <img class="aa-related-img" src="${esc(rp.image)}" alt="${esc(rp.title)}" onerror="this.style.display='none'">
                 <div class="aa-related-title">${esc(rp.title.split('—')[0].trim())}</div>
                 <div class="aa-related-meta">
@@ -581,21 +594,29 @@ const AIAnalystPlugin = {
         ` : ''}
       </div>`;
 
-    if (this.section) {
-      this.section.querySelectorAll('.aa-tab').forEach(tab => {
-        tab.addEventListener('click', () => this._switchTab(tab.dataset.tab));
+    if (_section) {
+      _section.querySelectorAll('.aa-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
       });
+      // Event delegation for related product cards (safe: no inline onclick)
+      const relatedGrid = _section.querySelector('.aa-related-grid');
+      if (relatedGrid) {
+        relatedGrid.addEventListener('click', function(e) {
+          const card = e.target.closest('.aa-related-card[data-related-query]');
+          if (!card) return;
+          const query = card.getAttribute('data-related-query');
+          const aiInput = document.getElementById('aiInput');
+          if (aiInput) aiInput.value = query;
+          EventBus.emit('ai-analyst:run', { query: query });
+        });
+      }
     }
 
-    EventBus.on('ai-analyst:run', (data) => {
-      if (data && data.query) this.runAnalysis(data.query);
-    });
-
     setTimeout(() => {
-      const chartCtx = this.section?.querySelector('#aiTrendChart');
+      const chartCtx = _section?.querySelector('#aiTrendChart');
       if (chartCtx) {
-        if (this._trendChart) this._trendChart.destroy();
-        this._trendChart = new Chart(chartCtx, {
+        if (_trendChart) _trendChart.destroy();
+        _trendChart = new Chart(chartCtx, {
           type: 'line',
           data: {
             labels: months,

@@ -6,7 +6,7 @@
 // trend detection, price intelligence, market analysis, command system
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry,Config,UI} = window.HuntDrop;
 
 // === COMMAND DEFINITIONS ===
 const COMMANDS = {
@@ -76,21 +76,15 @@ const INTEL_FEED = [
 ];
 
 function getTrendingProducts() {
-  var products = window.HuntDrop.ALL_PRODUCTS || [];
+  const products = window.HuntDrop.ALL_PRODUCTS || [];
   return products.sort(function(a,b) { return b.salesVelocity - a.salesVelocity; }).slice(0, 5);
 }
 
 function getTime() {
-  var now = new Date();
+  const now = new Date();
   return now.getHours().toString().padStart(2,'0') + ':' +
          now.getMinutes().toString().padStart(2,'0') + ':' +
          now.getSeconds().toString().padStart(2,'0');
-}
-
-function escapeHtml(str) {
-  var div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 function delay(ms) {
@@ -100,7 +94,7 @@ function delay(ms) {
 function formatResponse(text) {
   if (!text) return '';
   // Always escape HTML first to prevent XSS
-  text = escapeHtml(text);
+  text = UI.escapeHtml(text);
   // Convert markdown bold
   text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   // Convert markdown italic
@@ -111,7 +105,7 @@ function formatResponse(text) {
 }
 
 // === STATE (module-level, survives PluginRegistry wrapping) ===
-var _state = {
+const _state = {
   section: null,
   els: {},
   sidebarOpen: true,
@@ -131,15 +125,15 @@ const AICoachPlugin = {
   description: 'AI command center with web search, product research, competitor analysis, and live intelligence',
   dependencies: ['ai-key-manager', 'ai-web-search', 'ai-context-builder', 'ai-system-health', 'ai-risk-analyzer', 'ai-chat-service'],
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('coach', { history: [], topics: [], viewedProducts: [] });
   },
 
-  mount(ctx) {
-    var container = UI.$('sections-container');
+  mount(_ctx) {
+    const container = UI.$('sections-container');
     if (!container) return;
 
-    var section = document.createElement('section');
+    const section = document.createElement('section');
     section.className = 'section section-coach';
     section.id = 'section-coach';
     section.innerHTML = AICoachPlugin.buildHTML();
@@ -153,17 +147,17 @@ const AICoachPlugin = {
     AICoachPlugin.updateStatus();
   },
 
-  unmount(ctx) {
+  unmount(_ctx) {
     if (_state.section) { _state.section.remove(); _state.section = null; }
     _state.els = {};
   },
 
   // === HTML BUILDER ===
   buildHTML() {
-    var status = window.HuntDrop.APIKeyManager.getStatus();
-    var connected = status.connected;
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var ticker = AICoachPlugin.buildTickerHTML(products);
+    const status = window.HuntDrop.APIKeyManager.getStatus();
+    const connected = status.connected;
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const ticker = AICoachPlugin.buildTickerHTML(products);
 
     return '<div class="coach-grid-overlay"></div>' +
       '<div class="coach-ticker">' +
@@ -181,15 +175,15 @@ const AICoachPlugin = {
 
   buildTickerHTML(products) {
     if (!products || !products.length) return '';
-    var syms = ['DROP','SELL','MOON','CART','ADS','ROI','WIN','PROF','SCALP','HODL'];
-    var html = '';
-    for (var i = 0; i < products.length; i++) {
-      var p = products[i];
-      var sym = syms[i % syms.length] + (i + 1);
-      var price = p.price ? '$' + p.price.toFixed(2) : '—';
-      var chg = (Math.random() * 16 - 6);
-      var up = chg >= 0;
-      var chgStr = (up ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(1) + '%';
+    const syms = ['DROP','SELL','MOON','CART','ADS','ROI','WIN','PROF','SCALP','HODL'];
+    let html = '';
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
+      const sym = syms[i % syms.length] + (i + 1);
+      const price = p.price ? '$' + p.price.toFixed(2) : '—';
+      const chg = (Math.random() * 16 - 6);
+      const up = chg >= 0;
+      const chgStr = (up ? '▲ ' : '▼ ') + Math.abs(chg).toFixed(1) + '%';
       html += '<span class="coach-ticker-item">' +
         '<span class="coach-ticker-sym">' + sym + '</span>' +
         '<span class="coach-ticker-price">' + price + '</span>' +
@@ -261,7 +255,7 @@ const AICoachPlugin = {
   },
 
   cacheElements() {
-    var s = _state.section;
+    const s = _state.section;
     if (!s) return;
     _state.els = {
       sidebar: s.querySelector('#coachSidebar'),
@@ -284,7 +278,7 @@ const AICoachPlugin = {
   },
 
   bindEvents() {
-    var el = _state.els;
+    const el = _state.els;
 
     if (el.sendBtn) el.sendBtn.addEventListener('click', function() { AICoachPlugin.sendMessage(); });
     if (el.input) {
@@ -322,17 +316,18 @@ const AICoachPlugin = {
   },
 
   renderCommandsPanel() {
-    var el = _state.els.panelCommands;
+    const el = _state.els.panelCommands;
     if (!el) return;
-    var html = '<div class="coach-cmd-search"><input type="text" placeholder="Search commands…" id="coachCmdSearch"></div>';
+    const esc = UI.escapeHtml;
+    let html = '<div class="coach-cmd-search"><input type="text" placeholder="Search commands…" id="coachCmdSearch"></div>';
     Object.keys(COMMANDS).forEach(function(key) {
-      var group = COMMANDS[key];
-      html += '<div class="coach-cmd-section"><div class="coach-cmd-section-title">' + group.section + '</div>';
+      const group = COMMANDS[key];
+      html += '<div class="coach-cmd-section"><div class="coach-cmd-section-title">' + esc(group.section) + '</div>';
       group.items.forEach(function(item) {
-        html += '<div class="coach-cmd-item" data-prompt="' + item.prompt + '">' +
-          '<div class="coach-cmd-icon">' + item.icon + '</div>' +
-          '<div class="coach-cmd-info"><div class="coach-cmd-name">' + item.name + '</div><div class="coach-cmd-desc">' + item.desc + '</div></div>' +
-          '<span class="coach-cmd-shortcut">' + item.cmd + '</span>' +
+        html += '<div class="coach-cmd-item" data-prompt="' + esc(item.prompt) + '">' +
+          '<div class="coach-cmd-icon">' + esc(item.icon) + '</div>' +
+          '<div class="coach-cmd-info"><div class="coach-cmd-name">' + esc(item.name) + '</div><div class="coach-cmd-desc">' + esc(item.desc) + '</div></div>' +
+          '<span class="coach-cmd-shortcut">' + esc(item.cmd) + '</span>' +
         '</div>';
       });
       html += '</div>';
@@ -341,7 +336,7 @@ const AICoachPlugin = {
 
     el.querySelectorAll('.coach-cmd-item').forEach(function(item) {
       item.addEventListener('click', function() {
-        var prompt = item.getAttribute('data-prompt');
+        const prompt = item.getAttribute('data-prompt');
         if (prompt && prompt !== '__EXPORT__') {
           if (_state.els.input) { _state.els.input.value = prompt; _state.els.input.focus(); }
         } else if (prompt === '__EXPORT__') {
@@ -350,14 +345,14 @@ const AICoachPlugin = {
       });
     });
 
-    var searchInput = el.querySelector('#coachCmdSearch');
+    const searchInput = el.querySelector('#coachCmdSearch');
     if (searchInput) {
       searchInput.addEventListener('input', function() {
-        var q = searchInput.value.toLowerCase();
+        const q = searchInput.value.toLowerCase();
         el.querySelectorAll('.coach-cmd-item').forEach(function(item) {
-          var name = (item.querySelector('.coach-cmd-name')?.textContent || '').toLowerCase();
-          var desc = (item.querySelector('.coach-cmd-desc')?.textContent || '').toLowerCase();
-          var cmd = (item.querySelector('.coach-cmd-shortcut')?.textContent || '').toLowerCase();
+          const name = (item.querySelector('.coach-cmd-name')?.textContent || '').toLowerCase();
+          const desc = (item.querySelector('.coach-cmd-desc')?.textContent || '').toLowerCase();
+          const cmd = (item.querySelector('.coach-cmd-shortcut')?.textContent || '').toLowerCase();
           item.style.display = (!q || name.indexOf(q) > -1 || desc.indexOf(q) > -1 || cmd.indexOf(q) > -1) ? '' : 'none';
         });
       });
@@ -365,9 +360,9 @@ const AICoachPlugin = {
   },
 
   renderIntelPanel() {
-    var el = _state.els.panelIntel;
+    const el = _state.els.panelIntel;
     if (!el) return;
-    var html = '';
+    let html = '';
     INTEL_FEED.forEach(function(intel) {
       html += '<div class="coach-intel-card">' +
         '<div class="coach-intel-header">' +
@@ -395,12 +390,12 @@ const AICoachPlugin = {
   },
 
   renderTrendingPanel() {
-    var el = _state.els.panelTrending;
+    const el = _state.els.panelTrending;
     if (!el) return;
-    var products = getTrendingProducts();
-    var html = '';
+    const products = getTrendingProducts();
+    let html = '';
     products.forEach(function(p, i) {
-      var change = '+' + (Math.floor(Math.random() * 30) + 5) + '%';
+      const change = '+' + (Math.floor(Math.random() * 30) + 5) + '%';
       html += '<div class="coach-trending-item" data-prompt="Analyze ' + p.title + ' — is it worth selling?">' +
         '<div class="coach-trending-rank">#' + (i + 1) + '</div>' +
         '<div class="coach-trending-info">' +
@@ -414,37 +409,37 @@ const AICoachPlugin = {
 
     el.querySelectorAll('.coach-trending-item').forEach(function(item) {
       item.addEventListener('click', function() {
-        var prompt = item.getAttribute('data-prompt');
+        const prompt = item.getAttribute('data-prompt');
         if (prompt && _state.els.input) { _state.els.input.value = prompt; AICoachPlugin.sendMessage(); }
       });
     });
   },
 
   renderHistoryPanel() {
-    var el = _state.els.panelHistory;
+    const el = _state.els.panelHistory;
     if (!el) return;
-    var history = Config.get('coach.history') || [];
+    const history = Config.get('coach.history') || [];
     if (history.length === 0) {
       el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">No conversation history yet.<br>Start chatting to build your log.</div>';
       return;
     }
-    var html = '';
+    let html = '';
     history.slice(-20).reverse().forEach(function(msg) {
       if (msg.role !== 'user') return;
-      var time = new Date(msg.time);
-      var timeStr = time.getHours().toString().padStart(2,'0') + ':' + time.getMinutes().toString().padStart(2,'0');
-      html += '<div class="coach-history-item"><span class="coach-history-icon">💬</span><span class="coach-history-text">' + escapeHtml(msg.content.substring(0, 50)) + (msg.content.length > 50 ? '…' : '') + '</span><span class="coach-history-time">' + timeStr + '</span></div>';
+      const time = new Date(msg.time);
+      const timeStr = time.getHours().toString().padStart(2,'0') + ':' + time.getMinutes().toString().padStart(2,'0');
+      html += '<div class="coach-history-item"><span class="coach-history-icon">💬</span><span class="coach-history-text">' + UI.escapeHtml(msg.content.substring(0, 50)) + (msg.content.length > 50 ? '…' : '') + '</span><span class="coach-history-time">' + timeStr + '</span></div>';
     });
     el.innerHTML = html;
   },
 
   renderStatusBar() {
-    var el = _state.els.statusBar;
+    const el = _state.els.statusBar;
     if (!el) return;
-    var status = window.HuntDrop.APIKeyManager.getStatus();
-    var health = window.HuntDrop.AISystemHealth.getHealthSummary();
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var history = Config.get('coach.history') || [];
+    const status = window.HuntDrop.APIKeyManager.getStatus();
+    const health = window.HuntDrop.AISystemHealth.getHealthSummary();
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const history = Config.get('coach.history') || [];
     el.innerHTML =
       '<div class="coach-status-row"><span class="coach-status-label">AI Provider</span><span class="coach-status-value ' + (status.connected ? 'connected' : 'disconnected') + '">' + (status.connected ? status.provider.toUpperCase() : 'NOT SET') + '</span></div>' +
       '<div class="coach-status-row"><span class="coach-status-label">Products</span><span class="coach-status-value live">' + products.length + ' loaded</span></div>' +
@@ -453,11 +448,11 @@ const AICoachPlugin = {
   },
 
   updateContextBar() {
-    var el = _state.els.contextBar;
+    const el = _state.els.contextBar;
     if (!el) return;
-    var context = window.HuntDrop.AIContextBuilder.buildFullContext();
-    var health = window.HuntDrop.AISystemHealth.getHealthSummary();
-    var hc = health.score >= 80 ? '#00ff88' : health.score >= 60 ? '#fbbf24' : '#ff3366';
+    const context = window.HuntDrop.AIContextBuilder.buildFullContext();
+    const health = window.HuntDrop.AISystemHealth.getHealthSummary();
+    const hc = health.score >= 80 ? '#00ff88' : health.score >= 60 ? '#fbbf24' : '#ff3366';
     el.innerHTML =
       '<div class="coach-ctx-pill"><div class="coach-ctx-ring" style="--progress:' + Math.min(100, context.products.length * 10) + '%;--ring-color:#00e5ff"><span class="coach-ctx-val">' + context.products.length + '</span></div><span class="coach-ctx-label">POS</span></div>' +
       '<div class="coach-ctx-pill"><div class="coach-ctx-ring" style="--progress:' + Math.min(100, context.userState.viewedProducts.length * 20) + '%;--ring-color:#a855f7"><span class="coach-ctx-val">' + context.userState.viewedProducts.length + '</span></div><span class="coach-ctx-label">WATCH</span></div>' +
@@ -471,13 +466,13 @@ const AICoachPlugin = {
   },
 
   renderWelcome() {
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (!el) return;
-    var status = window.HuntDrop.APIKeyManager.getStatus();
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var topProducts = products.sort(function(a,b) { return b.score - a.score; }).slice(0, 3);
+    const status = window.HuntDrop.APIKeyManager.getStatus();
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const topProducts = products.sort(function(a,b) { return b.score - a.score; }).slice(0, 3);
 
-    var html = '<div class="coach-welcome-screen">' +
+    let html = '<div class="coach-welcome-screen">' +
       '<div class="coach-welcome-hero">' +
         '<div class="coach-welcome-avatar"><div class="coach-avatar-glow"></div><div class="coach-welcome-avatar-main">🤖</div></div>' +
         '<h1 class="coach-welcome-title">Your <span class="highlight">AI Command Center</span></h1>' +
@@ -490,15 +485,15 @@ const AICoachPlugin = {
 
     html += '<div class="coach-capability-grid">';
     CAPABILITIES.forEach(function(cap) {
-      html += '<div class="coach-cap-card" data-prompt="' + escapeHtml(cap.prompt) + '"><div class="coach-cap-icon-wrap ' + cap.color + '">' + cap.icon + '</div><div class="coach-cap-title">' + escapeHtml(cap.title) + '</div><div class="coach-cap-desc">' + escapeHtml(cap.desc) + '</div></div>';
+      html += '<div class="coach-cap-card" data-prompt="' + UI.escapeHtml(cap.prompt) + '"><div class="coach-cap-icon-wrap ' + cap.color + '">' + cap.icon + '</div><div class="coach-cap-title">' + UI.escapeHtml(cap.title) + '</div><div class="coach-cap-desc">' + UI.escapeHtml(cap.desc) + '</div></div>';
     });
     html += '</div>';
 
     if (topProducts.length > 0) {
       html += '<div class="coach-top-products"><div class="coach-top-label">// TOP PRODUCTS IN YOUR CATALOG</div><div class="coach-top-list">';
       topProducts.forEach(function(p) {
-        var sc = p.score >= 80 ? '#00ff88' : p.score >= 60 ? '#00e5ff' : '#fbbf24';
-        html += '<div class="coach-top-item" data-prompt="Give me a full analysis of ' + escapeHtml(p.title) + ' — should I sell it?"><div class="coach-top-score" style="color:' + sc + '">' + p.score + '</div><div class="coach-top-info"><div class="coach-top-name">' + escapeHtml(p.title) + '</div><div class="coach-top-meta">' + escapeHtml(p.platform) + ' · ' + p.margin + '% margin · ' + p.competition + '</div></div><div class="coach-top-arrow">»</div></div>';
+        const sc = p.score >= 80 ? '#00ff88' : p.score >= 60 ? '#00e5ff' : '#fbbf24';
+        html += '<div class="coach-top-item" data-prompt="Give me a full analysis of ' + UI.escapeHtml(p.title) + ' — should I sell it?"><div class="coach-top-score" style="color:' + sc + '">' + p.score + '</div><div class="coach-top-info"><div class="coach-top-name">' + UI.escapeHtml(p.title) + '</div><div class="coach-top-meta">' + UI.escapeHtml(p.platform) + ' · ' + p.margin + '% margin · ' + p.competition + '</div></div><div class="coach-top-arrow">»</div></div>';
       });
       html += '</div></div>';
     }
@@ -507,7 +502,7 @@ const AICoachPlugin = {
 
     el.querySelectorAll('.coach-cap-card, .coach-top-item').forEach(function(card) {
       card.addEventListener('click', function() {
-        var prompt = card.getAttribute('data-prompt');
+        const prompt = card.getAttribute('data-prompt');
         if (prompt && _state.els.input) { _state.els.input.value = prompt; AICoachPlugin.sendMessage(); }
       });
     });
@@ -515,8 +510,8 @@ const AICoachPlugin = {
 
   async sendMessage() {
     if (_state.processing) return;
-    var input = _state.els.input;
-    var text = input ? input.value.trim() : '';
+    const input = _state.els.input;
+    const text = input ? input.value.trim() : '';
     if (!text) return;
 
     if (text === '/export') { AICoachPlugin.exportChat(); input.value = ''; return; }
@@ -525,23 +520,28 @@ const AICoachPlugin = {
     _state.processing = true;
     _state.msgCount++;
 
-    var el = _state.els.chatMessages;
-    var welcome = el ? el.querySelector('.coach-welcome-screen') : null;
+    const el = _state.els.chatMessages;
+    const welcome = el ? el.querySelector('.coach-welcome-screen') : null;
     if (welcome) welcome.remove();
 
     AICoachPlugin.addMessage('user', text);
     if (input) { input.value = ''; input.style.height = 'auto'; if (_state.els.charCount) _state.els.charCount.textContent = '0'; }
     AICoachPlugin.saveToHistory('user', text);
 
-    var needsSearch = AICoachPlugin.detectWebSearch(text);
+    const needsSearch = AICoachPlugin.detectWebSearch(text);
     await AICoachPlugin.showTyping(needsSearch);
 
-    var history = Config.get('coach.history') || [];
-    var result;
-    if (needsSearch) {
-      result = await AICoachPlugin.processWithWebSearch(text, history);
-    } else {
-      result = await window.HuntDrop.AIChatService.searchAndRespond(text, history);
+    const history = Config.get('coach.history') || [];
+    let result;
+    try {
+      if (needsSearch) {
+        result = await AICoachPlugin.processWithWebSearch(text, history);
+      } else {
+        result = await window.HuntDrop.AIChatService.searchAndRespond(text, history);
+      }
+    } catch(aiErr) {
+      console.error('[AICoach] AI call failed:', aiErr);
+      result = { response: 'I encountered an error processing your request. Please check your API key in AI Settings and try again.', provider: 'error' };
     }
 
     AICoachPlugin.removeTyping();
@@ -553,43 +553,44 @@ const AICoachPlugin = {
   },
 
   detectWebSearch(text) {
-    var lower = text.toLowerCase();
-    var cmdTriggers = ['/search','/product','/trend','/competitor','/price','/market','/supplier','/seo','/social','/niche'];
-    var triggers = ['search','find','look up','research','check','verify','price','cost','buy','trending','viral','competitor','market','compare','supplier','review','latest','current','now','today','2025','2026','live','real-time','google','web','internet','online'];
-    for (var i = 0; i < cmdTriggers.length; i++) { if (lower.indexOf(cmdTriggers[i]) > -1) return true; }
-    for (var j = 0; j < triggers.length; j++) { if (lower.indexOf(triggers[j]) > -1) return true; }
+    const lower = text.toLowerCase();
+    const cmdTriggers = ['/search','/product','/trend','/competitor','/price','/market','/supplier','/seo','/social','/niche'];
+    const triggers = ['search','find','look up','research','check','verify','price','cost','buy','trending','viral','competitor','market','compare','supplier','review','latest','current','now','today','2025','2026','live','real-time','google','web','internet','online'];
+    for (let i = 0; i < cmdTriggers.length; i++) { if (lower.indexOf(cmdTriggers[i]) > -1) return true; }
+    for (let j = 0; j < triggers.length; j++) { if (lower.indexOf(triggers[j]) > -1) return true; }
     return false;
   },
 
   async processWithWebSearch(text, history) {
-    var searchResult = null;
-    try { searchResult = await window.HuntDrop.AIWebSearch.search(text, 6); } catch(e) {}
+    let searchResult = null;
+    try { searchResult = await window.HuntDrop.AIWebSearch.search(text, 6); } catch {/* ignored */}
 
-    var provider = window.HuntDrop.APIKeyManager.getProvider();
-    var key = await window.HuntDrop.APIKeyManager.getKey(provider);
+    const featureKey = await window.HuntDrop.APIKeyManager.getFeatureKey('ai-business-coach');
+    const provider = featureKey.provider;
+    const key = featureKey.key;
 
     if (!key) {
       return { success: true, response: AICoachPlugin.buildFallbackWithSearch(text, searchResult), provider: 'fallback', webResults: searchResult };
     }
 
-    var result = await window.HuntDrop.AIChatService.searchAndRespond(text, history);
+    const result = await window.HuntDrop.AIChatService.searchAndRespond(text, history);
     result.webResults = searchResult;
     return result;
   },
 
   buildFallbackWithSearch(query, searchResult) {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var lower = query.toLowerCase();
-    var matchedProduct = null;
-    for (var i = 0; i < products.length; i++) {
-      var p = products[i];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const lower = query.toLowerCase();
+    let matchedProduct = null;
+    for (let i = 0; i < products.length; i++) {
+      const p = products[i];
       if (lower.indexOf(p.title.toLowerCase().substring(0, 15)) > -1 ||
           p.keywords.some(function(k) { return lower.indexOf(k.toLowerCase()) > -1; })) {
         matchedProduct = p; break;
       }
     }
 
-    var response = '';
+    let response = '';
     if (searchResult && searchResult.results && searchResult.results.length > 0) {
       response += '## 🌐 Web Search Results\n\n';
       if (searchResult.answer) response += '**Quick Answer:** ' + searchResult.answer + '\n\n';
@@ -615,12 +616,12 @@ const AICoachPlugin = {
   },
 
   getSmartFallback(query) {
-    var lower = query.toLowerCase();
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    const lower = query.toLowerCase();
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
 
     if (lower.indexOf('trend') > -1) {
-      var trending = products.sort(function(a,b) { return b.salesVelocity - a.salesVelocity; }).slice(0, 3);
-      var resp = '## 📈 Trending Products\n\n';
+      const trending = products.sort(function(a,b) { return b.salesVelocity - a.salesVelocity; }).slice(0, 3);
+      let resp = '## 📈 Trending Products\n\n';
       trending.forEach(function(p, i) { resp += (i+1) + '. **' + p.title + '** — ' + p.salesVelocity + ' sales/mo, ' + p.margin + '% margin\n'; });
       resp += '\nUse **Niche Radar** and **Market Gap Finder** for deeper analysis.';
       return resp;
@@ -634,16 +635,16 @@ const AICoachPlugin = {
     return '## What I Can Help With\n\n- 🔍 Web Search — Search the live web\n- 📦 Product Research — Deep-dive any product\n- ⚔️ Competitor Analysis — Spy on competitors\n- 📈 Trend Detection — Find what\'s trending\n- 💰 Price Intelligence — Compare across platforms\n- 🧠 Market Analysis — Evaluate opportunities\n- 📢 Ad Strategy — Create campaigns\n- 🏭 Supplier Verification — Check reliability\n\nTry: *"Search the web for trending products in 2025"*';
   },
 
-  renderCoachResponse(result, originalQuery) {
-    var response = result.response || 'I had trouble processing that. Please try again.';
-    var webResults = result.webResults || null;
-    var hasWebData = webResults && webResults.results && webResults.results.length > 0;
+  renderCoachResponse(result, _originalQuery) {
+    const response = result.response || 'I had trouble processing that. Please try again.';
+    const webResults = result.webResults || null;
+    const hasWebData = webResults && webResults.results && webResults.results.length > 0;
 
-    var html = '';
+    let html = '';
     if (hasWebData) html += AICoachPlugin.buildWebResultsCard(webResults);
     html += formatResponse(response);
 
-    var badges = '<span class="coach-msg-badge">AI</span>';
+    let badges = '<span class="coach-msg-badge">AI</span>';
     if (hasWebData) badges += ' <span class="coach-msg-badge web">WEB</span>';
     if (result.provider && result.provider !== 'fallback') badges += ' <span class="coach-msg-badge tool">' + result.provider.toUpperCase() + '</span>';
 
@@ -651,40 +652,40 @@ const AICoachPlugin = {
   },
 
   buildWebResultsCard(webResults) {
-    var html = '<div class="coach-web-results"><div class="coach-web-header"><span class="coach-web-header-icon">🌐</span><span class="coach-web-header-title">Live Web Results</span><span class="coach-web-header-count">' + webResults.results.length + ' results</span></div>';
-    if (webResults.answer) html += '<div class="coach-web-answer"><strong>AI Summary:</strong> ' + webResults.answer + '</div>';
+    let html = '<div class="coach-web-results"><div class="coach-web-header"><span class="coach-web-header-icon">🌐</span><span class="coach-web-header-title">Live Web Results</span><span class="coach-web-header-count">' + webResults.results.length + ' results</span></div>';
+    if (webResults.answer) html += '<div class="coach-web-answer"><strong>AI Summary:</strong> ' + UI.escapeHtml(webResults.answer) + '</div>';
     webResults.results.slice(0, 5).forEach(function(r) {
-      var domain = '';
-      try { domain = new URL(r.url).hostname.replace('www.', ''); } catch(e) { domain = r.url; }
-      html += '<div class="coach-web-result" onclick="window.open(\'' + r.url + '\', \'_blank\')"><div class="coach-web-result-title"><span class="web-icon">🔗</span> ' + (r.title || 'Untitled') + '</div><div class="coach-web-result-url">' + domain + '</div><div class="coach-web-result-snippet">' + (r.content || '').substring(0, 150) + '…</div></div>';
+      let domain = '';
+      try { domain = new URL(r.url).hostname.replace('www.', ''); } catch { domain = r.url; }
+      html += '<div class="coach-web-result" data-url="' + UI.escapeHtml(r.url) + '"><div class="coach-web-result-title"><span class="web-icon">🔗</span> ' + UI.escapeHtml(r.title || 'Untitled') + '</div><div class="coach-web-result-url">' + UI.escapeHtml(domain) + '</div><div class="coach-web-result-snippet">' + UI.escapeHtml((r.content || '').substring(0, 150)) + '…</div></div>';
     });
     html += '</div>';
     return html;
   },
 
   showSuggestions(originalQuery) {
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (!el) return;
-    var lower = originalQuery.toLowerCase();
-    var suggestions;
+    const lower = originalQuery.toLowerCase();
+    let suggestions;
     if (lower.indexOf('trend') > -1) suggestions = ['Research the top trending product','Check competition for this niche','Find suppliers for trending items','Create ad strategy for trends'];
     else if (lower.indexOf('competitor') > -1) suggestions = ['Check their pricing strategy','Analyze their ad creatives','Find their top-selling products','Research their suppliers'];
     else if (lower.indexOf('price') > -1) suggestions = ['Calculate profit margins','Find cheaper suppliers','Compare across all platforms','Set up price alerts'];
     else if (lower.indexOf('product') > -1 || lower.indexOf('sell') > -1) suggestions = ['Analyze competition level','Check supplier reliability','Create ad campaign','Forecast monthly revenue'];
     else suggestions = ['Search the web for trends','Analyze top product','Check competitor pricing','Find new niches'];
 
-    var sugHtml = '<div style="max-width:820px;margin:0 auto;width:100%;padding:0 4px;"><div class="coach-suggestions">';
+    let sugHtml = '<div style="max-width:820px;margin:0 auto;width:100%;padding:0 4px;"><div class="coach-suggestions">';
     suggestions.forEach(function(s) { sugHtml += '<button class="coach-suggestion" data-prompt="' + s + '">' + s + '</button>'; });
     sugHtml += '</div></div>';
 
-    var wrapper = document.createElement('div');
+    const wrapper = document.createElement('div');
     wrapper.innerHTML = sugHtml;
-    var sugEl = wrapper.firstChild;
+    const sugEl = wrapper.firstChild;
     el.appendChild(sugEl);
 
     sugEl.querySelectorAll('.coach-suggestion').forEach(function(btn) {
       btn.addEventListener('click', function() {
-        var prompt = btn.getAttribute('data-prompt');
+        const prompt = btn.getAttribute('data-prompt');
         if (prompt && _state.els.input) { _state.els.input.value = prompt; AICoachPlugin.sendMessage(); }
         sugEl.remove();
       });
@@ -693,14 +694,14 @@ const AICoachPlugin = {
   },
 
   addMessage(role, text) {
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (!el) return;
-    var msg = document.createElement('div');
+    const msg = document.createElement('div');
     msg.className = 'coach-msg coach-msg-' + role;
     if (role === 'coach') {
       msg.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">🤖</div><div class="coach-msg-status"></div></div><div class="coach-msg-body"><div class="coach-msg-content">' + formatResponse(text) + '</div><div class="coach-msg-meta"><span class="coach-msg-time">' + getTime() + '</span><span class="coach-msg-badge">AI</span><button class="coach-msg-copy" onclick="navigator.clipboard.writeText(this.closest(\'.coach-msg\').querySelector(\'.coach-msg-content\').innerText)">Copy</button></div></div>';
     } else {
-      msg.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">👤</div></div><div class="coach-msg-body"><div class="coach-msg-content user-bubble">$ ' + escapeHtml(text) + '</div><div class="coach-msg-meta user-meta"><span class="coach-msg-time">' + getTime() + '</span><span class="coach-msg-check">✓</span></div></div>';
+      msg.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">👤</div></div><div class="coach-msg-body"><div class="coach-msg-content user-bubble">$ ' + UI.escapeHtml(text) + '</div><div class="coach-msg-meta user-meta"><span class="coach-msg-time">' + getTime() + '</span><span class="coach-msg-check">✓</span></div></div>';
     }
     el.appendChild(msg);
     el.scrollTop = el.scrollHeight;
@@ -711,26 +712,33 @@ const AICoachPlugin = {
    * with trusted content — never pass user input directly as htmlContent.
    */
   addMessageRaw(role, htmlContent, badges) {
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (!el) return;
-    var msg = document.createElement('div');
+    const msg = document.createElement('div');
     msg.className = 'coach-msg coach-msg-' + role;
     msg.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">🤖</div><div class="coach-msg-status"></div></div><div class="coach-msg-body"><div class="coach-msg-content">' + htmlContent + '</div><div class="coach-msg-meta"><span class="coach-msg-time">' + getTime() + '</span>' + (badges || '') + '<button class="coach-msg-copy" onclick="navigator.clipboard.writeText(this.closest(\'.coach-msg\').querySelector(\'.coach-msg-content\').innerText)">Copy</button></div></div>';
     el.appendChild(msg);
     el.scrollTop = el.scrollHeight;
+    msg.querySelectorAll('.coach-web-result[data-url]').forEach(function(card) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', function() {
+        const url = card.getAttribute('data-url');
+        if (url) window.open(url, '_blank');
+      });
+    });
   },
 
   async showTyping(withSearch) {
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (!el) return;
-    var stages = withSearch ? TYPING_STAGES : TYPING_STAGES.slice(0, 2);
-    for (var i = 0; i < stages.length; i++) {
+    const stages = withSearch ? TYPING_STAGES : TYPING_STAGES.slice(0, 2);
+    for (let i = 0; i < stages.length; i++) {
       AICoachPlugin.removeTyping();
-      var stage = stages[i];
-      var typing = document.createElement('div');
+      const stage = stages[i];
+      const typing = document.createElement('div');
       typing.className = 'coach-msg coach-msg-coach coach-typing-msg';
       typing.id = 'coachTyping';
-      typing.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">🤖</div></div><div class="coach-msg-body"><div class="coach-typing-card"><div class="coach-typing-icon">' + escapeHtml(stage.icon) + '</div><div class="coach-typing-text">' + escapeHtml(stage.text) + '</div><div class="coach-typing-dots"><span></span><span></span><span></span></div></div></div>';
+      typing.innerHTML = '<div class="coach-msg-avatar-wrap"><div class="coach-msg-avatar">🤖</div></div><div class="coach-msg-body"><div class="coach-typing-card"><div class="coach-typing-icon">' + UI.escapeHtml(stage.icon) + '</div><div class="coach-typing-text">' + UI.escapeHtml(stage.text) + '</div><div class="coach-typing-dots"><span></span><span></span><span></span></div></div></div>';
       el.appendChild(typing);
       el.scrollTop = el.scrollHeight;
       await delay(400 + Math.random() * 300);
@@ -738,12 +746,12 @@ const AICoachPlugin = {
   },
 
   removeTyping() {
-    var typing = document.getElementById('coachTyping');
+    const typing = document.getElementById('coachTyping');
     if (typing) typing.remove();
   },
 
   toggleSidebar() {
-    var sidebar = _state.els.sidebar;
+    const sidebar = _state.els.sidebar;
     if (!sidebar) return;
     _state.sidebarOpen = !_state.sidebarOpen;
     sidebar.classList.toggle('collapsed', !_state.sidebarOpen);
@@ -754,21 +762,21 @@ const AICoachPlugin = {
     if (!_state.section) return;
     _state.section.querySelectorAll('.coach-sb-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tab); });
     _state.section.querySelectorAll('.coach-sb-panel').forEach(function(p) { p.classList.remove('active'); });
-    var panelMap = { commands: 'coachPanelCommands', intel: 'coachPanelIntel', trending: 'coachPanelTrending', history: 'coachPanelHistory' };
-    var panel = _state.section.querySelector('#' + panelMap[tab]);
+    const panelMap = { commands: 'coachPanelCommands', intel: 'coachPanelIntel', trending: 'coachPanelTrending', history: 'coachPanelHistory' };
+    const panel = _state.section.querySelector('#' + panelMap[tab]);
     if (panel) panel.classList.add('active');
   },
 
   exportChat() {
-    var history = Config.get('coach.history') || [];
+    const history = Config.get('coach.history') || [];
     if (history.length === 0) { UI.toast('No conversation to export', 'warning'); return; }
-    var md = '# HuntDrop AI Coach — Conversation Export\n# Date: ' + new Date().toLocaleString() + '\n\n---\n\n';
+    let md = '# HuntDrop AI Coach — Conversation Export\n# Date: ' + new Date().toLocaleString() + '\n\n---\n\n';
     history.forEach(function(msg) {
       md += '### ' + (msg.role === 'user' ? '👤 You' : '🤖 AI Coach') + ' — ' + new Date(msg.time).toLocaleTimeString() + '\n\n' + msg.content + '\n\n---\n\n';
     });
-    var blob = new Blob([md], { type: 'text/markdown' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a'); a.href = url; a.download = 'huntdrop-coach-export-' + Date.now() + '.md'; a.click();
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'huntdrop-coach-export-' + Date.now() + '.md'; a.click();
     URL.revokeObjectURL(url);
     UI.toast('Conversation exported!', 'success');
   },
@@ -776,7 +784,7 @@ const AICoachPlugin = {
   clearChat() {
     Config.set('coach.history', []);
     _state.msgCount = 0;
-    var el = _state.els.chatMessages;
+    const el = _state.els.chatMessages;
     if (el) el.innerHTML = '';
     AICoachPlugin.renderWelcome();
     AICoachPlugin.updateStatus();
@@ -784,16 +792,16 @@ const AICoachPlugin = {
   },
 
   toggleVoiceInput() {
-    var btn = _state.els.voiceBtn;
-    var input = _state.els.input;
+    const btn = _state.els.voiceBtn;
+    const input = _state.els.input;
     if (!btn || !input) return;
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { UI.toast('Voice input not supported', 'warning'); return; }
-    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (_state.recognition) { _state.recognition.stop(); _state.recognition = null; btn.classList.remove('recording'); return; }
     _state.recognition = new SpeechRecognition();
     _state.recognition.continuous = false; _state.recognition.interimResults = true; _state.recognition.lang = 'en-US';
     _state.recognition.onstart = function() { btn.classList.add('recording'); UI.toast('Listening…', 'info'); };
-    _state.recognition.onresult = function(e) { var t = ''; for (var i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; input.value = t; };
+    _state.recognition.onresult = function(e) { let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; input.value = t; };
     _state.recognition.onend = function() { btn.classList.remove('recording'); _state.recognition = null; };
     _state.recognition.onerror = function(e) { btn.classList.remove('recording'); _state.recognition = null; if (e.error !== 'no-speech') UI.toast('Voice error: ' + e.error, 'warning'); };
     _state.recognition.start();
@@ -802,12 +810,12 @@ const AICoachPlugin = {
   showCommandPalette() {
     AICoachPlugin.switchTab('commands');
     if (!_state.sidebarOpen) AICoachPlugin.toggleSidebar();
-    var si = _state.section ? _state.section.querySelector('#coachCmdSearch') : null;
+    const si = _state.section ? _state.section.querySelector('#coachCmdSearch') : null;
     if (si) si.focus();
   },
 
   saveToHistory(role, content) {
-    var history = Config.get('coach.history') || [];
+    let history = Config.get('coach.history') || [];
     history.push({ role: role, content: content, time: Date.now() });
     if (history.length > 100) history = history.slice(-100);
     Config.set('coach.history', history);

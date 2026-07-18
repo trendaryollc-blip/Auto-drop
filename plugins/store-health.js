@@ -4,7 +4,7 @@
 // Comprehensive store health audit with actionable improvement recommendations
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 
 const StoreHealthPlugin = {
   id: 'store-health',
@@ -12,15 +12,15 @@ const StoreHealthPlugin = {
   version: '2.0.0',
   description: 'Comprehensive store health audit with actionable improvement recommendations',
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('storeHealth', { enabled: true });
   },
 
-  mount(ctx) {
-    var container = UI.$('sections-container');
+  mount(_ctx) {
+    const container = UI.$('sections-container');
     if (!container) return;
 
-    var section = document.createElement('section');
+    const section = document.createElement('section');
     section.className = 'section section-store-health';
     section.id = 'section-health';
     section.innerHTML = `
@@ -74,23 +74,23 @@ const StoreHealthPlugin = {
     StoreHealthPlugin.analyze();
   },
 
-  unmount(ctx) {
-    var section = UI.$('section-health');
+  unmount(_ctx) {
+    const section = UI.$('section-health');
     if (section) {
       section.querySelectorAll('canvas').forEach(function(c) {
-        if (c._chart) { try { c._chart.destroy(); } catch(e) {} c._chart = null; }
+        if (c._chart) { try { c._chart.destroy(); } catch {/* ignored */} c._chart = null; }
       });
       section.remove();
     }
   },
 
   analyze() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var section = UI.$('section-health');
-    var el = section ? section.querySelector('#healthResults') : null;
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const section = UI.$('section-health');
+    const el = section ? section.querySelector('#healthResults') : null;
     if (!el || products.length === 0) return;
 
-    var scores = {
+    const scores = {
       productSelection: this.scoreProductSelection(products),
       pricing: this.scorePricing(products),
       adStrategy: this.scoreAdStrategy(products),
@@ -99,7 +99,7 @@ const StoreHealthPlugin = {
       financial: this.scoreFinancialHealth(products)
     };
 
-    var overall = Math.round(
+    const overall = Math.round(
       scores.productSelection * 0.2 +
       scores.pricing * 0.2 +
       scores.adStrategy * 0.2 +
@@ -108,13 +108,13 @@ const StoreHealthPlugin = {
       scores.financial * 0.15
     );
 
-    var alerts = this.generateAlerts(products, scores);
-    var actions = this.generateActions(scores, alerts);
-    var grade = overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D';
-    var gradeColor = overall >= 85 ? 'var(--accent-green)' : overall >= 70 ? 'var(--accent-cyan)' : overall >= 55 ? 'var(--accent-orange)' : 'var(--accent-red)';
-    var gradeLabel = overall >= 85 ? 'Excellent' : overall >= 70 ? 'Good' : overall >= 55 ? 'Fair' : 'Needs Work';
+    const alerts = this.generateAlerts(products, scores);
+    const actions = this.generateActions(scores, alerts);
+    const grade = overall >= 85 ? 'A' : overall >= 70 ? 'B' : overall >= 55 ? 'C' : 'D';
+    const gradeColor = overall >= 85 ? 'var(--accent-green)' : overall >= 70 ? 'var(--accent-cyan)' : overall >= 55 ? 'var(--accent-orange)' : 'var(--accent-red)';
+    const gradeLabel = overall >= 85 ? 'Excellent' : overall >= 70 ? 'Good' : overall >= 55 ? 'Fair' : 'Needs Work';
 
-    var metricsList = [
+    const metricsList = [
       {key:'productSelection',label:'Product Selection',icon:'📦',desc:'Quality and diversity of your product catalog'},
       {key:'pricing',label:'Pricing Strategy',icon:'💰',desc:'Margin health and competitive positioning'},
       {key:'adStrategy',label:'Ad Performance',icon:'📢',desc:'CPA efficiency and demand alignment'},
@@ -123,7 +123,7 @@ const StoreHealthPlugin = {
       {key:'financial',label:'Financial Health',icon:'📊',desc:'Risk profile and market exposure'}
     ];
 
-    var self = this;
+    const self = this;
     el.innerHTML =
       '<div class="sh-overall-card">' +
         '<div class="sh-overall-left">' +
@@ -170,9 +170,9 @@ const StoreHealthPlugin = {
         '</div>' +
         '<div class="sh-metrics-grid" id="shMetricsGrid">' +
           metricsList.map(function(m) {
-            var val = scores[m.key];
-            var color = val >= 80 ? 'var(--accent-green)' : val >= 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
-            var status = val >= 80 ? 'Strong' : val >= 60 ? 'Good' : 'Weak';
+            const val = scores[m.key];
+            const color = val >= 80 ? 'var(--accent-green)' : val >= 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
+            const status = val >= 80 ? 'Strong' : val >= 60 ? 'Good' : 'Weak';
             return '<div class="sh-metric-card">' +
               '<div class="sh-metric-icon" style="background:'+color+'22;color:'+color+'">'+m.icon+'</div>' +
               '<div class="sh-metric-content">' +
@@ -204,8 +204,8 @@ const StoreHealthPlugin = {
               '</div>' +
               '<div class="sh-alerts-list">' +
                 alerts.map(function(a) {
-                  var icon = a.type === 'danger' ? '🔴' : a.type === 'warning' ? '🟡' : a.type === 'success' ? '🟢' : '🔵';
-                  var typeLabel = a.type === 'danger' ? 'Critical' : a.type === 'warning' ? 'Warning' : a.type === 'success' ? 'Healthy' : 'Info';
+                  const icon = a.type === 'danger' ? '🔴' : a.type === 'warning' ? '🟡' : a.type === 'success' ? '🟢' : '🔵';
+                  const typeLabel = a.type === 'danger' ? 'Critical' : a.type === 'warning' ? 'Warning' : a.type === 'success' ? 'Healthy' : 'Info';
                   return '<div class="sh-alert sh-alert-'+a.type+'">' +
                     '<div class="sh-alert-icon-wrap">'+icon+'</div>' +
                     '<div class="sh-alert-body">' +
@@ -230,7 +230,7 @@ const StoreHealthPlugin = {
               '<p class="sh-section-sub">Actions ranked by impact. Start from the top for maximum results.</p>' +
               '<div class="sh-actions-list">' +
                 actions.map(function(a, i) {
-                  var clickAttr = a.section ? ' onclick="window.HuntDrop.navigateTo(\''+a.section+'\')" style="cursor:pointer"' : '';
+                  const clickAttr = a.section ? ' onclick="window.HuntDrop.navigateTo(\''+a.section+'\')" style="cursor:pointer"' : '';
                   return '<div class="sh-action"'+clickAttr+'>' +
                     '<div class="sh-action-num">'+(i+1)+'</div>' +
                     '<div class="sh-action-content">' +
@@ -318,8 +318,8 @@ const StoreHealthPlugin = {
         section.querySelectorAll('.sh-tab-btn').forEach(function(b){b.classList.remove('active');});
         section.querySelectorAll('.sh-tab-panel').forEach(function(p){p.classList.remove('active');});
         btn.classList.add('active');
-        var tab = btn.dataset.tab;
-        var panel = section.querySelector('#shPanel'+tab.charAt(0).toUpperCase()+tab.slice(1));
+        const tab = btn.dataset.tab;
+        const panel = section.querySelector('#shPanel'+tab.charAt(0).toUpperCase()+tab.slice(1));
         if (panel) panel.classList.add('active');
         if (tab === 'charts') setTimeout(function(){ self.renderCharts(scores, section); }, 50);
         if (tab === 'history') setTimeout(function(){ self.renderHistoryChart(scores, section); }, 50);
@@ -331,7 +331,7 @@ const StoreHealthPlugin = {
       btn.addEventListener('click', function(){
         section.querySelectorAll('.sh-view-btn').forEach(function(b){b.classList.remove('sh-view-active');});
         btn.classList.add('sh-view-active');
-        var grid = section.querySelector('#shMetricsGrid');
+        const grid = section.querySelector('#shMetricsGrid');
         if (grid) {
           if (btn.dataset.view === 'bars') grid.classList.add('sh-metrics-bars');
           else grid.classList.remove('sh-metrics-bars');
@@ -343,8 +343,8 @@ const StoreHealthPlugin = {
   },
 
   generateInsights(scores) {
-    var insights = [];
-    var metricsList = [
+    const insights = [];
+    const metricsList = [
       {key:'productSelection',label:'Product Selection',icon:'📦'},
       {key:'pricing',label:'Pricing Strategy',icon:'💰'},
       {key:'adStrategy',label:'Ad Performance',icon:'📢'},
@@ -353,9 +353,9 @@ const StoreHealthPlugin = {
       {key:'financial',label:'Financial Health',icon:'📊'}
     ];
     metricsList.forEach(function(m){
-      var val = scores[m.key];
-      var status = val >= 80 ? 'excellent' : val >= 60 ? 'good' : 'needs improvement';
-      var color = val >= 80 ? 'var(--accent-green)' : val >= 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
+      const val = scores[m.key];
+      const status = val >= 80 ? 'excellent' : val >= 60 ? 'good' : 'needs improvement';
+      const color = val >= 80 ? 'var(--accent-green)' : val >= 60 ? 'var(--accent-orange)' : 'var(--accent-red)';
       insights.push(
         '<div class="sh-insight-item">' +
           '<span class="sh-insight-icon">'+m.icon+'</span>' +
@@ -369,41 +369,41 @@ const StoreHealthPlugin = {
   },
 
   scoreProductSelection(products) {
-    var avgScore = products.reduce(function(s, p) { return s + p.score; }, 0) / products.length;
-    var avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
-    var trendingCount = products.filter(function(p) { return p.badges.indexOf('trending') > -1; }).length;
-    var trendingPct = trendingCount / products.length;
+    const avgScore = products.reduce(function(s, p) { return s + p.score; }, 0) / products.length;
+    const avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
+    const trendingCount = products.filter(function(p) { return p.badges.indexOf('trending') > -1; }).length;
+    const trendingPct = trendingCount / products.length;
     return Math.min(100, Math.round(avgScore * 0.4 + avgMargin * 0.4 + trendingPct * 100 * 0.2));
   },
 
   scorePricing(products) {
-    var avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
-    var priceRange = products.map(function(p) { return p.price; });
-    var minPrice = Math.min.apply(null, priceRange);
-    var maxPrice = Math.max.apply(null, priceRange);
-    var diversity = maxPrice > 0 ? (maxPrice - minPrice) / maxPrice : 0;
+    const avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
+    const priceRange = products.map(function(p) { return p.price; });
+    const minPrice = Math.min.apply(null, priceRange);
+    const maxPrice = Math.max.apply(null, priceRange);
+    const diversity = maxPrice > 0 ? (maxPrice - minPrice) / maxPrice : 0;
     return Math.min(100, Math.round(avgMargin * 0.7 + diversity * 100 * 0.3));
   },
 
   scoreAdStrategy(products) {
-    var avgCPA = products.reduce(function(s, p) { return s + p.cpaAvg; }, 0) / products.length;
-    var avgCpaScore = Math.max(0, 100 - avgCPA * 10);
-    var avgDemand = products.reduce(function(s, p) { return s + p.demand; }, 0) / products.length;
+    const avgCPA = products.reduce(function(s, p) { return s + p.cpaAvg; }, 0) / products.length;
+    const avgCpaScore = Math.max(0, 100 - avgCPA * 10);
+    const avgDemand = products.reduce(function(s, p) { return s + p.demand; }, 0) / products.length;
     return Math.min(100, Math.round(avgCpaScore * 0.5 + avgDemand * 0.5));
   },
 
   scoreCustomerExperience(products) {
-    var avgRating = products.reduce(function(s, p) { return s + p.rating; }, 0) / products.length;
-    var avgReviews = products.reduce(function(s, p) { return s + p.reviews; }, 0) / products.length;
-    var ratingScore = (avgRating / 5) * 100;
-    var reviewScore = Math.min(100, avgReviews / 200);
+    const avgRating = products.reduce(function(s, p) { return s + p.rating; }, 0) / products.length;
+    const avgReviews = products.reduce(function(s, p) { return s + p.reviews; }, 0) / products.length;
+    const ratingScore = (avgRating / 5) * 100;
+    const reviewScore = Math.min(100, avgReviews / 200);
     return Math.min(100, Math.round(ratingScore * 0.6 + reviewScore * 0.4));
   },
 
   scoreSupplierReliability(products) {
-    var verifiedCount = 0;
-    var totalSuppliers = 0;
-    var fastResponse = 0;
+    let verifiedCount = 0;
+    let totalSuppliers = 0;
+    let fastResponse = 0;
     products.forEach(function(p) {
       p.suppliers.forEach(function(s) {
         totalSuppliers++;
@@ -411,37 +411,37 @@ const StoreHealthPlugin = {
         if (s.responseTime.indexOf('1h') > -1 || s.responseTime.indexOf('2h') > -1) fastResponse++;
       });
     });
-    var verifiedPct = totalSuppliers > 0 ? (verifiedCount / totalSuppliers) * 100 : 0;
-    var fastPct = totalSuppliers > 0 ? (fastResponse / totalSuppliers) * 100 : 0;
+    const verifiedPct = totalSuppliers > 0 ? (verifiedCount / totalSuppliers) * 100 : 0;
+    const fastPct = totalSuppliers > 0 ? (fastResponse / totalSuppliers) * 100 : 0;
     return Math.min(100, Math.round(verifiedPct * 0.5 + fastPct * 0.5));
   },
 
   scoreFinancialHealth(products) {
-    var avgRisk = products.reduce(function(s, p) { return s + p.riskScore; }, 0) / products.length;
-    var riskScore = 100 - avgRisk;
-    var avgSaturation = products.reduce(function(s, p) { return s + p.marketSaturation; }, 0) / products.length;
-    var satScore = 100 - avgSaturation;
+    const avgRisk = products.reduce(function(s, p) { return s + p.riskScore; }, 0) / products.length;
+    const riskScore = 100 - avgRisk;
+    const avgSaturation = products.reduce(function(s, p) { return s + p.marketSaturation; }, 0) / products.length;
+    const satScore = 100 - avgSaturation;
     return Math.min(100, Math.round(riskScore * 0.5 + satScore * 0.5));
   },
 
   generateAlerts(products, scores) {
-    var alerts = [];
+    const alerts = [];
     if (scores.pricing < 60) {
-      var avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
+      const avgMargin = products.reduce(function(s, p) { return s + p.margin; }, 0) / products.length;
       alerts.push({ type: 'warning', title: 'Pricing Below Optimal', text: 'Your average margin is ' + avgMargin.toFixed(0) + '%. Top stores average 65-75%. Consider raising prices or sourcing cheaper suppliers.' });
     }
     if (scores.supplierRel < 70) {
       alerts.push({ type: 'danger', title: 'Supplier Reliability Risk', text: 'Some suppliers have response times over 3 hours. Late shipments can increase refund rate by 15-25%. Prioritize verified suppliers.' });
     }
     if (scores.adStrategy < 60) {
-      var avgCPA = products.reduce(function(s, p) { return s + p.cpaAvg; }, 0) / products.length;
+      const avgCPA = products.reduce(function(s, p) { return s + p.cpaAvg; }, 0) / products.length;
       alerts.push({ type: 'warning', title: 'High Customer Acquisition Cost', text: 'Average CPA is $' + avgCPA.toFixed(2) + '. Industry benchmark is $3-5. Optimize ad targeting or test new creatives.' });
     }
-    var highSatProducts = products.filter(function(p) { return p.marketSaturation > 60; });
+    const highSatProducts = products.filter(function(p) { return p.marketSaturation > 60; });
     if (highSatProducts.length > 0) {
       alerts.push({ type: 'danger', title: 'Saturated Products Detected', text: highSatProducts.length + ' product(s) have over 60% market saturation. These are at risk of declining returns. Consider diversifying.' });
     }
-    var bestProduct = products.reduce(function(best, p) { return p.score > best.score ? p : best; }, products[0]);
+    const bestProduct = products.reduce(function(best, p) { return p.score > best.score ? p : best; }, products[0]);
     if (bestProduct && scores.adStrategy < 70) {
       alerts.push({ type: 'info', title: 'Best Product Underperforming in Ads', text: '"' + bestProduct.title.split('—')[0].trim() + '" has an AI score of ' + bestProduct.score + ' but average ad performance. Increase budget allocation for this product.' });
     }
@@ -451,8 +451,8 @@ const StoreHealthPlugin = {
     return alerts;
   },
 
-  generateActions(scores, alerts) {
-    var actions = [];
+  generateActions(scores, _alerts) {
+    const actions = [];
     if (scores.pricing < 70) actions.push({ title: 'Optimize Pricing Strategy', desc: 'Test 10-15% price increase on top 3 products. Use the Price Elasticity Simulator to find the sweet spot.', impact: 'High', section: 'section-elasticity' });
     if (scores.adStrategy < 70) actions.push({ title: 'Reallocate Ad Budget', desc: 'Use the Ad Budget AI Allocator to shift spend toward high-ROI products and cut underperformers.', impact: 'High', section: 'section-budget' });
     if (scores.supplierRel < 80) actions.push({ title: 'Upgrade Supplier Network', desc: 'Switch to suppliers with <2h response time and verified status. Check Supplier Hub for alternatives.', impact: 'Medium', section: 'section-supplier-hub' });
@@ -465,11 +465,11 @@ const StoreHealthPlugin = {
 
   renderCharts(scores, section) {
     if (!section) return;
-    var ctx = section.querySelector('#shChart');
+    const ctx = section.querySelector('#shChart');
     if (ctx) {
       if (ctx._chart) ctx._chart.destroy();
-      var labels = Object.keys(scores).map(function(k) { return k.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); });
-      var values = Object.values(scores);
+      const labels = Object.keys(scores).map(function(k) { return k.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); });
+      const values = Object.values(scores);
       ctx._chart = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -502,12 +502,12 @@ const StoreHealthPlugin = {
       });
     }
     // Bar chart
-    var barCtx = section.querySelector('#shBarChart');
+    const barCtx = section.querySelector('#shBarChart');
     if (barCtx) {
       if (barCtx._chart) barCtx._chart.destroy();
-      var blabels = Object.keys(scores).map(function(k) { return k.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); });
-      var bvalues = Object.values(scores);
-      var bcolors = bvalues.map(function(v){ return v >= 80 ? '#00ff88' : v >= 60 ? '#ff8a00' : '#ff3366'; });
+      const blabels = Object.keys(scores).map(function(k) { return k.replace(/([A-Z])/g, ' $1').replace(/^./, function(s) { return s.toUpperCase(); }); });
+      const bvalues = Object.values(scores);
+      const bcolors = bvalues.map(function(v){ return v >= 80 ? '#00ff88' : v >= 60 ? '#ff8a00' : '#ff3366'; });
       barCtx._chart = new Chart(barCtx, {
         type: 'bar',
         data: {
@@ -534,12 +534,12 @@ const StoreHealthPlugin = {
 
   renderHistoryChart(scores, section) {
     if (!section) return;
-    var ctx = section.querySelector('#shHistoryChart');
+    const ctx = section.querySelector('#shHistoryChart');
     if (!ctx) return;
     if (ctx._chart) ctx._chart.destroy();
-    var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    var current = Math.round(Object.values(scores).reduce(function(s, v) { return s + v; }, 0) / 6);
-    var data = days.map(function(_, i) {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const current = Math.round(Object.values(scores).reduce(function(s, v) { return s + v; }, 0) / 6);
+    const data = days.map(function(_, i) {
       return Math.max(0, Math.min(100, current - 8 + Math.random() * 16 + i));
     });
     ctx._chart = new Chart(ctx, {

@@ -22,7 +22,6 @@ describe('data-adapters plugin', () => {
 
     it('should emit adapters:registered event on load', () => {
       const core = loadCore();
-      loadScript('mock-api.js');
       const cb = vi.fn();
       core.EventBus.on('adapters:registered', cb);
       loadScript('plugins/data-adapters.js');

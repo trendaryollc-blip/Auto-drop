@@ -71,6 +71,13 @@ describe('core.js — HuntDrop Core Foundation', () => {
       expect(cb).toHaveBeenCalledWith({ a: 1 });
     });
 
+    it('should support wildcard event matching', async () => {
+      const cb = vi.fn();
+      HuntDrop.EventBus.on('product:*', cb);
+      await HuntDrop.EventBus.emit('product:updated', { id: 7 });
+      expect(cb).toHaveBeenCalledWith({ id: 7 });
+    });
+
     it('should remove specific listener with off()', async () => {
       const cb1 = vi.fn();
       const cb2 = vi.fn();
@@ -93,11 +100,14 @@ describe('core.js — HuntDrop Core Foundation', () => {
       expect(cb2).not.toHaveBeenCalled();
     });
 
-    it('should collect return values from listeners', async () => {
-      HuntDrop.EventBus.on('test:returns', () => 1);
-      HuntDrop.EventBus.on('test:returns', () => 2);
-      const results = await HuntDrop.EventBus.emit('test:returns');
-      expect(results).toEqual([1, 2]);
+    it('should execute listeners without collecting return values', async () => {
+      const spy1 = vi.fn(() => 1);
+      const spy2 = vi.fn(() => 2);
+      HuntDrop.EventBus.on('test:returns', spy1);
+      HuntDrop.EventBus.on('test:returns', spy2);
+      await HuntDrop.EventBus.emit('test:returns');
+      expect(spy1).toHaveBeenCalled();
+      expect(spy2).toHaveBeenCalled();
     });
 
     it('should catch errors in listeners and continue', async () => {
@@ -144,8 +154,8 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should handle async listeners', async () => {
       const cb = vi.fn().mockResolvedValue('async-result');
       HuntDrop.EventBus.on('test:async', cb);
-      const results = await HuntDrop.EventBus.emit('test:async');
-      expect(results).toEqual(['async-result']);
+      await HuntDrop.EventBus.emit('test:async');
+      expect(cb).toHaveBeenCalled();
     });
   });
 
@@ -231,6 +241,19 @@ describe('core.js — HuntDrop Core Foundation', () => {
       await HuntDrop.PluginRegistry.mount('mount-plugin');
       expect(mountFn).toHaveBeenCalled();
       expect(HuntDrop.PluginRegistry.get('mount-plugin')._mounted).toBe(true);
+    });
+
+    it('should rollback partial DOM from a failed mount', async () => {
+      const mountFn = vi.fn(() => {
+        const el = document.createElement('div');
+        el.id = 'rollback-plugin';
+        document.body.appendChild(el);
+        throw new Error('boom');
+      });
+      HuntDrop.PluginRegistry.register('rollback-plugin', { mount: mountFn });
+      await HuntDrop.PluginRegistry.mount('rollback-plugin');
+      expect(document.getElementById('rollback-plugin')).toBeNull();
+      expect(HuntDrop.PluginRegistry.get('rollback-plugin')._mounted).toBe(false);
     });
 
     it('should not re-mount an already mounted plugin', async () => {
@@ -416,6 +439,26 @@ describe('core.js — HuntDrop Core Foundation', () => {
       expect(unmountFn).toHaveBeenCalled();
     });
 
+    it('should preserve focus while updating simple components', () => {
+      HuntDrop.ComponentRegistry.register('focus-comp', {
+        render: (props) => `<div><input value="${props.value}" /></div>`,
+        mount: vi.fn(),
+        unmount: vi.fn(),
+        validate: () => true,
+        defaultProps: { value: 'old' },
+      });
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      const inst = HuntDrop.ComponentRegistry.create('focus-comp', { value: 'old' }, container);
+      const input = container.querySelector('input');
+      input.focus();
+      HuntDrop.ComponentRegistry.update(inst.id, { value: 'new' });
+      const updatedInput = container.querySelector('input');
+      expect(updatedInput).toBeDefined();
+      expect(document.activeElement).toBe(updatedInput);
+      expect(updatedInput.value).toBe('new');
+    });
+
     it('should destroy a component', () => {
       const unmountFn = vi.fn();
       HuntDrop.ComponentRegistry.register('destroy-comp', {
@@ -510,6 +553,17 @@ describe('core.js — HuntDrop Core Foundation', () => {
       expect(HuntDrop.Config.set('valid.age', 5)).toBe(true);
       expect(HuntDrop.Config.set('valid.age', -1)).toBe(false);
       expect(HuntDrop.Config.get('valid.age')).toBe(5); // unchanged
+    });
+
+    it('should validate values against registered schemas', () => {
+      HuntDrop.Config.registerSchema('plugin.alpha', {
+        enabled: { type: 'boolean' },
+        threshold: { type: 'number' },
+      });
+      expect(HuntDrop.Config.set('plugin.alpha.enabled', true)).toBe(true);
+      expect(HuntDrop.Config.set('plugin.alpha.enabled', 'yes')).toBe(false);
+      expect(HuntDrop.Config.set('plugin.alpha.threshold', 3)).toBe(true);
+      expect(HuntDrop.Config.set('plugin.alpha.threshold', '3')).toBe(false);
     });
 
     it('getAll() should return all config', () => {

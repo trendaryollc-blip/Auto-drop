@@ -162,43 +162,47 @@
 .spy-rev-name { font-weight:600; color:var(--text-primary) }
 
 /* Store Profile Panel */
-.spy-profile-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; backdrop-filter:blur(4px) }
-.spy-profile-panel { position:fixed; top:0; right:0; width:480px; max-width:90vw; height:100vh; background:var(--bg-primary); border-left:1px solid var(--border-primary); z-index:1000; overflow-y:auto; padding:0 }
-.spy-profile-header { padding:24px; border-bottom:1px solid var(--border-subtle) }
-.spy-profile-title-row { display:flex; align-items:center; gap:14px }
-.spy-profile-avatar { width:48px; height:48px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0 }
-.spy-profile-name { font-family:var(--font-display); font-size:20px; font-weight:800 }
-.spy-profile-url { font-size:12px; color:var(--text-muted); font-family:var(--font-mono); margin-top:2px }
-.spy-profile-close { position:absolute; top:20px; right:20px; width:32px; height:32px; border-radius:50%; background:var(--bg-card); border:1px solid var(--border-primary); color:var(--text-secondary); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s }
-.spy-profile-close:hover { border-color:var(--accent-red); color:var(--accent-red) }
+.spy-profile-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; backdrop-filter:blur(6px) }
+.spy-profile-panel { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:960px; max-width:94vw; height:90vh; max-height:90vh; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-xl); z-index:1000; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 80px rgba(0,0,0,0.5) }
+.spy-profile-header { padding:28px 32px 20px; border-bottom:1px solid var(--border-subtle); flex-shrink:0; background:var(--bg-card) }
+.spy-profile-title-row { display:flex; align-items:center; gap:16px }
+.spy-profile-avatar { width:52px; height:52px; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; flex-shrink:0 }
+.spy-profile-name { font-family:var(--font-display); font-size:22px; font-weight:800 }
+.spy-profile-url { font-size:12px; color:var(--text-muted); font-family:var(--font-mono); margin-top:3px }
+.spy-profile-close { position:absolute; top:24px; right:24px; width:36px; height:36px; border-radius:50%; background:var(--bg-primary); border:1px solid var(--border-primary); color:var(--text-secondary); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s }
+.spy-profile-close:hover { border-color:var(--accent-red); color:var(--accent-red); background:rgba(239,68,68,0.1) }
 .spy-profile-badges { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px }
 .spy-badge { font-size:11px; padding:4px 10px; border-radius:var(--radius-sm); font-weight:600 }
 .spy-badge-cat { background:var(--accent-cyan-dim); color:var(--accent-cyan) }
 .spy-badge-age { background:var(--accent-orange-dim); color:var(--accent-orange) }
 .spy-badge-theme { background:var(--accent-purple-dim); color:var(--accent-purple) }
-.spy-profile-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border-subtle); border-bottom:1px solid var(--border-subtle) }
-.spy-profile-stat { padding:16px; background:var(--bg-primary); text-align:center }
-.spy-profile-stat-val { font-family:var(--font-mono); font-size:18px; font-weight:700 }
-.spy-profile-stat-lbl { font-size:10px; color:var(--text-muted); margin-top:4px; text-transform:uppercase }
-.spy-profile-sections { padding:24px }
-.spy-profile-section { margin-bottom:20px }
-.spy-profile-section h4 { font-size:14px; font-weight:700; margin-bottom:12px; color:var(--text-primary) }
+.spy-profile-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border-subtle); border-bottom:1px solid var(--border-subtle); flex-shrink:0 }
+.spy-profile-stat { padding:18px; background:var(--bg-primary); text-align:center }
+.spy-profile-stat-val { font-family:var(--font-mono); font-size:20px; font-weight:700 }
+.spy-profile-stat-lbl { font-size:10px; color:var(--text-muted); margin-top:4px; text-transform:uppercase; letter-spacing:0.5px }
+.spy-profile-sections { padding:24px 32px; overflow-y:auto; flex:1 }
+.spy-profile-section { margin-bottom:22px }
+.spy-profile-section h4 { font-size:14px; font-weight:700; margin-bottom:12px; color:var(--text-primary); display:flex; align-items:center; gap:8px }
+.spy-profile-section h4 span { font-size:16px }
 .spy-profile-ads, .spy-profile-newprods, .spy-profile-prices { display:flex; flex-direction:column; gap:6px }
-.spy-profile-ad { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-card); border-radius:var(--radius-sm); font-size:12px }
-.spy-profile-ad-platform { font-size:10px; padding:2px 6px; background:var(--accent-cyan-dim); color:var(--accent-cyan); border-radius:var(--radius-sm); font-weight:600 }
+.spy-profile-ad { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); font-size:12px; transition:border-color 0.2s }
+.spy-profile-ad:hover { border-color:var(--accent-cyan) }
+.spy-profile-ad-platform { font-size:10px; padding:3px 8px; background:var(--accent-cyan-dim); color:var(--accent-cyan); border-radius:var(--radius-sm); font-weight:600; text-transform:uppercase; letter-spacing:0.3px }
 .spy-profile-ad-hook { flex:1; font-style:italic; color:var(--text-secondary) }
 .spy-profile-ad-ctr { font-family:var(--font-mono); font-weight:600; color:var(--accent-green); white-space:nowrap }
-.spy-profile-newprod { display:flex; justify-content:space-between; padding:10px; background:var(--bg-card); border-radius:var(--radius-sm); font-size:13px }
-.spy-profile-price { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-card); border-radius:var(--radius-sm); font-size:13px }
+.spy-profile-newprod { display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); font-size:13px; transition:border-color 0.2s }
+.spy-profile-newprod:hover { border-color:var(--accent-cyan) }
+.spy-profile-price { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); font-size:13px }
 .spy-profile-apps { display:flex; flex-wrap:wrap; gap:6px }
-.spy-profile-traffic { display:flex; flex-direction:column; gap:6px }
+.spy-profile-traffic { display:flex; flex-direction:column; gap:8px }
 .spy-profile-traffic-row { display:flex; align-items:center; gap:8px; font-size:12px }
 .spy-profile-traffic-row span:first-child { min-width:60px; color:var(--text-muted); text-transform:capitalize }
 .spy-profile-traffic-row span:last-child { min-width:30px; font-family:var(--font-mono); font-weight:600; text-align:right }
-.spy-profile-social { display:flex; gap:16px }
-.spy-profile-perf { display:flex; flex-direction:column; gap:8px }
-.spy-profile-perf-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border-subtle); font-size:13px }
+.spy-profile-social { display:flex; gap:20px }
+.spy-profile-perf { display:flex; flex-direction:column; gap:0 }
+.spy-profile-perf-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-subtle); font-size:13px }
 .spy-profile-perf-row:last-child { border-bottom:none }
+.spy-profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px }
 
 @media (max-width:1000px) {
   .spy-overview { grid-template-columns:repeat(3,1fr) }
@@ -585,7 +589,7 @@
 .cps-search-icon { margin:0 12px; color:var(--text-muted); flex-shrink:0 }
 .cps-input { flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:14px; font-family:var(--font-body); padding:12px 0 }
 .cps-input::placeholder { color:var(--text-muted) }
-.cps-generate-btn { display:flex; align-items:center; gap:6px; padding:10px 22px; background:linear-gradient(135deg,#ec4899,#8b5cf6); border:none; border-radius:var(--radius-md); color:white; font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap }
+.cps-generate-btn { display:flex; align-items:center; gap:6px; padding:10px 22px; background:var(--gradient-primary); border:none; border-radius:var(--radius-md); color:white; font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap }
 .cps-generate-btn:hover { transform:scale(1.03); box-shadow:0 0 20px rgba(236,72,153,0.3) }
 .cps-quick-picks { display:flex; align-items:center; gap:8px; flex-wrap:wrap }
 .cps-quick-label { font-size:12px; color:var(--text-muted); white-space:nowrap }

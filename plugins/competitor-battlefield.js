@@ -5,117 +5,121 @@
 // price wars, new products, revenue intel, ad spend, SWOT, head-to-head, playbook.
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
 
+let _section = null;
+let _liveInterval = null;
+
 const Competitors = [
-  {id:'c1',name:'PetLover Store',platform:'Shopify',url:'petlover.myshopify.com',revenue:48200,traffic:32400,convRate:3.2,ads:23,products:156,lastActive:'2 min ago',avatar:'P',color:'var(--accent-green)',age:'14 months',theme:'Dawn',apps:['Klaviyo','Loox','DSers','Tidio'],pageSpeed:92,seoScore:88,bounceRate:34,sessionMin:4.2,social:{fb:12400,ig:28900,tk:45200},topCountries:['US','UK','CA'],cat:'Pet Supplies'},
-  {id:'c2',name:'TechGadget Hub',platform:'Shopify',url:'techgadget.myshopify.com',revenue:32100,traffic:21800,convRate:2.9,ads:18,products:89,lastActive:'5 min ago',avatar:'T',color:'var(--accent-cyan)',age:'9 months',theme:'Refresh',apps:['Oberlo','Judge.me','PushOwl','ReConvert'],pageSpeed:78,seoScore:72,bounceRate:42,sessionMin:3.1,social:{fb:8200,ig:15600,tk:31400},topCountries:['US','DE','AU'],cat:'Tech Gadgets'},
-  {id:'c3',name:'BeautyGlow',platform:'Shopify',url:'beautyglow.myshopify.com',revenue:28400,traffic:19200,convRate:3.5,ads:31,products:203,lastActive:'1 min ago',avatar:'B',color:'var(--accent-pink)',age:'18 months',theme:'Sense',apps:['Klaviyo','Yotpo','Stamped','Gorgias'],pageSpeed:85,seoScore:91,bounceRate:28,sessionMin:5.1,social:{fb:18700,ig:52300,tk:67800},topCountries:['US','FR','BR'],cat:'Beauty & Skincare'},
-  {id:'c4',name:'FitGear Pro',platform:'Shopify',url:'fitgearpro.myshopify.com',revenue:19600,traffic:14100,convRate:2.7,ads:12,products:67,lastActive:'8 min ago',avatar:'F',color:'var(--accent-orange)',age:'6 months',theme:'Craft',apps:['Spocket','Vitals','Wishlist','HelpCenter'],pageSpeed:71,seoScore:65,bounceRate:48,sessionMin:2.4,social:{fb:4500,ig:9800,tk:18700},topCountries:['US','CA','UK'],cat:'Fitness'},
-  {id:'c5',name:'HomeEssentials',platform:'WooCommerce',url:'homeessentials.com',revenue:22300,traffic:16500,convRate:2.4,ads:15,products:134,lastActive:'12 min ago',avatar:'H',color:'var(--accent-purple)',age:'22 months',theme:'Flavor',apps:['WooCommerce','Mailchimp','WooCommerce Stripe','MonsterInsights'],pageSpeed:64,seoScore:58,bounceRate:52,sessionMin:2.1,social:{fb:6200,ig:11400,tk:0},topCountries:['US','IN','PH'],cat:'Home & Kitchen'},
-  {id:'c6',name:'Kawaii Decor Co',platform:'Shopify',url:'kawaiidecor.myshopify.com',revenue:15800,traffic:11200,convRate:3.1,ads:9,products:92,lastActive:'3 min ago',avatar:'K',color:'var(--accent-yellow)',age:'7 months',theme:'Flavor',apps:['Oberlo','Loox','Privy','Tidio'],pageSpeed:88,seoScore:82,bounceRate:31,sessionMin:4.5,social:{fb:3200,ig:21500,tk:38900},topCountries:['US','JP','KR'],cat:'Home Decor'},
-  {id:'c7',name:'ChargeTech',platform:'Shopify',url:'chargetech.myshopify.com',revenue:27600,traffic:18900,convRate:2.8,ads:20,products:112,lastActive:'6 min ago',avatar:'C',color:'var(--accent-cyan)',age:'11 months',theme:'Dawn',apps:['DSers','AliReviews','SMSBump','Yotpo'],pageSpeed:80,seoScore:76,bounceRate:38,sessionMin:3.4,social:{fb:7800,ig:14200,tk:29100},topCountries:['US','UK','DE'],cat:'Phone Accessories'},
-  {id:'c8',name:'EcoKitchen Pro',platform:'WooCommerce',url:'ecokitchenpro.com',revenue:18400,traffic:13200,convRate:2.6,ads:11,products:78,lastActive:'15 min ago',avatar:'E',color:'var(--accent-green)',age:'16 months',theme:'flavor',apps:['WooCommerce','MailPoet','WooCommerce UPS','Google Analytics'],pageSpeed:59,seoScore:52,bounceRate:55,sessionMin:1.9,social:{fb:5100,ig:8700,tk:0},topCountries:['US','CA','AU'],cat:'Eco Kitchen'},
-  {id:'c9',name:'PostureTech',platform:'Shopify',url:'posturetech.myshopify.com',revenue:24100,traffic:17600,convRate:3.0,ads:16,products:45,lastActive:'4 min ago',avatar:'P',color:'var(--accent-red)',age:'8 months',theme:'Refresh',apps:['Spocket','Judge.me','ReConvert','Klaviyo'],pageSpeed:83,seoScore:79,bounceRate:36,sessionMin:3.8,social:{fb:6900,ig:16800,tk:42100},topCountries:['US','UK','AU'],cat:'Wellness'},
-  {id:'c10',name:'StarLight Tech',platform:'Shopify',url:'starlighttech.myshopify.com',revenue:35200,traffic:24100,convRate:3.3,ads:27,products:134,lastActive:'1 min ago',avatar:'S',color:'var(--accent-purple)',age:'12 months',theme:'Dawn',apps:['Oberlo','Loox','PushOwl','Gorgias'],pageSpeed:90,seoScore:86,bounceRate:30,sessionMin:4.7,social:{fb:14500,ig:32100,tk:58700},topCountries:['US','DE','JP'],cat:'Tech Gadgets'}
+  {id:'c1',name:'PetLover',url:'petlover.myshopify.com',avatar:'P',color:'#FF6B6B',cat:'Pet Supplies',revenue:42800,traffic:89000,convRate:3.2,products:186,ads:24,age:'2 years',platform:'Shopify',theme:'Debut',pageSpeed:88,seoScore:82,bounceRate:28,sessionMin:4.5,aov:38.50,lastActive:'2 min ago',social:{fb:24500,ig:67800,tk:134000},apps:['Klaviyo','Judge.me','Upsell Wizard','Loox']},
+  {id:'c2',name:'FitGear Pro',url:'fitgearpro.myshopify.com',avatar:'F',color:'#4ECDC4',cat:'Fitness',revenue:38200,traffic:72000,convRate:2.8,products:124,ads:18,age:'1 year',platform:'Shopify',theme:'Dawn',pageSpeed:92,seoScore:78,bounceRate:32,sessionMin:3.8,aov:52.90,lastActive:'5 min ago',social:{fb:18200,ig:45600,tk:98000},apps:['Omnisend','Loox','Vitals','PageFly']},
+  {id:'c3',name:'BeautyGlow',url:'beautyglow.com',avatar:'B',color:'#96CEB4',cat:'Beauty',revenue:67500,traffic:145000,convRate:3.8,products:210,ads:32,age:'3 years',platform:'Shopify',theme:'Impact',pageSpeed:78,seoScore:88,bounceRate:25,sessionMin:5.2,aov:44.20,lastActive:'Just now',social:{fb:56000,ig:234000,tk:312000},apps:['Klaviyo','Yotpo','ReConvert','Searchspring']},
+  {id:'c4',name:'TechNova',url:'technova.io',avatar:'T',color:'#45B7D1',cat:'Electronics',revenue:95000,traffic:210000,convRate:2.5,products:340,ads:45,age:'4 years',platform:'Shopify',theme:'Turbo',pageSpeed:70,seoScore:72,bounceRate:38,sessionMin:3.3,aov:89.99,lastActive:'1 min ago',social:{fb:34000,ig:89000,tk:178000},apps:['Bold Upsell','Klaviyo','Stamped.io','Privy']},
+  {id:'c5',name:'Kawaii Decor',url:'kawaiidecor.myshopify.com',avatar:'K',color:'#FFD93D',cat:'Home & Garden',revenue:28900,traffic:56000,convRate:3.5,products:95,ads:12,age:'8 months',platform:'Shopify',theme:'Refresh',pageSpeed:95,seoScore:85,bounceRate:22,sessionMin:5.8,aov:32.10,lastActive:'8 min ago',social:{fb:12000,ig:89000,tk:245000},apps:['Judge.me','Klaviyo','In Cart Upsell','Product Options']},
+  {id:'c6',name:'UrbanStyle',url:'urbanstyle.co',avatar:'U',color:'#A855F7',cat:'Fashion',revenue:54300,traffic:118000,convRate:2.9,products:280,ads:28,age:'2 years',platform:'Shopify',theme:'Prestige',pageSpeed:75,seoScore:80,bounceRate:35,sessionMin:4.0,aov:67.50,lastActive:'3 min ago',social:{fb:42000,ig:178000,tk:290000},apps:['Loox','Klaviyo','Size Charts','Route']},
+  {id:'c7',name:'BabyBliss',url:'babybliss.myshopify.com',avatar:'C',color:'#F472B6',cat:'Baby & Kids',revenue:31200,traffic:64000,convRate:3.6,products:130,ads:15,age:'1 year',platform:'Shopify',theme:'Sense',pageSpeed:90,seoScore:76,bounceRate:30,sessionMin:4.2,aov:41.80,lastActive:'12 min ago',social:{fb:28000,ig:112000,tk:87000},apps:['Judge.me','Klaviyo','Gift Box','Upsell Master']},
+  {id:'c8',name:'EcoLiving',url:'ecoliving.shop',avatar:'E',color:'#22C55E',cat:'Sustainable',revenue:19800,traffic:42000,convRate:3.1,products:78,ads:9,age:'6 months',platform:'Shopify',theme:'Craft',pageSpeed:96,seoScore:90,bounceRate:20,sessionMin:6.1,aov:29.90,lastActive:'20 min ago',social:{fb:8500,ig:34000,tk:67000},apps:['Shopify Email','Judge.me','EcoCart','Privy']},
+  {id:'c9',name:'PostureTech',url:'posturetech.com',avatar:'P',color:'#EF4444',cat:'Health',revenue:52000,traffic:98000,convRate:3.0,products:65,ads:22,age:'18 months',platform:'Shopify',theme:'Crave',pageSpeed:82,seoScore:79,bounceRate:31,sessionMin:3.7,aov:74.90,lastActive:'4 min ago',social:{fb:15000,ig:56000,tk:210000},apps:['Klaviyo','Loox','Bold Subscriptions','PageFly']},
+  {id:'c10',name:'StarLight',url:'starlight.store',avatar:'S',color:'#F59E0B',cat:'Jewelry',revenue:73000,traffic:155000,convRate:2.7,products:190,ads:35,age:'3 years',platform:'Shopify',theme:'Dawn',pageSpeed:85,seoScore:86,bounceRate:26,sessionMin:4.8,aov:96.40,lastActive:'Just now',social:{fb:38000,ig:145000,tk:267000},apps:['Klaviyo','Yotpo','Bold Upsell','Loox']}
 ];
 
 const LiveAds = [
-  {competitor:'PetLover Store',product:'GPS Pet Tracker',platform:'Facebook',hook:'Is your pet always running off?',ctr:3.8,spend:42,status:'running',age:'3 days',engagement:12.4,adCreative:'Video',targeting:'Interest: Dogs + Cats',estReach:28400},
-  {competitor:'TechGadget Hub',product:'Wireless Earbuds Pro',platform:'TikTok',hook:'POV: you found earbuds that actually stay in',ctr:4.2,spend:67,status:'running',age:'1 day',engagement:18.7,adCreative:'UGC Video',targeting:'18-34 Tech Enthusiasts',estReach:42100},
-  {competitor:'BeautyGlow',product:'Heated Hair Curler',platform:'Instagram',hook:'5 min salon blowout at home',ctr:3.1,spend:89,status:'running',age:'5 days',engagement:9.2,adCreative:'Carousel',targeting:'Women 20-40 Beauty',estReach:35600},
-  {competitor:'FitGear Pro',product:'Posture Corrector',platform:'Facebook',hook:'Back pain ruined my life until this',ctr:2.9,spend:34,status:'running',age:'7 days',engagement:6.8,adCreative:'Image',targeting:'Office Workers 25-55',estReach:18200},
-  {competitor:'StarLight Tech',product:'Galaxy Projector',platform:'TikTok',hook:'Turn your room into another dimension',ctr:5.1,spend:112,status:'scaling',age:'2 days',engagement:24.3,adCreative:'Video',targeting:'Gen Z Home Decor',estReach:67800},
-  {competitor:'PostureTech',product:'Neck Massager',platform:'Facebook',hook:'The $29 device replacing $200 massages',ctr:3.6,spend:56,status:'running',age:'4 days',engagement:11.1,adCreative:'Video',targeting:'Pain Relief Seekers',estReach:31200},
-  {competitor:'ChargeTech',product:'MagSafe Power Bank',platform:'Instagram',hook:'Never run out of battery again',ctr:2.7,spend:28,status:'testing',age:'1 day',engagement:7.9,adCreative:'Story',targeting:'iPhone Users 18-45',estReach:14800},
-  {competitor:'Kawaii Decor Co',product:'LED Cloud Lamp',platform:'TikTok',hook:'My room went from basic to magical',ctr:4.8,spend:45,status:'running',age:'3 days',engagement:15.6,adCreative:'UGC Video',targeting:'Aesthetic Home 16-28',estReach:52400},
-  {competitor:'PetLover Store',product:'Auto Pet Feeder',platform:'Facebook',hook:'Feed your pet from anywhere in the world',ctr:3.4,spend:38,status:'running',age:'6 days',engagement:10.2,adCreative:'Video',targeting:'Pet Owners Remote Workers',estReach:22100},
-  {competitor:'BeautyGlow',product:'LED Face Mask',platform:'TikTok',hook:'Dermatologists hate this $30 secret',ctr:4.6,spend:72,status:'scaling',age:'3 days',engagement:21.4,adCreative:'Video',targeting:'Skincare Community',estReach:58900},
-  {competitor:'StarLight Tech',product:'Levitating Speaker',platform:'Instagram',hook:'The speaker that floats itself',ctr:4.9,spend:95,status:'scaling',age:'2 days',engagement:22.8,adCreative:'Reel',targeting:'Music Lovers 18-35',estReach:51200},
-  {competitor:'PostureTech',product:'Desk Posture Band',platform:'TikTok',hook:'Your desk job is destroying your back',ctr:3.9,spend:48,status:'running',age:'5 days',engagement:13.5,adCreative:'UGC Video',targeting:'Remote Workers 25-45',estReach:34600}
+  {competitor:'PetLover',product:'Smart Pet Fountain',platform:'Facebook',hook:'Your dog deserves filtered water too',ctr:3.8,spend:85,status:'scaling',adCreative:'Video 15s',estReach:45000,engagement:4.2,age:14,targeting:'Dog owners 25-45, US'},
+  {competitor:'PetLover',product:'GPS Pet Tracker Collar',platform:'TikTok',hook:'Never lose your best friend again',ctr:4.2,spend:120,status:'scaling',adCreative:'Spark Ad',estReach:120000,engagement:5.8,age:21,targeting:'Pet owners 18-35, US/UK'},
+  {competitor:'BeautyGlow',product:'LED Face Mask',platform:'Facebook',hook:'Dermatologists hate this $29 hack',ctr:5.1,spend:200,status:'scaling',adCreative:'Video 30s',estReach:89000,engagement:6.1,age:30,targeting:'Women 22-40, beauty interests'},
+  {competitor:'BeautyGlow',product:'Hair Growth Serum',platform:'TikTok',hook:'3 months of growth in 30 seconds',ctr:6.8,spend:350,status:'scaling',adCreative:'Spark Ad',estReach:340000,engagement:8.4,age:45,targeting:'Women 25-50, hair care'},
+  {competitor:'TechNova',product:'Wireless Earbuds Pro',platform:'YouTube',hook:'AirPods quality at 1/3 the price',ctr:2.8,spend:150,status:'scaling',adCreative:'Skippable In-Stream',estReach:67000,engagement:3.2,age:28,targeting:'Tech enthusiasts 18-35'},
+  {competitor:'TechNova',product:'Smart Home Hub',platform:'Facebook',hook:'Control your entire home with one device',ctr:3.5,spend:110,status:'running',adCreative:'Collection Ad',estReach:52000,engagement:3.8,age:16,targeting:'Homeowners 30-55, smart home'},
+  {competitor:'Kawaii Decor',product:'LED Cloud Lamp',platform:'TikTok',hook:'POV: Your room finally looks aesthetic',ctr:7.2,spend:180,status:'scaling',adCreative:'Spark Ad',estReach:560000,engagement:9.2,age:35,targeting:'Gen Z, aesthetic room decor'},
+  {competitor:'UrbanStyle',product:'Oversized Vintage Tee',platform:'TikTok',hook:'This $18 tee looks like $180',ctr:5.8,spend:220,status:'scaling',adCreative:'Spark Ad',estReach:230000,engagement:7.1,age:25,targeting:'Fashion 18-30, streetwear'},
+  {competitor:'PostureTech',product:'Posture Corrector Belt',platform:'Facebook',hook:'Fix your posture in 14 days',ctr:4.8,spend:175,status:'scaling',adCreative:'Video 20s',estReach:98000,engagement:5.4,age:40,targeting:'Office workers 25-50, health'},
+  {competitor:'StarLight',product:'Birthstone Necklace',platform:'Instagram',hook:'Her birthstone, her story',ctr:4.1,spend:160,status:'scaling',adCreative:'Reels',estReach:78000,engagement:4.8,age:20,targeting:'Women 22-40, jewelry gifts'},
+  {competitor:'StarLight',product:'Stacking Ring Set',platform:'TikTok',hook:'$12 rings that look $200',ctr:6.5,spend:280,status:'scaling',adCreative:'Spark Ad',estReach:420000,engagement:8.8,age:38,targeting:'Women 18-35, affordable luxury'},
+  {competitor:'FitGear Pro',product:'Resistance Band Set',platform:'TikTok',hook:'Full gym in a bag',ctr:5.4,spend:95,status:'scaling',adCreative:'Spark Ad',estReach:156000,engagement:6.2,age:15,targeting:'Fitness 18-40, home workouts'},
+  {competitor:'BabyBliss',product:'Baby Sleep Sack',platform:'Facebook',hook:'Finally, sleep through the night',ctr:4.6,spend:110,status:'scaling',adCreative:'Video 15s',estReach:67000,engagement:5.1,age:24,targeting:'New parents 22-38'},
+  {competitor:'EcoLiving',product:'Reusable Food Wraps',platform:'Instagram',hook:'Say goodbye to plastic wrap forever',ctr:3.9,spend:40,status:'testing',adCreative:'Carousel',estReach:23000,engagement:3.6,age:5,targeting:'Eco-conscious 25-45'},
+  {competitor:'BeautyGlow',product:'Collagen Supplements',platform:'Instagram',hook:'What you eat shows on your face',ctr:3.2,spend:90,status:'running',adCreative:'Reels',estReach:45000,engagement:3.8,age:12,targeting:'Women 25-45, wellness'}
 ];
 
 const PriceChanges = [
-  {competitor:'StarLight Tech',product:'Galaxy Projector',oldPrice:49.99,newPrice:39.99,change:-20,time:'14 min ago',impact:'HIGH'},
-  {competitor:'BeautyGlow',product:'LED Face Mask',oldPrice:34.99,newPrice:29.99,change:-14,time:'1 hour ago',impact:'MEDIUM'},
-  {competitor:'FitGear Pro',product:'Yoga Mat Pro',oldPrice:24.99,newPrice:19.99,change:-20,time:'2 hours ago',impact:'HIGH'},
-  {competitor:'PetLover Store',product:'Auto Pet Feeder',oldPrice:39.99,newPrice:44.99,change:12,time:'3 hours ago',impact:'LOW'},
-  {competitor:'TechGadget Hub',product:'Mini Projector',oldPrice:59.99,newPrice:49.99,change:-17,time:'4 hours ago',impact:'MEDIUM'},
-  {competitor:'PostureTech',product:'Desk Posture Band',oldPrice:19.99,newPrice:14.99,change:-25,time:'5 hours ago',impact:'HIGH'},
-  {competitor:'ChargeTech',product:'MagSafe Power Bank',oldPrice:34.99,newPrice:29.99,change:-14,time:'6 hours ago',impact:'MEDIUM'},
-  {competitor:'Kawaii Decor Co',product:'LED Cloud Lamp',oldPrice:29.99,newPrice:24.99,change:-17,time:'8 hours ago',impact:'HIGH'}
+  {competitor:'TechNova',product:'Wireless Earbuds Pro',oldPrice:59.99,newPrice:44.99,change:-25,impact:'HIGH',time:'2 hours ago'},
+  {competitor:'BeautyGlow',product:'LED Face Mask',oldPrice:29.99,newPrice:34.99,change:17,impact:'HIGH',time:'5 hours ago'},
+  {competitor:'Kawaii Decor',product:'LED Cloud Lamp',oldPrice:24.99,newPrice:19.99,change:-20,impact:'MEDIUM',time:'8 hours ago'},
+  {competitor:'UrbanStyle',product:'Oversized Vintage Tee',oldPrice:18.99,newPrice:21.99,change:16,impact:'MEDIUM',time:'12 hours ago'},
+  {competitor:'StarLight',product:'Birthstone Necklace',oldPrice:34.99,newPrice:29.99,change:-14,impact:'MEDIUM',time:'1 day ago'},
+  {competitor:'PetLover',product:'Smart Pet Fountain',oldPrice:39.99,newPrice:34.99,change:-13,impact:'LOW',time:'1 day ago'},
+  {competitor:'PostureTech',product:'Posture Corrector Belt',oldPrice:49.99,newPrice:39.99,change:-20,impact:'HIGH',time:'2 days ago'},
+  {competitor:'FitGear Pro',product:'Resistance Band Set',oldPrice:24.99,newPrice:29.99,change:20,impact:'MEDIUM',time:'2 days ago'},
+  {competitor:'EcoLiving',product:'Reusable Food Wraps',oldPrice:14.99,newPrice:12.99,change:-13,impact:'LOW',time:'3 days ago'},
+  {competitor:'BabyBliss',product:'Baby Sleep Sack',oldPrice:32.99,newPrice:29.99,change:-9,impact:'LOW',time:'3 days ago'},
+  {competitor:'StarLight',product:'Tennis Bracelet',oldPrice:59.99,newPrice:49.99,change:-17,impact:'HIGH',time:'3 days ago'},
+  {competitor:'TechNova',product:'Desk Phone Stand',oldPrice:19.99,newPrice:14.99,change:-25,impact:'MEDIUM',time:'4 days ago'}
 ];
 
 const NewProducts = [
-  {competitor:'StarLight Tech',name:'Levitating Speaker',category:'Audio',price:79.99,score:94,time:'2 hours ago',trend:'rising',demandScore:92},
-  {competitor:'BeautyGlow',name:'Smart Skincare Mirror',category:'Beauty Tech',price:59.99,score:91,time:'4 hours ago',trend:'rising',demandScore:88},
-  {competitor:'PetLover Store',name:'Interactive Cat Laser',category:'Pet Gadgets',price:24.99,score:88,time:'6 hours ago',trend:'stable',demandScore:85},
-  {competitor:'TechGadget Hub',name:'Holographic Phone Case',category:'Phone Accessories',price:19.99,score:86,time:'8 hours ago',trend:'rising',demandScore:79},
-  {competitor:'PostureTech',name:'Vibration Reminder Band',category:'Wellness',price:34.99,score:92,time:'10 hours ago',trend:'rising',demandScore:90},
-  {competitor:'ChargeTech',name:'Solar Power Bank 30W',category:'Charging',price:44.99,score:89,time:'12 hours ago',trend:'stable',demandScore:82}
+  {competitor:'Kawaii Decor',name:'Sakura Projector Lamp',category:'Home Lighting',price:39.99,score:92,trend:'rising',demandScore:88,time:'1 day ago'},
+  {competitor:'BeautyGlow',name:'Scalp Massager Brush',category:'Hair Care',price:12.99,score:88,trend:'rising',demandScore:82,time:'1 day ago'},
+  {competitor:'TechNova',name:'Portable Mini Fan',category:'Electronics',price:19.99,score:85,trend:'stable',demandScore:79,time:'2 days ago'},
+  {competitor:'StarLight',name:'Moon Phase Necklace',category:'Jewelry',price:24.99,score:91,trend:'rising',demandScore:90,time:'2 days ago'},
+  {competitor:'PetLover',name:'Cat Scratcher Lounge',category:'Pet Supplies',price:34.99,score:87,trend:'stable',demandScore:76,time:'3 days ago'},
+  {competitor:'UrbanStyle',name:'Holographic Jacket',category:'Fashion',price:45.99,score:83,trend:'rising',demandScore:85,time:'3 days ago'},
+  {competitor:'PostureTech',name:'Heated Neck Massager',category:'Health',price:29.99,score:90,trend:'rising',demandScore:92,time:'4 days ago'},
+  {competitor:'EcoLiving',name:'Beeswax Candle Kit',category:'Sustainable',price:18.99,score:86,trend:'stable',demandScore:71,time:'5 days ago'},
+  {competitor:'BabyBliss',name:'Teething Toy Set',category:'Baby & Kids',price:14.99,score:84,trend:'stable',demandScore:74,time:'5 days ago'},
+  {competitor:'FitGear Pro',name:'Yoga Mat Towel',category:'Fitness',price:22.99,score:89,trend:'rising',demandScore:83,time:'6 days ago'},
+  {competitor:'BeautyGlow',name:'Eyelash Growth Kit',category:'Beauty',price:27.99,score:93,trend:'rising',demandScore:91,time:'1 week ago'},
+  {competitor:'Kawaii Decor',name:'Mushroom Table Lamp',category:'Home Lighting',price:28.99,score:90,trend:'rising',demandScore:87,time:'1 week ago'}
 ];
 
 const AdSpendIntel = [
-  {competitor:'StarLight Tech',totalSpend:112,daily:112,weekly:784,monthly:3360,platforms:{facebook:28,tiktok:62,instagram:22},topAd:'Galaxy Projector',estROI:3.8},
-  {competitor:'BeautyGlow',totalSpend:161,daily:161,weekly:1127,monthly:4830,platforms:{facebook:45,tiktok:38,instagram:78},topAd:'Heated Hair Curler',estROI:2.9},
-  {competitor:'PetLover Store',totalSpend:80,daily:80,weekly:560,monthly:2400,platforms:{facebook:52,tiktok:0,instagram:28},topAd:'GPS Pet Tracker',estROI:4.2},
-  {competitor:'TechGadget Hub',totalSpend:67,daily:67,weekly:469,monthly:2010,platforms:{facebook:0,tiktok:67,instagram:0},topAd:'Wireless Earbuds Pro',estROI:3.1},
-  {competitor:'PostureTech',totalSpend:104,daily:104,weekly:728,monthly:3120,platforms:{facebook:56,tiktok:48,instagram:0},topAd:'Neck Massager',estROI:3.5},
-  {competitor:'ChargeTech',totalSpend:28,daily:28,weekly:196,monthly:840,platforms:{facebook:0,tiktok:0,instagram:28},topAd:'MagSafe Power Bank',estROI:2.1},
-  {competitor:'Kawaii Decor Co',totalSpend:45,daily:45,weekly:315,monthly:1350,platforms:{facebook:0,tiktok:45,instagram:0},topAd:'LED Cloud Lamp',estROI:4.5},
-  {competitor:'FitGear Pro',totalSpend:34,daily:34,weekly:238,monthly:1020,platforms:{facebook:34,tiktok:0,instagram:0},topAd:'Posture Corrector',estROI:2.4}
+  {competitor:'BeautyGlow',daily:440,weekly:3080,monthly:13200,totalSpend:13200,estROI:4.2,platforms:{facebook:200,tiktok:350,instagram:90}},
+  {competitor:'StarLight',daily:440,weekly:3080,monthly:13200,totalSpend:13200,estROI:3.8,platforms:{facebook:160,tiktok:280,instagram:0}},
+  {competitor:'TechNova',daily:260,weekly:1820,monthly:7800,totalSpend:7800,estROI:3.5,platforms:{facebook:110,tiktok:0,instagram:150}},
+  {competitor:'UrbanStyle',daily:315,weekly:2205,monthly:9450,totalSpend:9450,estROI:3.2,platforms:{facebook:95,tiktok:220,instagram:0}},
+  {competitor:'PostureTech',daily:255,weekly:1785,monthly:7650,totalSpend:7650,estROI:3.9,platforms:{facebook:175,tiktok:0,instagram:80}},
+  {competitor:'PetLover',daily:250,weekly:1750,monthly:7500,totalSpend:7500,estROI:4.5,platforms:{facebook:85,tiktok:120,instagram:45}},
+  {competitor:'Kawaii Decor',daily:245,weekly:1715,monthly:7350,totalSpend:7350,estROI:5.1,platforms:{facebook:65,tiktok:180,instagram:0}},
+  {competitor:'FitGear Pro',daily:95,weekly:665,monthly:2850,totalSpend:2850,estROI:3.6,platforms:{facebook:0,tiktok:95,instagram:0}},
+  {competitor:'BabyBliss',daily:110,weekly:770,monthly:3300,totalSpend:3300,estROI:4.0,platforms:{facebook:110,tiktok:0,instagram:0}},
+  {competitor:'EcoLiving',daily:95,weekly:665,monthly:2850,totalSpend:2850,estROI:2.8,platforms:{facebook:40,tiktok:55,instagram:0}}
 ];
 
 const SWOTData = [
-  {competitor:'PetLover Store',strengths:['Highest revenue ($48.2K/mo)','Strong organic traffic (32.4K)','Excellent page speed (92)','Massive TikTok following (45.2K)'],weaknesses:['Premium pricing vs competitors','Low product count (156)','Facebook-heavy ad spend'],opportunities:['Expand to TikTok ads','Add subscription model','Launch loyalty program'],threats:['BeautyGlow gaining fast','Price wars in pet niche','New pet stores launching']},
-  {competitor:'BeautyGlow',strengths:['Highest conversion rate (3.5%)','Most products (203)','Strongest social presence (120K+)','Best session duration (5.1 min)'],weaknesses:['Second-highest ad spend','Heavy Instagram dependency','Low page speed vs leaders'],opportunities:['Expand to Amazon','Launch own product line','Influencer partnerships'],threats:['Market saturation in beauty','Copycat stores rising','Ad costs increasing']},
-  {competitor:'StarLight Tech',strengths:['Second-highest revenue ($35.2K)','Best ad performance (5.1% CTR)','Fastest growing social (58.7K TK)','Strong page speed (90)'],weaknesses:['Limited product range','High ad spend per product','Platform dependency (Shopify only)'],opportunities:['Cross-sell accessories','Bundle deals','Enter new markets (EU, APAC)'],threats:['Tech gadget trend fading','Price competition intensifying','Supplier delays']},
-  {competitor:'PetLover Store',strengths:['Highest revenue ($48.2K/mo)','Strong organic traffic (32.4K)','Excellent page speed (92)','Massive TikTok following (45.2K)'],weaknesses:['Premium pricing vs competitors','Low product count (156)','Facebook-heavy ad spend'],opportunities:['Expand to TikTok ads','Add subscription model','Launch loyalty program'],threats:['BeautyGlow gaining fast','Price wars in pet niche','New pet stores launching']},
-  {competitor:'PostureTech',strengths:['Strong conversion (3.0%)','Best niche focus (45 products)','High engagement ads (13.5%)','Good page speed (83)'],weaknesses:['Smallest product catalog','No Instagram presence','Limited traffic sources'],opportunities:['Wellness market booming','Corporate B2B sales','Subscription model potential'],threats:['Copycat products flooding','Amazon competition','Market education needed']},
-  {competitor:'ChargeTech',strengths:['Strong brand recognition','Good page speed (80)','Diversified product line','Moderate ad spend'],weaknesses:['Lowest conversion (2.8%)','Testing phase ads only','Lowest engagement (7.9%)'],opportunities:['MagSafe ecosystem growing','B2B corporate gifting','Accessory bundles'],threats:['Apple ecosystem changes','Cheap alternatives flooding','Low brand loyalty']}
+  {competitor:'BeautyGlow',strengths:['Strong brand recognition','High conversion rate (3.8%)','Massive social following (600K+)','Excellent product reviews'],weaknesses:['High refund rate for supplements','Over-reliance on TikTok ads','Limited product range'],opportunities:['Expand into men\'s beauty','Launch subscription model','Partner with salons'],threats:['New competitors entering beauty','Rising ad costs on Meta','Copycat products from AliExpress']},
+  {competitor:'TechNova',strengths:['Highest revenue ($95K/mo)','Largest product catalog (340)','Strong YouTube presence','High AOV ($89.99)'],weaknesses:['Lowest conversion rate (2.5%)','Slow page speed (70)','High bounce rate (38%)','High refund rate (4.2%)'],opportunities:['Optimize checkout flow','Add subscription accessories','Expand to Amazon'],threats:['AmazonBasics undercutting','Apple ecosystem dominance','Supply chain delays']},
+  {competitor:'StarLight',strengths:['Strong revenue ($73K/mo)','High AOV ($96.40)','Good SEO (86/100)','Strong social presence'],weaknesses:['Lower conversion (2.7%)','High refund rate for jewelry','Limited ad variety'],opportunities:['Launch men\'s line','Add gift wrapping service','Holiday campaign push'],threats:['Temu jewelry at 70% less','Etsy artisan competition','Trend shifts to minimalist']},
+  {competitor:'Kawaii Decor',strengths:['Best page speed (95/100)','Lowest bounce rate (22%)','Highest engagement on TikTok','Strong organic traffic (38%)'],weaknesses:['Smallest team (8 months old)','Limited ad budget','Low total revenue'],opportunities:['Viral TikTok potential','Expand to home furniture','Collab with influencers'],threats:['Amazon home decor copies','Seasonal demand fluctuations','Shipping delays from China']}
 ];
 
 const WeeklyRevenue = [
-  {week:'Week 1',c1:42100,c2:28400,c3:25200,c7:24100,c10:31200},
-  {week:'Week 2',c1:44800,c2:29900,c3:26800,c7:25600,c10:33100},
-  {week:'Week 3',c1:46200,c2:31200,c3:27400,c7:26800,c10:34200},
-  {week:'Week 4',c1:48200,c2:32100,c3:28400,c7:27600,c10:35200}
-];
-
-const PriceMatrix = [
-  {product:'GPS Pet Tracker',PetLover:59.99,'TechGadget':null,BeautyGlow:null,'FitGear':null,'HomeEssentials':null,Kawaii:null,ChargeTech:null,EcoKitchen:null,PostureTech:null,StarLight:null},
-  {product:'Wireless Earbuds',PetLover:null,'TechGadget':34.99,BeautyGlow:null,'FitGear':null,'HomeEssentials':null,Kawaii:null,ChargeTech:29.99,EcoKitchen:null,PostureTech:null,StarLight:32.99},
-  {product:'LED Face Mask',PetLover:null,'TechGadget':null,BeautyGlow:29.99,'FitGear':null,'HomeEssentials':24.99,Kawaii:null,ChargeTech:null,EcoKitchen:null,PostureTech:null,StarLight:null},
-  {product:'Galaxy Projector',PetLover:null,'TechGadget':49.99,BeautyGlow:null,'FitGear':null,'HomeEssentials':null,Kawaii:null,ChargeTech:null,EcoKitchen:null,PostureTech:null,StarLight:39.99},
-  {product:'Posture Corrector',PetLover:null,'TechGadget':null,BeautyGlow:null,'FitGear':19.99,'HomeEssentials':null,Kawaii:null,ChargeTech:null,EcoKitchen:null,PostureTech:14.99,StarLight:null}
+  {week:'W1',c1:38200,c2:34800,c3:61200,c4:88000,c5:26100,c6:49500,c7:28400,c8:17900,c9:47200,c10:66800},
+  {week:'W2',c1:39500,c2:35900,c3:63800,c4:90200,c5:27300,c6:51200,c7:29600,c8:18500,c9:48800,c10:69200},
+  {week:'W3',c1:41200,c2:37100,c3:65900,c4:92800,c5:28100,c6:52800,c7:30400,c8:19200,c9:50100,c10:71500},
+  {week:'W4',c1:42800,c2:38200,c3:67500,c4:95000,c5:28900,c6:54300,c7:31200,c8:19800,c9:52000,c10:73000}
 ];
 
 // ========================================================================
-// DATA ACCESSOR LAYER — MockAPI with live data fallback
+// DATA ACCESSOR LAYER
 // ========================================================================
 const IntelService = () => window.HuntDrop?.CBIntelligenceService || null;
-const Mock = () => window.MockAPI || null;
 
 const Data = {
   getCompetitors() {
     const svc = IntelService();
     if (svc && svc.isLive() && svc.getCachedData('competitors')) return svc.getCachedData('competitors');
     if (svc && svc.getCachedData('competitors_')) return svc.getCachedData('competitors_');
-    var m = Mock();
-    return m ? m.getCompetitors() : Competitors;
+    return Competitors;
   },
   getLiveAds() {
     const svc = IntelService();
     if (svc && svc.isLive() && svc.getCachedData('liveAds')) return svc.getCachedData('liveAds');
-    var m = Mock();
-    return m ? m.getLiveAds() : LiveAds;
+    return LiveAds;
   },
   getPriceChanges() {
     const svc = IntelService();
     if (svc && svc.isLive() && svc.getCachedData('priceChanges')) return svc.getCachedData('priceChanges');
-    var m = Mock();
-    return m ? m.getPriceChanges() : PriceChanges;
+    return PriceChanges;
   },
   getNewProducts() {
     const svc = IntelService();
@@ -125,8 +129,7 @@ const Data = {
   getAdSpend() {
     const svc = IntelService();
     if (svc && svc.isLive() && svc.getCachedData('adSpend')) return svc.getCachedData('adSpend');
-    var m = Mock();
-    return m ? m.getAdSpend() : AdSpendIntel;
+    return AdSpendIntel;
   },
   getSWOT() {
     const svc = IntelService();
@@ -147,7 +150,6 @@ function fmtMoney(n){return '$'+n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,','
 function fmtNum(n){return n>=1000?(n/1000).toFixed(1)+'K':n.toString();}
 
 function renderCompetitorRow(c,i){
-  const revPerDay = Math.round(c.revenue/30);
   return `<div class="cb-comp-row" data-id="${c.id}">
     <div class="cb-comp-rank">#${i+1}</div>
     <div class="cb-comp-avatar" style="background:${c.color}22;color:${c.color}">${esc(c.avatar)}</div>
@@ -219,10 +221,44 @@ function renderNewProductRow(np){
   </div>`;
 }
 
+function updateStatusIndicator(status) {
+  if (!_section) return;
+  const indicator = _section.querySelector('#cbStatusIndicator');
+  if (!indicator) return;
+  const labels = {
+    live: '<span class="cb-status-live"><span class="cb-status-dot cb-status-dot-live"></span>LIVE DATA</span>',
+    fetching: '<span class="cb-status-fetching"><span class="cb-status-dot cb-status-dot-fetching"></span>FETCHING...</span>',
+    demo: '<span class="cb-status-demo"><span class="cb-status-dot cb-status-dot-demo"></span>DEMO DATA</span>',
+    error: '<span class="cb-status-error"><span class="cb-status-dot cb-status-dot-error"></span>ERROR</span>'
+  };
+  indicator.innerHTML = labels[status] || labels.demo;
+}
+
+async function attemptLiveFetch() {
+  const svc = IntelService();
+  if (!svc || !svc.getStatus().hasAI) {
+    updateStatusIndicator('demo');
+    return;
+  }
+  updateStatusIndicator('fetching');
+  try {
+    const result = await svc.fetchAllIntelligence('dropshipping');
+    if (result.success) {
+      updateStatusIndicator('live');
+      CompetitorBattlefieldPlugin.render();
+    } else {
+      updateStatusIndicator('demo');
+    }
+  } catch (e) {
+    console.warn('CB live fetch failed:', e);
+    updateStatusIndicator('demo');
+  }
+}
+
 function generateRevenueChart(sectionEl){
-  var el = sectionEl ? sectionEl.querySelector('#cbRevenueChart') : document.getElementById('cbRevenueChart');
+  const el = sectionEl ? sectionEl.querySelector('#cbRevenueChart') : document.getElementById('cbRevenueChart');
   if(!el || typeof Chart==='undefined') return;
-  var existing = Chart.getChart(el); if(existing) existing.destroy();
+  const existing = Chart.getChart(el); if(existing) existing.destroy();
   const comps = Data.getCompetitors();
   const labels = comps.map(c=>c.name.split(' ')[0]);
   const revenues = comps.map(c=>c.revenue);
@@ -238,9 +274,9 @@ function generateRevenueChart(sectionEl){
 }
 
 function generateMarketShareChart(sectionEl){
-  var el = sectionEl ? sectionEl.querySelector('#cbMarketShareChart') : document.getElementById('cbMarketShareChart');
+  const el = sectionEl ? sectionEl.querySelector('#cbMarketShareChart') : document.getElementById('cbMarketShareChart');
   if(!el || typeof Chart==='undefined') return;
-  var existing = Chart.getChart(el); if(existing) existing.destroy();
+  const existing = Chart.getChart(el); if(existing) existing.destroy();
   const comps = Data.getCompetitors();
   const total = comps.reduce((a,c)=>a+c.revenue,0);
   new Chart(el,{
@@ -251,9 +287,9 @@ function generateMarketShareChart(sectionEl){
 }
 
 function generateAdSpendChart(sectionEl){
-  var el = sectionEl ? sectionEl.querySelector('#cbAdSpendChart') : document.getElementById('cbAdSpendChart');
+  const el = sectionEl ? sectionEl.querySelector('#cbAdSpendChart') : document.getElementById('cbAdSpendChart');
   if(!el || typeof Chart==='undefined') return;
-  var existing = Chart.getChart(el); if(existing) existing.destroy();
+  const existing = Chart.getChart(el); if(existing) existing.destroy();
   const spend = Data.getAdSpend();
   const sorted = [...spend].sort((a,b)=>(parseInt(b.totalSpend)||parseInt(b.daily)||0)-(parseInt(a.totalSpend)||parseInt(a.daily)||0));
   new Chart(el,{
@@ -267,10 +303,10 @@ function generateAdSpendChart(sectionEl){
   });
 }
 
-function generateWeeklyTrendChart(sectionEl){
-  var el = sectionEl ? sectionEl.querySelector('#cbWeeklyChart') : document.getElementById('cbWeeklyChart');
+function _generateWeeklyTrendChart(sectionEl){
+  const el = sectionEl ? sectionEl.querySelector('#cbWeeklyChart') : document.getElementById('cbWeeklyChart');
   if(!el || typeof Chart==='undefined') return;
-  var existing = Chart.getChart(el); if(existing) existing.destroy();
+  const existing = Chart.getChart(el); if(existing) existing.destroy();
   const comps = Data.getCompetitors();
   const top5 = comps.length >= 10 ? [comps[0],comps[1],comps[2],comps[6],comps[9]] : comps.slice(0,5);
   const keys = ['c1','c2','c3','c7','c10'];
@@ -366,9 +402,9 @@ const CompetitorBattlefieldPlugin = {
   description:'10-section competitive intelligence hub — spy on ads, prices, products, revenue, SWOT & more',
   dependencies:['search-engine'],
 
-  init(ctx){Config.defaults('competitorBattlefield',{enabled:true});},
+  init(_ctx){Config.defaults('competitorBattlefield',{enabled:true});},
 
-  mount(ctx){
+  mount(_ctx){
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -394,61 +430,27 @@ const CompetitorBattlefieldPlugin = {
     container.appendChild(section);
 
     const self = CompetitorBattlefieldPlugin;
-    self.section = section;
+    _section = section;
     self.render();
-    self._liveInterval = setInterval(()=>self.updateLiveIndicator(),3000);
+    _liveInterval = setInterval(()=>self.updateLiveIndicator(),3000);
 
-    // Attempt to fetch live data if AI keys available
-    self._attemptLiveFetch();
+    attemptLiveFetch();
   },
 
-  async _attemptLiveFetch() {
-    const svc = IntelService();
-    if (!svc || !svc.getStatus().hasAI) {
-      this._updateStatusIndicator('demo');
-      return;
-    }
-    this._updateStatusIndicator('fetching');
-    try {
-      const result = await svc.fetchAllIntelligence('dropshipping');
-      if (result.success) {
-        this._updateStatusIndicator('live');
-        this.render(); // Re-render with live data
-      } else {
-        this._updateStatusIndicator('demo');
-      }
-    } catch (e) {
-      console.warn('CB live fetch failed:', e);
-      this._updateStatusIndicator('demo');
-    }
-  },
-
-  _updateStatusIndicator(status) {
-    if (!this.section) return;
-    const indicator = this.section.querySelector('#cbStatusIndicator');
-    if (!indicator) return;
-    const labels = {
-      live: '<span class="cb-status-live"><span class="cb-status-dot cb-status-dot-live"></span>LIVE DATA</span>',
-      fetching: '<span class="cb-status-fetching"><span class="cb-status-dot cb-status-dot-fetching"></span>FETCHING...</span>',
-      demo: '<span class="cb-status-demo"><span class="cb-status-dot cb-status-dot-demo"></span>DEMO DATA</span>',
-      error: '<span class="cb-status-error"><span class="cb-status-dot cb-status-dot-error"></span>ERROR</span>'
-    };
-    indicator.innerHTML = labels[status] || labels.demo;
-  },
-
-  unmount(ctx){
-    if (this._liveInterval) clearInterval(this._liveInterval);
+  unmount(_ctx){
+    if (_liveInterval) { clearInterval(_liveInterval); _liveInterval = null; }
     const el = UI.$('section-battlefield');
     if (el) {
       el.querySelectorAll('canvas').forEach(function(c) {
-        try { var inst = Chart.getChart(c); if (inst) inst.destroy(); } catch(e) {}
+        try { const inst = Chart.getChart(c); if (inst) inst.destroy(); } catch {/* ignored */}
       });
       el.remove();
     }
+    _section = null;
   },
 
   render(){
-    const el = this.section?.querySelector('#cbResults');
+    const el = _section?.querySelector('#cbResults');
     if(!el) return;
     try{
     el.innerHTML = this.buildHTML();
@@ -459,7 +461,7 @@ const CompetitorBattlefieldPlugin = {
       tab.addEventListener('click',()=>{
         el.querySelectorAll('.cb-tab').forEach(t=>t.classList.remove('active'));
         tab.classList.add('active');
-        const content = self.section.querySelector('#cbTabContent');
+        const content = _section.querySelector('#cbTabContent');
         if (!content) return;
         try{
         switch(tab.dataset.tab){
@@ -468,10 +470,10 @@ const CompetitorBattlefieldPlugin = {
           case 'ads': content.innerHTML=self.renderAds(); break;
           case 'prices': content.innerHTML=self.renderPrices(); break;
           case 'products': content.innerHTML=self.renderNewProducts(); break;
-          case 'revenue': content.innerHTML=self.renderRevenue(); setTimeout(()=>{generateRevenueChart(self.section);generateMarketShareChart(self.section);},100); break;
-          case 'adspend': content.innerHTML=self.renderAdSpend(); setTimeout(()=>generateAdSpendChart(self.section),100); break;
+          case 'revenue': content.innerHTML=self.renderRevenue(); setTimeout(()=>{if(_section){generateRevenueChart(_section);generateMarketShareChart(_section);}},100); break;
+          case 'adspend': content.innerHTML=self.renderAdSpend(); setTimeout(()=>{if(_section)generateAdSpendChart(_section);},100); break;
           case 'swot': content.innerHTML=self.renderSWOT(); break;
-          case 'headtohead': content.innerHTML=self.renderHeadToHead(); setTimeout(()=>self.bindH2H(),100); break;
+          case 'headtohead': content.innerHTML=self.renderHeadToHead(); setTimeout(()=>{if(_section)self.bindH2H();},100); break;
           case 'playbook': content.innerHTML=self.renderPlaybook(); break;
         }
         self.attachRowClicks();
@@ -486,18 +488,18 @@ const CompetitorBattlefieldPlugin = {
     if(refreshBtn) refreshBtn.addEventListener('click', async ()=>{
       refreshBtn.textContent = '⏳ Fetching...';
       refreshBtn.disabled = true;
-      await this._attemptLiveFetch();
+      await attemptLiveFetch();
       refreshBtn.textContent = '🔄 Refresh';
       refreshBtn.disabled = false;
     });
 
     this.attachRowClicks();
-    this._updateStatusIndicator(Data.isLiveData() ? 'live' : 'demo');
+    updateStatusIndicator(Data.isLiveData() ? 'live' : 'demo');
   },
 
   switchTab(tabName){
-    if(!this.section) return;
-    const tab = this.section.querySelector(`.cb-tab[data-tab="${tabName}"]`);
+    if(!_section) return;
+    const tab = _section.querySelector(`.cb-tab[data-tab="${tabName}"]`);
     if(tab) tab.click();
   },
 
@@ -509,51 +511,51 @@ const CompetitorBattlefieldPlugin = {
     const isLive = Data.isLiveData();
     const statusLabel = isLive ? 'LIVE INTELLIGENCE' : 'DEMO DATA';
     const banner = `<div class="cb-live-banner"><span class="cb-live-dot"></span><span class="cb-live-text">${statusLabel} — Tracking ${comps.length} competitors • ${ads.length} active ads</span><div class="cb-banner-actions"><span id="cbStatusIndicator"></span><button class="cb-refresh-btn" id="cbRefreshBtn" title="Fetch live data">🔄 Refresh</button><button class="cb-steal-btn" id="cbStealBtn">⚡ Winning Playbook</button></div></div>`;
-    const tabs = `<div class="cb-tabs"><button class="cb-tab active" data-tab="overview">Overview</button><button class="cb-tab" data-tab="leaderboard">Leaderboard</button><button class="cb-tab" data-tab="ads">Live Ads (${ads.length})</button><button class="cb-tab" data-tab="prices">Price Wars (${prices.length})</button><button class="cb-tab" data-tab="products">New Products (${prods.length})</button><button class="cb-tab" data-tab="revenue">Revenue Intel</button><button class="cb-tab" data-tab="adspend">Ad Spend</button><button class="cb-tab" data-tab="swot">SWOT Analysis</button><button class="cb-tab" data-tab="headtohead">Head-to-Head</button><button class="cb-tab" data-tab="playbook">Winning Playbook</button></div>`;
-    const content = `<div class="cb-tab-content" id="cbTabContent">${this.renderOverview()}</div>`;
+    const tabs = `<div class="cb-tabs" role="tablist" aria-label="Competitor intelligence sections"><button class="cb-tab active" data-tab="overview" role="tab" aria-selected="true" aria-controls="cbTabContent">Overview</button><button class="cb-tab" data-tab="leaderboard" role="tab" aria-selected="false" aria-controls="cbTabContent">Leaderboard</button><button class="cb-tab" data-tab="ads" role="tab" aria-selected="false" aria-controls="cbTabContent">Live Ads (${ads.length})</button><button class="cb-tab" data-tab="prices" role="tab" aria-selected="false" aria-controls="cbTabContent">Price Wars (${prices.length})</button><button class="cb-tab" data-tab="products" role="tab" aria-selected="false" aria-controls="cbTabContent">New Products (${prods.length})</button><button class="cb-tab" data-tab="revenue" role="tab" aria-selected="false" aria-controls="cbTabContent">Revenue Intel</button><button class="cb-tab" data-tab="adspend" role="tab" aria-selected="false" aria-controls="cbTabContent">Ad Spend</button><button class="cb-tab" data-tab="swot" role="tab" aria-selected="false" aria-controls="cbTabContent">SWOT Analysis</button><button class="cb-tab" data-tab="headtohead" role="tab" aria-selected="false" aria-controls="cbTabContent">Head-to-Head</button><button class="cb-tab" data-tab="playbook" role="tab" aria-selected="false" aria-controls="cbTabContent">Winning Playbook</button></div>`;
+    const content = `<div class="cb-tab-content" id="cbTabContent" role="tabpanel">${this.renderOverview()}</div>`;
     return banner + tabs + content;
   },
 
   attachRowClicks(){
-    if(!this.section) return;
-    this.section.querySelectorAll('.cb-comp-row').forEach(row=>{
+    if(!_section) return;
+    _section.querySelectorAll('.cb-comp-row').forEach(row=>{
       row.style.cursor='pointer';
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.id===row.dataset.id);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-price-row').forEach(row=>{
+    _section.querySelectorAll('.cb-price-row').forEach(row=>{
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.name===row.dataset.competitor);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-newprod-row').forEach(row=>{
+    _section.querySelectorAll('.cb-newprod-row').forEach(row=>{
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.name===row.dataset.competitor);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-ad-card').forEach(row=>{
+    _section.querySelectorAll('.cb-ad-card').forEach(row=>{
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.name===row.dataset.competitor);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-adspend-row').forEach(row=>{
+    _section.querySelectorAll('.cb-adspend-row').forEach(row=>{
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.name===row.dataset.competitor);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-swot-competitor').forEach(row=>{
+    _section.querySelectorAll('.cb-swot-competitor').forEach(row=>{
       row.addEventListener('click',()=>{
         const comp = Data.getCompetitors().find(c=>c.name===row.dataset.competitor);
         if(comp) showCompetitorProfile(comp);
       });
     });
-    this.section.querySelectorAll('.cb-ov-card').forEach(card=>{
+    _section.querySelectorAll('.cb-ov-card').forEach(card=>{
       card.style.cursor='pointer';
       card.addEventListener('click',()=>{
         const label = card.querySelector('.cb-ov-label')?.textContent || '';
@@ -844,9 +846,9 @@ const CompetitorBattlefieldPlugin = {
   },
 
   bindH2H(){
-    const sel1 = this.section?.querySelector('#cbH2H1');
-    const sel2 = this.section?.querySelector('#cbH2H2');
-    const result = this.section?.querySelector('#cbH2HResult');
+    const sel1 = _section?.querySelector('#cbH2H1');
+    const sel2 = _section?.querySelector('#cbH2H2');
+    const result = _section?.querySelector('#cbH2HResult');
     if(!sel1||!sel2||!result) return;
     const self=this;
     function update(){
@@ -866,7 +868,7 @@ const CompetitorBattlefieldPlugin = {
     const spend = Data.getAdSpend();
     const topAd = ads.length?[...ads].sort((a,b)=>parseFloat(b.ctr||0)-parseFloat(a.ctr||0))[0]:null;
     const topProduct = prods.length?[...prods].sort((a,b)=>parseInt(b.score||0)-parseInt(a.score||0))[0]:null;
-    const topCompetitor = comps.length?[...comps].sort((a,b)=>b.revenue-a.revenue)[0]:null;
+    const _topCompetitor = comps.length?[...comps].sort((a,b)=>b.revenue-a.revenue)[0]:null;
     const priceWar = prices.filter(p=>p.change<0).length;
     const topSpender = spend.length?[...spend].sort((a,b)=>(parseInt(b.totalSpend)||parseInt(b.daily)||0)-(parseInt(a.totalSpend)||parseInt(a.daily)||0))[0]:null;
 
@@ -975,7 +977,7 @@ const CompetitorBattlefieldPlugin = {
   },
 
   updateLiveIndicator(){
-    const dot = this.section?.querySelector('.cb-live-dot');
+    const dot = _section?.querySelector('.cb-live-dot');
     if(dot) dot.style.opacity = dot.style.opacity === '0.3' ? '1' : '0.3';
   }
 };

@@ -2,22 +2,22 @@
 // PLUGIN: AI Risk Analyzer — Win/loss probability, risk assessment
 // ============================================================================
 (function(){
-const {PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry} = window.HuntDrop;
 
 const AIRiskAnalyzer = {
   id: 'ai-risk-analyzer',
   name: 'AI Risk Analyzer',
   version: '1.0.0',
 
-  init(ctx) {},
+  init(_ctx) {},
 
-  mount(ctx) {},
+  mount(_ctx) {},
 
-  unmount(ctx) {},
+  unmount(_ctx) {},
 
   analyzeProduct(product) {
     if (!product) return null;
-    var factors = { positive: [], negative: [], neutral: [] };
+    const factors = { positive: [], negative: [], neutral: [] };
 
     if (product.score >= 80) {
       factors.positive.push('High AI score (' + product.score + '/100) indicates strong potential');
@@ -43,7 +43,7 @@ const AIRiskAnalyzer = {
       factors.negative.push('High competition — expensive to compete, need big budget');
     }
 
-    var trend = this.calculateTrend(product.trendData);
+    const trend = this.calculateTrend(product.trendData);
     if (trend > 15) {
       factors.positive.push('Strong upward trend (+' + trend.toFixed(0) + '%) — growing demand');
     } else if (trend > 0) {
@@ -79,7 +79,7 @@ const AIRiskAnalyzer = {
     }
 
     if (product.suppliers && product.suppliers.length > 0) {
-      var verified = product.suppliers.filter(function(s) { return s.verified; });
+      const verified = product.suppliers.filter(function(s) { return s.verified; });
       if (verified.length > 0) {
         factors.positive.push(verified.length + ' verified supplier(s) available');
       } else {
@@ -87,7 +87,7 @@ const AIRiskAnalyzer = {
       }
     }
 
-    var winScore = (product.score * 0.25) + (product.margin * 0.2) + ((100 - product.riskScore) * 0.2) + (product.demand * 0.15) + (trend > 0 ? 10 : 0) + (product.competition === 'low' ? 10 : product.competition === 'medium' ? 5 : 0);
+    let winScore = (product.score * 0.25) + (product.margin * 0.2) + ((100 - product.riskScore) * 0.2) + (product.demand * 0.15) + (trend > 0 ? 10 : 0) + (product.competition === 'low' ? 10 : product.competition === 'medium' ? 5 : 0);
     winScore = Math.min(95, Math.max(5, Math.round(winScore)));
 
     return {
@@ -104,9 +104,9 @@ const AIRiskAnalyzer = {
 
   analyzeDecision(options) {
     if (!options || !options.length) return [];
-    var self = this;
+    const self = this;
     return options.map(function(opt) {
-      var score = self.calculateOptionScore(opt);
+      const score = self.calculateOptionScore(opt);
       return {
         option: opt.name || opt.title,
         score: score,
@@ -119,26 +119,26 @@ const AIRiskAnalyzer = {
 
   calculateProfit(product) {
     if (!product.platformPrices || !product.platformPrices.amazon) return 0;
-    var sellingPrice = product.platformPrices.amazon;
-    var cost = product.price;
-    var shipping = 2.50;
-    var adCost = product.adSpendAvg || 3;
+    const sellingPrice = product.platformPrices.amazon;
+    const cost = product.price;
+    const shipping = 2.50;
+    const adCost = product.adSpendAvg || 3;
     return Math.round((sellingPrice - cost - shipping - adCost) * 100) / 100;
   },
 
   calculateBreakEven(product) {
-    var profit = this.calculateProfit(product);
+    const profit = this.calculateProfit(product);
     if (profit <= 0) return Infinity;
-    var fixedCosts = 50;
+    const fixedCosts = 50;
     return Math.ceil(fixedCosts / profit);
   },
 
   projectMonthly(product) {
-    var profit = this.calculateProfit(product);
-    var velocity = product.salesVelocity || 100;
-    var conservative = Math.round(velocity * 0.5);
-    var moderate = Math.round(velocity * 1);
-    var aggressive = Math.round(velocity * 2);
+    const profit = this.calculateProfit(product);
+    const velocity = product.salesVelocity || 100;
+    const conservative = Math.round(velocity * 0.5);
+    const moderate = Math.round(velocity * 1);
+    const aggressive = Math.round(velocity * 2);
     return {
       conservative: { units: conservative, profit: Math.round(conservative * profit) },
       moderate: { units: moderate, profit: Math.round(moderate * profit) },
@@ -148,14 +148,14 @@ const AIRiskAnalyzer = {
 
   calculateTrend(trendData) {
     if (!trendData || trendData.length < 6) return 0;
-    var recent = trendData.slice(-3).reduce(function(a, b) { return a + b; }, 0) / 3;
-    var early = trendData.slice(0, 3).reduce(function(a, b) { return a + b; }, 0) / 3;
+    const recent = trendData.slice(-3).reduce(function(a, b) { return a + b; }, 0) / 3;
+    const early = trendData.slice(0, 3).reduce(function(a, b) { return a + b; }, 0) / 3;
     if (early === 0) return 0;
     return ((recent - early) / early) * 100;
   },
 
   calculateOptionScore(opt) {
-    var score = 50;
+    let score = 50;
     if (opt.score) score += (opt.score - 50) * 0.3;
     if (opt.margin) score += (opt.margin - 30) * 0.2;
     if (opt.riskScore !== undefined) score -= (opt.riskScore - 30) * 0.2;
@@ -165,7 +165,7 @@ const AIRiskAnalyzer = {
   },
 
   getPros(opt) {
-    var pros = [];
+    const pros = [];
     if (opt.score >= 75) pros.push('High score (' + opt.score + ')');
     if (opt.margin >= 40) pros.push('Good margin (' + opt.margin + '%)');
     if (opt.competition === 'low') pros.push('Low competition');
@@ -175,7 +175,7 @@ const AIRiskAnalyzer = {
   },
 
   getCons(opt) {
-    var cons = [];
+    const cons = [];
     if (opt.score < 60) cons.push('Low score (' + opt.score + ')');
     if (opt.margin < 25) cons.push('Thin margin (' + opt.margin + '%)');
     if (opt.competition === 'high') cons.push('High competition');
@@ -186,7 +186,7 @@ const AIRiskAnalyzer = {
 
   formatAnalysisForAI(analysis) {
     if (!analysis) return 'No analysis available.';
-    var output = '';
+    let output = '';
     output += 'WIN PROBABILITY: ' + analysis.winProbability + '%\n';
     output += 'RECOMMENDATION: ' + analysis.recommendation + '\n\n';
     output += 'PROFIT PER UNIT: $' + analysis.profitPerUnit + '\n';

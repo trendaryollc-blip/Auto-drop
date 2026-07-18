@@ -21,7 +21,7 @@
 .pcl-hero-title {
   font-family:var(--font-display); font-size:42px; font-weight:900;
   color:var(--text-primary); margin-bottom:10px;
-  background:linear-gradient(135deg,#f0f0f8 30%,var(--accent-green) 100%);
+  background:var(--gradient-cool);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   background-clip:text
 }
@@ -342,7 +342,7 @@
 .ptm-search-icon { margin:0 12px; color:var(--text-muted); flex-shrink:0 }
 .ptm-search-input { flex:1; background:transparent; border:none; outline:none; color:var(--text-primary); font-size:14px; font-family:var(--font-body); padding:12px 0 }
 .ptm-search-input::placeholder { color:var(--text-muted) }
-.ptm-search-btn { padding:10px 22px; background:linear-gradient(135deg,#8b5cf6,#6366f1); border:none; border-radius:var(--radius-md); color:white; font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap }
+.ptm-search-btn { padding:10px 22px; background:var(--gradient-primary); border:none; border-radius:var(--radius-md); color:white; font-family:var(--font-display); font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; white-space:nowrap }
 .ptm-search-btn:hover { transform:scale(1.03); box-shadow:0 0 20px rgba(139,92,246,0.3) }
 .ptm-output { display:flex; flex-direction:column; gap:16px }
 .ptm-product-header { display:flex; align-items:center; gap:16px; padding:20px; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-lg) }

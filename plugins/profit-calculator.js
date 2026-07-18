@@ -2,7 +2,7 @@
 // PLUGIN: Profit Calculator Lab — Redesigned
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 
 const plugin = {
   id: 'profit-calculator',
@@ -14,11 +14,11 @@ const plugin = {
   _barChart: null,
   _gaugeInterval: null,
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('profitcalc', { defaultSellPrice: 29.99, defaultCost: 5.99 });
   },
 
-  mount(ctx) {
+  mount(_ctx) {
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -387,11 +387,11 @@ const plugin = {
 
     plugin.calculate();
 
-    var exportBtn = section.querySelector('#pcExportCSV');
+    const exportBtn = section.querySelector('#pcExportCSV');
     if (exportBtn) exportBtn.addEventListener('click', function() { plugin.exportCSV(); });
-    var resetBtn = section.querySelector('#pcResetBtn');
+    const resetBtn = section.querySelector('#pcResetBtn');
     if (resetBtn) resetBtn.addEventListener('click', function() {
-      var q = function(id) { return plugin._section.querySelector('#' + id); };
+      const q = function(id) { return plugin._section.querySelector('#' + id); };
       if (q('pcSellPrice')) q('pcSellPrice').value = '29.99';
       if (q('pcProductCost')) q('pcProductCost').value = '5.99';
       if (q('pcShipping')) q('pcShipping').value = '2.50';
@@ -408,7 +408,7 @@ const plugin = {
       card.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        var sec = card.getAttribute('data-section');
+        const sec = card.getAttribute('data-section');
         if (sec && window.HuntDrop.navigateTo) {
           window.HuntDrop.navigateTo('section-' + sec);
         }
@@ -416,7 +416,7 @@ const plugin = {
     });
   },
 
-  unmount(ctx) {
+  unmount(_ctx) {
     if (plugin._chart) { plugin._chart.destroy(); plugin._chart = null; }
     if (plugin._barChart) { plugin._barChart.destroy(); plugin._barChart = null; }
     if (plugin._section) { plugin._section.remove(); plugin._section = null; }
@@ -424,37 +424,37 @@ const plugin = {
 
   saveState() {
     try {
-      var state = {};
+      const state = {};
       ['pcSellPrice','pcProductCost','pcShipping','pcPlatformFee','pcAdCost','pcAdBudget','pcMonthlySales'].forEach(function(id) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) state[id] = el.value;
       });
       localStorage.setItem('huntdrop_profitcalc', JSON.stringify(state));
-    } catch(e) {}
+    } catch{/* ignored */}
   },
 
   loadState() {
     try {
-      var saved = localStorage.getItem('huntdrop_profitcalc');
+      const saved = localStorage.getItem('huntdrop_profitcalc');
       if (!saved || !plugin._section) return;
-      var state = JSON.parse(saved);
+      const state = JSON.parse(saved);
       Object.keys(state).forEach(function(id) {
-        var el = document.getElementById(id);
+        const el = document.getElementById(id);
         if (el) el.value = state[id];
       });
       plugin.calculate();
-    } catch(e) {}
+    } catch{/* ignored */}
   },
 
   animateValue(el, start, end, duration, prefix, suffix) {
     prefix = prefix || '';
     suffix = suffix || '';
-    var startTs = null;
+    let startTs = null;
     function step(ts) {
       if (!startTs) startTs = ts;
-      var p = Math.min((ts - startTs) / duration, 1);
-      var ease = 1 - Math.pow(1 - p, 3);
-      var current = start + (end - start) * ease;
+      const p = Math.min((ts - startTs) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const current = start + (end - start) * ease;
       el.textContent = prefix + current.toLocaleString(undefined, {maximumFractionDigits: prefix === '$' ? 2 : 1}) + suffix;
       if (p < 1) requestAnimationFrame(step);
     }
@@ -463,28 +463,28 @@ const plugin = {
 
   calculate() {
     if (!plugin._section) return;
-    var q = function(id) { return plugin._section.querySelector('#' + id); };
+    const q = function(id) { return plugin._section.querySelector('#' + id); };
 
-    var sp = parseFloat(q('pcSellPrice')?.value) || 0;
-    var cost = parseFloat(q('pcProductCost')?.value) || 0;
-    var ship = parseFloat(q('pcShipping')?.value) || 0;
-    var fee = parseFloat(q('pcPlatformFee')?.value) || 0;
-    var adCost = parseFloat(q('pcAdCost')?.value) || 0;
-    var budget = parseFloat(q('pcAdBudget')?.value) || 0;
-    var sales = parseInt(q('pcMonthlySales')?.value) || 0;
+    const sp = parseFloat(q('pcSellPrice')?.value) || 0;
+    const cost = parseFloat(q('pcProductCost')?.value) || 0;
+    const ship = parseFloat(q('pcShipping')?.value) || 0;
+    const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
+    const adCost = parseFloat(q('pcAdCost')?.value) || 0;
+    const budget = parseFloat(q('pcAdBudget')?.value) || 0;
+    const sales = parseInt(q('pcMonthlySales')?.value) || 0;
 
-    var platformFee = sp * (fee / 100);
-    var totalCost = cost + ship + platformFee + adCost;
-    var profitPerSale = sp - totalCost;
-    var margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
-    var monthlyRev = sp * sales;
-    var monthlyProfit = profitPerSale * sales;
-    var roas = adCost > 0 ? sp / adCost : 0;
-    var breakEven = profitPerSale > 0 ? Math.ceil(budget / profitPerSale) : Infinity;
+    const platformFee = sp * (fee / 100);
+    const totalCost = cost + ship + platformFee + adCost;
+    const profitPerSale = sp - totalCost;
+    const margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
+    const monthlyRev = sp * sales;
+    const monthlyProfit = profitPerSale * sales;
+    const roas = adCost > 0 ? sp / adCost : 0;
+    const breakEven = profitPerSale > 0 ? Math.ceil(budget / profitPerSale) : Infinity;
 
-    var bigProfit = q('pcBigProfit');
-    var bigMargin = q('pcBigMargin');
-    var marginBar = q('pcMarginBar');
+    const bigProfit = q('pcBigProfit');
+    const bigMargin = q('pcBigMargin');
+    const marginBar = q('pcMarginBar');
     if (bigProfit) {
       bigProfit.textContent = '$' + profitPerSale.toFixed(2);
       bigProfit.className = 'pcl-kpi-value ' + (profitPerSale >= 0 ? 'pcl-val-green' : 'pcl-val-red');
@@ -494,13 +494,13 @@ const plugin = {
       bigMargin.className = 'pcl-kpi-sub ' + (margin >= 30 ? 'pcl-sub-green' : margin >= 15 ? 'pcl-sub-yellow' : 'pcl-sub-red');
     }
     if (marginBar) {
-      var barW = Math.max(0, Math.min(100, margin));
+      const barW = Math.max(0, Math.min(100, margin));
       marginBar.style.width = barW + '%';
       marginBar.className = 'pcl-kpi-bar-fill ' + (margin >= 30 ? 'pcl-bar-green' : margin >= 15 ? 'pcl-bar-yellow' : 'pcl-bar-red');
     }
 
-    var setVal = function(id, val, cls) {
-      var el = q(id);
+    const setVal = function(id, val, cls) {
+      const el = q(id);
       if (el) { el.textContent = val; if (cls) el.className = 'pcl-kpi-value ' + cls; }
     };
     setVal('pcMonthlyRevenue', '$' + monthlyRev.toLocaleString(undefined,{maximumFractionDigits:0}), 'pcl-val-cyan');
@@ -508,36 +508,36 @@ const plugin = {
     setVal('pcROAS', roas.toFixed(1) + 'x', roas >= 3 ? 'pcl-val-green' : roas >= 2 ? 'pcl-val-yellow' : 'pcl-val-red');
     setVal('pcBreakEven', breakEven === Infinity ? '\u221E' : breakEven.toLocaleString(), breakEven <= sales ? 'pcl-val-green' : 'pcl-val-orange');
 
-    var revSub = q('pcRevenueSub');
+    const revSub = q('pcRevenueSub');
     if (revSub) revSub.textContent = sales + ' sales projected';
-    var profitSub = q('pcProfitSub');
+    const profitSub = q('pcProfitSub');
     if (profitSub) profitSub.textContent = monthlyProfit >= 0 ? 'after all costs' : 'net loss projected';
-    var roasSub = q('pcRoasSub');
+    const roasSub = q('pcRoasSub');
     if (roasSub) {
       if (roas >= 3) roasSub.textContent = 'excellent return';
       else if (roas >= 2) roasSub.textContent = 'good return';
       else roasSub.textContent = 'needs improvement';
     }
-    var beSub = q('pcBeSub');
+    const beSub = q('pcBeSub');
     if (beSub) beSub.textContent = breakEven <= sales ? 'within your target' : 'above your target';
 
-    var scenarios = [10,50,100,250,500,1000];
-    var maxScProfit = 0;
-    var profits = scenarios.map(function(s) { return profitPerSale * s; });
+    const scenarios = [10,50,100,250,500,1000];
+    let maxScProfit = 0;
+    const profits = scenarios.map(function(s) { return profitPerSale * s; });
     profits.forEach(function(p) { if (p > maxScProfit) maxScProfit = p; });
     if (maxScProfit === 0) maxScProfit = 1;
 
     scenarios.forEach(function(s, i) {
-      var p = profits[i];
-      var el = q('pcSc' + s + 'p');
-      var card = q('pcSc' + s);
-      var barFill = q('pcSc' + s + 'b');
+      const p = profits[i];
+      const el = q('pcSc' + s + 'p');
+      const card = q('pcSc' + s);
+      const barFill = q('pcSc' + s + 'b');
       if (el) el.textContent = '$' + p.toLocaleString(undefined,{maximumFractionDigits:0});
       if (card) {
         card.className = 'pcl-scenario ' + (p >= 0 ? 'pcl-sc-positive' : 'pcl-sc-negative');
       }
       if (barFill) {
-        var bw = Math.max(0, (Math.abs(p) / maxScProfit) * 100);
+        const bw = Math.max(0, (Math.abs(p) / maxScProfit) * 100);
         barFill.style.width = bw + '%';
         barFill.className = 'pcl-sc-bar-fill ' + (p >= 0 ? 'pcl-sc-fill-green' : 'pcl-sc-fill-red');
       }
@@ -549,14 +549,14 @@ const plugin = {
     plugin.renderBar(cost, ship, platformFee, adCost, profitPerSale, sp);
   },
 
-  updateInsights(margin, roas, profit, breakEven, sales, adCost, budget) {
-    var badge = plugin._section.querySelector('#pcInsightBadge');
-    var insight1 = plugin._section.querySelector('#pcInsight1');
-    var insight2 = plugin._section.querySelector('#pcInsight2');
-    var insight3 = plugin._section.querySelector('#pcInsight3');
-    var card1 = plugin._section.querySelector('#pcInsightCard1');
-    var card2 = plugin._section.querySelector('#pcInsightCard2');
-    var card3 = plugin._section.querySelector('#pcInsightCard3');
+  updateInsights(margin, roas, profit, breakEven, sales, _adCost, _budget) {
+    const badge = plugin._section.querySelector('#pcInsightBadge');
+    const insight1 = plugin._section.querySelector('#pcInsight1');
+    const insight2 = plugin._section.querySelector('#pcInsight2');
+    const insight3 = plugin._section.querySelector('#pcInsight3');
+    const card1 = plugin._section.querySelector('#pcInsightCard1');
+    const card2 = plugin._section.querySelector('#pcInsightCard2');
+    const card3 = plugin._section.querySelector('#pcInsightCard3');
 
     if (badge) {
       if (margin >= 30) badge.textContent = 'Healthy Margins';
@@ -613,7 +613,7 @@ const plugin = {
   },
 
   renderDonut(cost, ship, platformFee, adCost, profit) {
-    var ctx = plugin._section ? plugin._section.querySelector('#pcDonutChart') : null;
+    const ctx = plugin._section ? plugin._section.querySelector('#pcDonutChart') : null;
     if (!ctx) return;
     if (plugin._chart) plugin._chart.destroy();
     plugin._chart = new Chart(ctx, {
@@ -650,10 +650,10 @@ const plugin = {
   },
 
   renderBar(cost, ship, platformFee, adCost, profit, sp) {
-    var ctx = plugin._section ? plugin._section.querySelector('#pcBarChart') : null;
+    const ctx = plugin._section ? plugin._section.querySelector('#pcBarChart') : null;
     if (!ctx) return;
     if (plugin._barChart) plugin._barChart.destroy();
-    var total = sp || 1;
+    const total = sp || 1;
     plugin._barChart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -691,20 +691,20 @@ const plugin = {
 
   exportCSV() {
     if (!plugin._section) return;
-    var q = function(id) { return document.getElementById(id); };
-    var sp = parseFloat(q('pcSellPrice')?.value) || 0;
-    var cost = parseFloat(q('pcProductCost')?.value) || 0;
-    var ship = parseFloat(q('pcShipping')?.value) || 0;
-    var fee = parseFloat(q('pcPlatformFee')?.value) || 0;
-    var adCost = parseFloat(q('pcAdCost')?.value) || 0;
-    var budget = parseFloat(q('pcAdBudget')?.value) || 0;
-    var sales = parseInt(q('pcMonthlySales')?.value) || 0;
-    var platformFee = sp * (fee / 100);
-    var totalCost = cost + ship + platformFee + adCost;
-    var profitPerSale = sp - totalCost;
-    var margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
+    const q = function(id) { return document.getElementById(id); };
+    const sp = parseFloat(q('pcSellPrice')?.value) || 0;
+    const cost = parseFloat(q('pcProductCost')?.value) || 0;
+    const ship = parseFloat(q('pcShipping')?.value) || 0;
+    const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
+    const adCost = parseFloat(q('pcAdCost')?.value) || 0;
+    const budget = parseFloat(q('pcAdBudget')?.value) || 0;
+    const sales = parseInt(q('pcMonthlySales')?.value) || 0;
+    const platformFee = sp * (fee / 100);
+    const totalCost = cost + ship + platformFee + adCost;
+    const profitPerSale = sp - totalCost;
+    const margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
 
-    var csv = 'Metric,Value\n';
+    let csv = 'Metric,Value\n';
     csv += 'Selling Price,$' + sp.toFixed(2) + '\n';
     csv += 'Product Cost,$' + cost.toFixed(2) + '\n';
     csv += 'Shipping Cost,$' + ship.toFixed(2) + '\n';
@@ -724,9 +724,9 @@ const plugin = {
       csv += s + ',$' + (profitPerSale * s).toFixed(0) + '\n';
     });
 
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = 'profit-analysis.csv'; a.click();
     URL.revokeObjectURL(url);
     if (window.HuntDrop.UI) window.HuntDrop.UI.toast('CSV exported successfully!', 'success', 2000);

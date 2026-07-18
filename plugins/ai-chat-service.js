@@ -2,30 +2,80 @@
 // PLUGIN: AI Chat Service — Multi-provider AI chat with full context
 // ============================================================================
 (function(){
-const {PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry} = window.HuntDrop;
+
+// ===== Rate Limiter (Token Bucket) =====
+const _rateLimiter = {
+  _tokens: 10,
+  _maxTokens: 10,
+  _refillRate: 10000,
+  _lastRefill: Date.now(),
+  _consumed: 0,
+  _windowMs: 60000,
+  _windowStart: Date.now(),
+  _maxPerWindow: 20,
+  _queue: [],
+  _processing: false,
+  _checkRefill: function() {
+    const now = Date.now();
+    if (now - this._lastRefill >= this._refillRate) {
+      this._tokens = this._maxTokens;
+      this._lastRefill = now;
+    }
+    if (now - this._windowStart >= this._windowMs) {
+      this._consumed = 0;
+      this._windowStart = now;
+    }
+  },
+  canProceed: function() {
+    this._checkRefill();
+    return this._tokens > 0 && this._consumed < this._maxPerWindow;
+  },
+  consume: function() {
+    this._checkRefill();
+    if (this._tokens > 0 && this._consumed < this._maxPerWindow) {
+      this._tokens--;
+      this._consumed++;
+      return true;
+    }
+    return false;
+  },
+  getRetryMs: function() {
+    this._checkRefill();
+    if (this._consumed >= this._maxPerWindow) {
+      return this._windowMs - (Date.now() - this._windowStart) + 100;
+    }
+    return this._refillRate - (Date.now() - this._lastRefill) + 100;
+  }
+};
 
 const AIChatService = {
   id: 'ai-chat-service',
   name: 'AI Chat Service',
   version: '1.0.0',
 
-  init(ctx) {},
+  init(_ctx) {},
 
-  mount(ctx) {},
+  mount(_ctx) {},
 
-  unmount(ctx) {},
+  unmount(_ctx) {},
 
   async sendMessage(userMessage, conversationHistory) {
-    var provider = window.HuntDrop.APIKeyManager.getProvider();
-    var key = await window.HuntDrop.APIKeyManager.getKey(provider);
+    if (!_rateLimiter.consume()) {
+      const retryMs = Math.ceil(_rateLimiter.getRetryMs() / 1000);
+      return { success: false, response: 'Rate limit reached. Please wait ' + retryMs + 's before trying again.', error: 'rate_limited', retryAfter: retryMs };
+    }
+    const featureKey = await window.HuntDrop.APIKeyManager.getFeatureKey('ai-chat-service');
+    const provider = featureKey.provider;
+    const key = featureKey.key;
     if (!key) {
       return this.fallbackResponse(userMessage);
     }
-    var context = window.HuntDrop.AIContextBuilder.buildFullContext();
-    var systemPrompt = this.buildSystemPrompt(context);
-    var messages = this.buildMessages(systemPrompt, userMessage, conversationHistory);
+    const context = window.HuntDrop.AIContextBuilder.buildFullContext();
+    const systemPrompt = this.buildSystemPrompt(context);
+    const messages = this.buildMessages(systemPrompt, userMessage, conversationHistory);
     try {
-      var response;
+      let response;
       switch(provider) {
         case 'openai':
         case 'groq':
@@ -48,8 +98,12 @@ const AIChatService = {
   },
 
   async searchAndRespond(userMessage, conversationHistory) {
-    var webResults = null;
-    var needsSearch = this.needsWebSearch(userMessage);
+    if (!_rateLimiter.consume()) {
+      const retryMs = Math.ceil(_rateLimiter.getRetryMs() / 1000);
+      return { success: false, response: 'Rate limit reached. Please wait ' + retryMs + 's before trying again.', error: 'rate_limited', retryAfter: retryMs };
+    }
+    let webResults = null;
+    const needsSearch = this.needsWebSearch(userMessage);
     if (needsSearch) {
       try {
         webResults = await window.HuntDrop.AIWebSearch.search(userMessage, 5);
@@ -57,17 +111,18 @@ const AIChatService = {
         console.warn('[AIChat] Web search failed:', e);
       }
     }
-    var provider = window.HuntDrop.APIKeyManager.getProvider();
-    var key = await window.HuntDrop.APIKeyManager.getKey(provider);
+    const featureKey = await window.HuntDrop.APIKeyManager.getFeatureKey('ai-chat-service');
+    const provider = featureKey.provider;
+    const key = featureKey.key;
     if (!key) {
       return { success: true, response: this.fallbackResponse(userMessage), provider: 'fallback', webResults: webResults };
     }
-    var context = window.HuntDrop.AIContextBuilder.buildFullContext();
+    const context = window.HuntDrop.AIContextBuilder.buildFullContext();
     if (webResults) context.webResults = webResults;
-    var systemPrompt = this.buildSystemPrompt(context);
-    var messages = this.buildMessages(systemPrompt, userMessage, conversationHistory);
+    const systemPrompt = this.buildSystemPrompt(context);
+    const messages = this.buildMessages(systemPrompt, userMessage, conversationHistory);
     try {
-      var response;
+      let response;
       switch(provider) {
         case 'openai':
         case 'groq':
@@ -90,13 +145,13 @@ const AIChatService = {
   },
 
   needsWebSearch(query) {
-    var q = query.toLowerCase();
-    var searchTriggers = ['price', 'cost', 'buy', 'amazon', 'ebay', 'shopify', 'tiktok', 'trending', 'viral', 'competitor', 'selling', 'store', 'market', 'industry', 'benchmark', 'review', 'rating', 'compare', 'alternative', 'cheaper', 'expensive', 'deal', 'coupon', 'discount', '2025', '2026', 'latest', 'new', 'current', 'now', 'today'];
+    const q = query.toLowerCase();
+    const searchTriggers = ['price', 'cost', 'buy', 'amazon', 'ebay', 'shopify', 'tiktok', 'trending', 'viral', 'competitor', 'selling', 'store', 'market', 'industry', 'benchmark', 'review', 'rating', 'compare', 'alternative', 'cheaper', 'expensive', 'deal', 'coupon', 'discount', '2025', '2026', 'latest', 'new', 'current', 'now', 'today'];
     return searchTriggers.some(function(t) { return q.indexOf(t) > -1; });
   },
 
   buildSystemPrompt(context) {
-    var prompt = 'You are HuntDrop AI Coach — an expert dropshipping business advisor.\n\n';
+    let prompt = 'You are HuntDrop AI Coach — an expert dropshipping business advisor.\n\n';
     prompt += '## YOUR ROLE\n';
     prompt += '- Strategic advisor for dropshipping businesses\n';
     prompt += '- Analyze products, suppliers, competition, and market trends\n';
@@ -115,7 +170,7 @@ const AIChatService = {
 
     if (context.toolStates.profitCalculator.lastCalculation) {
       prompt += '\n## LAST PROFIT CALCULATION\n';
-      var calc = context.toolStates.profitCalculator.lastCalculation;
+      const calc = context.toolStates.profitCalculator.lastCalculation;
       prompt += JSON.stringify(calc) + '\n';
     }
 
@@ -159,9 +214,9 @@ const AIChatService = {
   },
 
   buildMessages(systemPrompt, userMessage, history) {
-    var messages = [{ role: 'system', content: systemPrompt }];
+    const messages = [{ role: 'system', content: systemPrompt }];
     if (history && history.length > 0) {
-      var recent = history.slice(-10);
+      const recent = history.slice(-10);
       recent.forEach(function(msg) {
         messages.push({ role: msg.role, content: msg.content });
       });
@@ -171,9 +226,9 @@ const AIChatService = {
   },
 
   async callOpenAI(provider, key, messages) {
-    var config = window.HuntDrop.APIKeyManager.providers[provider];
-    var model = window.HuntDrop.APIKeyManager.getModel();
-    var resp = await fetch(config.endpoint, {
+    const config = window.HuntDrop.APIKeyManager.providers[provider];
+    const model = window.HuntDrop.APIKeyManager.getModel();
+    const resp = await fetch(config.endpoint, {
       method: 'POST',
       headers: window.HuntDrop.APIKeyManager.getHeaders(provider, key),
       body: JSON.stringify({
@@ -184,20 +239,20 @@ const AIChatService = {
       })
     });
     if (!resp.ok) throw new Error('API returned ' + resp.status);
-    var data = await resp.json();
+    const data = await resp.json();
     return data.choices[0].message.content;
   },
 
   async callAnthropic(provider, key, messages) {
-    var config = window.HuntDrop.APIKeyManager.providers[provider];
-    var model = window.HuntDrop.APIKeyManager.getModel();
-    var systemMsg = '';
-    var chatMsgs = [];
+    const config = window.HuntDrop.APIKeyManager.providers[provider];
+    const model = window.HuntDrop.APIKeyManager.getModel();
+    let systemMsg = '';
+    const chatMsgs = [];
     messages.forEach(function(m) {
       if (m.role === 'system') systemMsg = m.content;
       else chatMsgs.push(m);
     });
-    var resp = await fetch(config.endpoint, {
+    const resp = await fetch(config.endpoint, {
       method: 'POST',
       headers: window.HuntDrop.APIKeyManager.getHeaders(provider, key),
       body: JSON.stringify({
@@ -208,15 +263,38 @@ const AIChatService = {
       })
     });
     if (!resp.ok) throw new Error('API returned ' + resp.status);
-    var data = await resp.json();
+    const data = await resp.json();
     return data.content[0].text;
   },
 
   async callGoogle(provider, key, messages) {
-    var config = window.HuntDrop.APIKeyManager.providers[provider];
-    var model = window.HuntDrop.APIKeyManager.getModel();
+    const config = window.HuntDrop.APIKeyManager.providers[provider];
+    const model = window.HuntDrop.APIKeyManager.getModel();
+    // SECURITY: Use POST body for key instead of URL parameter where possible.
+    // Google Generative Language API supports x-goog-api-key header as an alternative.
+    // When proxy is available, use it instead.
+    const proxyUrl = (window.HuntDrop && window.HuntDrop._apiProxy) || null;
+    if (proxyUrl) {
+      const resp = await fetch(proxyUrl + '/google/' + model + ':generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key, contents: messages })
+      });
+      if (!resp.ok) throw new Error('API returned ' + resp.status);
+      const data = await resp.json();
+      return data.candidates[0].content.parts[0].text;
+    }
+    // Fallback: key in URL (only for local development — avoid in production)
+    console.warn('[AIChat] SECURITY WARNING: Google API key exposed in URL parameter. Use window.HuntDrop._apiProxy for production.');
+    if (window.HuntDrop && window.HuntDrop.EventBus) {
+      window.HuntDrop.EventBus.emit('plugin:error', {
+        pluginId: 'ai-chat-service',
+        error: new Error('Google API key sent as URL parameter — insecure'),
+        phase: 'api-call'
+      });
+    }
     var url = config.endpoint + '/' + model + ':generateContent?key=' + key;
-    var contents = [];
+    const contents = [];
     messages.forEach(function(m) {
       if (m.role !== 'system') {
         contents.push({
@@ -225,28 +303,28 @@ const AIChatService = {
         });
       }
     });
-    var systemMsg = messages.find(function(m) { return m.role === 'system'; });
+    const systemMsg = messages.find(function(m) { return m.role === 'system'; });
     if (systemMsg) {
       contents.unshift({ role: 'user', parts: [{ text: systemMsg.content }] });
     }
-    var resp = await fetch(url, {
+    const resp = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: contents })
     });
     if (!resp.ok) throw new Error('API returned ' + resp.status);
-    var data = await resp.json();
+    const data = await resp.json();
     return data.candidates[0].content.parts[0].text;
   },
 
   fallbackResponse(query) {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var q = (query || '').toLowerCase();
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const q = (query || '').toLowerCase();
 
     if (q.indexOf('sell') > -1 || q.indexOf('should i') > -1) {
-      var product = products.sort(function(a, b) { return b.score - a.score; })[0];
+      const product = products.sort(function(a, b) { return b.score - a.score; })[0];
       if (product) {
-        var profit = this.estimateProfit(product);
+        const profit = this.estimateProfit(product);
         return 'Based on your catalog, I recommend: **' + product.title + '**\n\n' +
           '**Score:** ' + product.score + '/100\n' +
           '**Margin:** ' + product.margin + '%\n' +
@@ -287,7 +365,7 @@ const AIChatService = {
     }
 
     if (q.indexOf('health') > -1 || q.indexOf('system') > -1 || q.indexOf('issue') > -1) {
-      var health = window.HuntDrop.AISystemHealth.getHealthSummary();
+      const health = window.HuntDrop.AISystemHealth.getHealthSummary();
       return '**System Health:** ' + health.score + '/100\n\n' +
         '- Products: ' + (window.HuntDrop.ALL_PRODUCTS || []).length + ' loaded\n' +
         '- Sections: ' + health.total + ' checked\n' +
@@ -307,7 +385,7 @@ const AIChatService = {
 
   estimateProfit(product) {
     if (!product.platformPrices) return 0;
-    var price = product.platformPrices.amazon || product.platformPrices.shopify || product.price * 2;
+    const price = product.platformPrices.amazon || product.platformPrices.shopify || product.price * 2;
     return Math.round((price - product.price - 2.50 - (product.adSpendAvg || 3)) * 100) / 100;
   }
 };

@@ -381,7 +381,6 @@ describe('ai-settings plugin — specific API tests', () => {
 describe('All plugins cross-reference', () => {
   it('should have 34 plugin JS files registered', () => {
     const all = loadCore();
-    loadScript('mock-api.js');
     const expected = [
       'data-adapters.js', 'search-engine.js', 'product-grid.js', 'product-hunt.js',
       'ai-analyst.js', 'profit-calculator.js', 'ad-studio.js', 'ai-key-manager.js',

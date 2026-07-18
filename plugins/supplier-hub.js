@@ -2,7 +2,9 @@
 // PLUGIN: Supplier Hub v3 — Verified supplier directory with detail view
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry,UI} = window.HuntDrop;
+const esc = s => UI.escapeHtml(String(s||''));
+let _section = null;
 
 const SUPPLIERS=[
   {name:"TechGear Direct",platform:"AliExpress",location:"Shenzhen, CN",rating:4.9,orders:"120K",response:"< 2h",verified:true,products:342,shipTime:"7-15 days",shipCost:"$2-5",minOrder:"$50",refundRate:"1.2%",quality:95,communication:92,value:88,color:"var(--accent-cyan)",specialty:"Electronics & Gadgets",yearsActive:6,responseRate:96,fulfillmentRate:98.5,disputeRate:0.8,paymentTerms:"Escrow",sampleAvailable:true,customPackaging:true,dropshipSupport:true,topProducts:["Wireless Earbuds","Smart Watch","Phone Holder","LED Strip Lights","Bluetooth Speaker"]},
@@ -24,7 +26,7 @@ function computeScore(s){
 }
 
 function getRiskLevel(s){
-  var risk=0;
+  let risk=0;
   if(!s.verified) risk+=30;
   if(s.rating<4.5) risk+=15;
   if(s.disputeRate>1.5) risk+=20;
@@ -43,18 +45,352 @@ function getGrade(score){
   return {grade:'D',color:'var(--accent-red)'};
 }
 
-function formatMoney(n){return '$'+n.toFixed(2);}
+function _formatMoney(n){return '$'+n.toFixed(2);}
+
+function renderCards(suppliers){
+  const grid = _section?.querySelector('#supplierHubGrid');
+  if(!grid) return;
+  grid.innerHTML = suppliers.map((s,i)=>{
+    const score = computeScore(s);
+    const risk = getRiskLevel(s);
+    const grade = getGrade(score);
+    return `<div class="supplier-hub-card" tabindex="0" role="button" aria-label="View ${esc(s.name)} details" data-idx="${i}" data-verified="${s.verified}" data-response="${esc(s.response)}" data-rating="${s.rating}" data-platform="${esc(s.platform)}">
+      <div class="supplier-hub-header">
+        <div class="supplier-hub-avatar" style="background:${esc(s.color)}22;color:${esc(s.color)}">${esc(s.name.charAt(0))}</div>
+        <div><div class="supplier-hub-name">${esc(s.name)}</div><div class="supplier-hub-platform">${esc(s.platform)} \u2022 ${esc(s.location)}</div></div>
+        <div class="sh-card-grade" style="background:${esc(grade.color)}18;color:${esc(grade.color)}">${esc(grade.grade)}</div>
+      </div>
+      <div class="supplier-hub-stats">
+        <div class="supplier-hub-stat"><span class="supplier-hub-stat-value" style="color:var(--accent-yellow)">${esc(s.rating)}\u2605</span><span class="supplier-hub-stat-label">Rating</span></div>
+        <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${esc(s.orders)}</span><span class="supplier-hub-stat-label">Orders</span></div>
+        <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${esc(s.response)}</span><span class="supplier-hub-stat-label">Response</span></div>
+        <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${esc(s.products)}</span><span class="supplier-hub-stat-label">Products</span></div>
+      </div>
+      <div class="supplier-hub-score-bar"><div class="supplier-hub-score-fill" style="width:${score}%;background:${score>=90?'var(--accent-green)':score>=80?'var(--accent-cyan)':'var(--accent-orange)'}"></div><span class="supplier-hub-score-text">${score}/100</span></div>
+      <div class="supplier-hub-footer">
+        ${s.verified ? '<span class="supplier-verified">\u2713 Verified</span>' : ''}
+        <span class="sh-card-risk" style="color:${esc(risk.color)}">${esc(risk.level)} RISK</span>
+        <span class="sh-card-view">View Details \u2192</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.supplier-hub-card').forEach(card=>{
+    const handler = ()=>{ const idx = parseInt(card.dataset.idx); showDetail(suppliers[idx]); };
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function showDetail(supplier){
+  const panel = _section?.querySelector('#supplierDetailPanel');
+  if(!panel) return;
+  const score = computeScore(supplier);
+  const risk = getRiskLevel(supplier);
+  const grade = getGrade(score);
+
+  panel.innerHTML = `
+    <div class="sh-detail-overlay" id="shDetailClose"></div>
+    <div class="sh-detail-content">
+      <button class="sh-detail-close" id="shDetailCloseBtn" aria-label="Close detail panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+
+      <div class="sh-detail-hero">
+        <div class="sh-detail-avatar" style="background:${esc(supplier.color)}22;color:${esc(supplier.color)};border:2px solid ${esc(supplier.color)}">${esc(supplier.name.charAt(0))}</div>
+        <div class="sh-detail-hero-info">
+          <h2 class="sh-detail-name">${esc(supplier.name)}</h2>
+          <div class="sh-detail-meta">${esc(supplier.platform)} \u2022 ${esc(supplier.location)} \u2022 ${esc(supplier.specialty)}</div>
+          <div class="sh-detail-badges">
+            <span class="sh-detail-badge" style="background:${esc(grade.color)}18;color:${esc(grade.color)}">Grade ${esc(grade.grade)}</span>
+            <span class="sh-detail-badge" style="background:var(--accent-yellow-dim);color:var(--accent-yellow)">${esc(supplier.rating)}\u2605</span>
+            <span class="sh-detail-badge" style="background:${esc(risk.color)}18;color:${esc(risk.color)}">${esc(risk.level)} RISK</span>
+            ${supplier.verified?'<span class="sh-detail-badge" style="background:var(--accent-green-dim);color:var(--accent-green)">\u2713 Verified</span>':''}
+          </div>
+        </div>
+        <div class="sh-detail-score-ring">
+          <svg viewBox="0 0 100 100" class="sh-detail-ring-svg">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-primary)" stroke-width="6"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="${score>=90?'var(--accent-green)':score>=80?'var(--accent-cyan)':'var(--accent-orange)'}" stroke-width="6" stroke-dasharray="${264}" stroke-dashoffset="${264-(264*score/100)}" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)"/>
+          </svg>
+          <div class="sh-detail-score-val">${score}</div>
+          <div class="sh-detail-score-label">Score</div>
+        </div>
+      </div>
+
+      <div class="sh-detail-grid">
+        <div class="sh-detail-card">
+          <h4>\uD83D\uDCCA Key Metrics</h4>
+          <div class="sh-detail-metrics">
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Total Orders</span><span class="sh-detail-m-val">${esc(supplier.orders)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Products</span><span class="sh-detail-m-val">${esc(supplier.products)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Response Time</span><span class="sh-detail-m-val">${esc(supplier.response)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Response Rate</span><span class="sh-detail-m-val">${esc(supplier.responseRate)}%</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Fulfillment Rate</span><span class="sh-detail-m-val">${esc(supplier.fulfillmentRate)}%</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Dispute Rate</span><span class="sh-detail-m-val" style="color:${supplier.disputeRate<1?'var(--accent-green)':'var(--accent-orange)'}">${esc(supplier.disputeRate)}%</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Refund Rate</span><span class="sh-detail-m-val">${esc(supplier.refundRate)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Years Active</span><span class="sh-detail-m-val">${esc(supplier.yearsActive)} years</span></div>
+          </div>
+        </div>
+
+        <div class="sh-detail-card">
+          <h4>\uD83D\uDCE9 Shipping Info</h4>
+          <div class="sh-detail-metrics">
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Ship Time</span><span class="sh-detail-m-val">${esc(supplier.shipTime)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Ship Cost</span><span class="sh-detail-m-val">${esc(supplier.shipCost)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Min Order</span><span class="sh-detail-m-val">${esc(supplier.minOrder)}</span></div>
+            <div class="sh-detail-m"><span class="sh-detail-m-label">Payment Terms</span><span class="sh-detail-m-val">${esc(supplier.paymentTerms)}</span></div>
+          </div>
+        </div>
+
+        <div class="sh-detail-card">
+          <h4>\u2705 Capabilities</h4>
+          <div class="sh-detail-cap-list">
+            <div class="sh-detail-cap ${supplier.verified?'cap-yes':'cap-no'}">${supplier.verified?'✓':'✗'} Verified Supplier</div>
+            <div class="sh-detail-cap ${supplier.sampleAvailable?'cap-yes':'cap-no'}">${supplier.sampleAvailable?'✓':'✗'} Sample Available</div>
+            <div class="sh-detail-cap ${supplier.customPackaging?'cap-yes':'cap-no'}">${supplier.customPackaging?'✓':'✗'} Custom Packaging</div>
+            <div class="sh-detail-cap ${supplier.dropshipSupport?'cap-yes':'cap-no'}">${supplier.dropshipSupport?'✓':'✗'} Dropship Support</div>
+          </div>
+        </div>
+
+        <div class="sh-detail-card">
+          <h4>\uD83C\uDFC6 Top Products</h4>
+          <div class="sh-detail-products">
+            ${supplier.topProducts.map(p=>`<span class="sh-detail-product-chip" tabindex="0" role="button" aria-label="Search for ${esc(p)}" data-product="${esc(p)}">${esc(p)}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="sh-detail-score-bars">
+        <h4>\uD83C\uDFAF Score Breakdown</h4>
+        <div class="sh-detail-bars">
+          <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Quality</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.quality}%;background:var(--accent-green)"></div></div><span class="sh-detail-bar-val">${supplier.quality}</span></div>
+          <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Communication</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.communication}%;background:var(--accent-cyan)"></div></div><span class="sh-detail-bar-val">${supplier.communication}</span></div>
+          <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Value</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.value}%;background:var(--accent-purple)"></div></div><span class="sh-detail-bar-val">${supplier.value}</span></div>
+          <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Response Rate</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.responseRate}%;background:var(--accent-yellow)"></div></div><span class="sh-detail-bar-val">${supplier.responseRate}%</span></div>
+          <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Fulfillment</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.fulfillmentRate}%;background:var(--accent-green)"></div></div><span class="sh-detail-bar-val">${supplier.fulfillmentRate}%</span></div>
+        </div>
+      </div>
+
+      <div class="sh-detail-actions">
+        <button class="sh-detail-action-btn sh-detail-primary" onclick="window.HuntDrop.navigateTo('section-profit-lab')">\uD83D\uDCB0 Calculate Profit</button>
+        <button class="sh-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-store-gen')">\uD83C\uDFEA Build Store</button>
+        <button class="sh-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-ad-studio')">\uD83C\uDFAC Create Ads</button>
+      </div>
+    </div>`;
+  panel.classList.add('sh-detail-open');
+
+  const closeBtn = panel.querySelector('#shDetailCloseBtn');
+  const overlay = panel.querySelector('#shDetailClose');
+  const closeDetail = ()=>{ panel.classList.remove('sh-detail-open'); panel.innerHTML=''; };
+  if(closeBtn) closeBtn.addEventListener('click', closeDetail);
+  if(overlay) overlay.addEventListener('click', closeDetail);
+
+  panel.querySelectorAll('.sh-detail-product-chip').forEach(chip=>{
+    const handler = ()=>{
+      const productName = chip.dataset.product;
+      if(productName && window.HuntDrop.navigateTo){
+        closeDetail();
+        setTimeout(()=>{
+          const searchInput = document.querySelector('.search-input, #searchInput');
+          if(searchInput){ searchInput.value = productName; searchInput.dispatchEvent(new Event('input',{bubbles:true})); }
+          window.HuntDrop.navigateTo('section-product-hunt');
+        },350);
+      }
+    };
+    chip.addEventListener('click', handler);
+    chip.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function renderComparison(suppliers){
+  const compBody = _section?.querySelector('#shComparisonBody');
+  if(!compBody) return;
+  const sorted = [...suppliers].sort((a,b)=>b.rating-a.rating).slice(0,8);
+  compBody.innerHTML = sorted.map(s=>{
+    const score = computeScore(s);
+    return `<tr tabindex="0" role="button" aria-label="View ${s.name}" data-name="${s.name}">
+      <td><div class="sh-comp-name"><div class="sh-comp-avatar" style="background:${s.color}22;color:${s.color}">${s.name.charAt(0)}</div>${s.name}</div></td>
+      <td>${s.platform}</td>
+      <td><span class="sh-badge sh-badge-yellow">${s.rating}\u2605</span></td>
+      <td>${s.shipTime}</td>
+      <td>${s.shipCost}</td>
+      <td>${s.minOrder}</td>
+      <td><span class="sh-badge ${parseFloat(s.refundRate)<1.5?'sh-badge-green':'sh-badge-orange'}">${s.refundRate}</span></td>
+      <td><span class="sh-badge sh-badge-cyan">${score}</span></td>
+    </tr>`;
+  }).join('');
+  compBody.querySelectorAll('tr').forEach(row=>{
+    const handler = ()=>{ const s = suppliers.find(x=>x.name===row.dataset.name); if(s) showDetail(s); };
+    row.addEventListener('click', handler);
+    row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function renderScores(suppliers){
+  const scoresGrid = _section?.querySelector('#shScoresGrid');
+  if(!scoresGrid) return;
+  const top6 = [...suppliers].sort((a,b)=>b.rating-a.rating).slice(0,6);
+  scoresGrid.innerHTML = top6.map(s=>{
+    const score = computeScore(s);
+    return `<div class="sh-score-card" tabindex="0" role="button" aria-label="View ${s.name} scores" data-name="${s.name}">
+      <div class="sh-score-header">
+        <div class="sh-comp-avatar" style="background:${s.color}22;color:${s.color}">${s.name.charAt(0)}</div>
+        <div><div class="sh-score-name">${s.name}</div><div class="sh-score-platform">${s.platform}</div></div>
+        <div class="sh-score-total">${score}</div>
+      </div>
+      <div class="sh-score-bars">
+        <div class="sh-score-row"><span>Quality</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.quality}%;background:var(--accent-green)"></div></div><span>${s.quality}</span></div>
+        <div class="sh-score-row"><span>Communication</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.communication}%;background:var(--accent-cyan)"></div></div><span>${s.communication}</span></div>
+        <div class="sh-score-row"><span>Value</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.value}%;background:var(--accent-purple)"></div></div><span>${s.value}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+  scoresGrid.querySelectorAll('.sh-score-card').forEach(card=>{
+    const handler = ()=>{ const s = suppliers.find(x=>x.name===card.dataset.name); if(s) showDetail(s); };
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function renderShipping(suppliers){
+  const shipGrid = _section?.querySelector('#shShippingGrid');
+  if(!shipGrid) return;
+  const platforms = {};
+  suppliers.forEach(s=>{
+    if(!platforms[s.platform]) platforms[s.platform]={times:[],costs:[],count:0};
+    const parts = s.shipTime.split('-');
+    platforms[s.platform].times.push((parseInt(parts[0])+parseInt(parts[1]))/2);
+    if(s.shipCost!=='Free' && s.shipCost!=='Free Prime'){
+      const c = s.shipCost.replace('$','').split('-');
+      platforms[s.platform].costs.push((parseFloat(c[0])+parseFloat(c[1]))/2);
+    }
+    platforms[s.platform].count++;
+  });
+  const icons = {'AliExpress':'\uD83C\uDF10','Amazon':'\uD83D\uDCE6','CJ Dropshipping':'\uD83D\uDE9A','DHgate':'\uD83C\uDFEA','Temu':'\uD83D\uDCB0','TikTok Shop':'\uD83C\uDFB5','Etsy':'\uD83C\uDFA8'};
+  shipGrid.innerHTML = Object.entries(platforms).map(([name,p])=>{
+    const avgTime = Math.round(p.times.reduce((a,b)=>a+b,0)/p.times.length);
+    const avgCost = p.costs.length ? '$'+(p.costs.reduce((a,b)=>a+b,0)/p.costs.length).toFixed(2) : 'Free';
+    return `<div class="sh-ship-card" tabindex="0" role="button" aria-label="Filter suppliers by ${name}" data-platform="${name}">
+      <div class="sh-ship-icon">${icons[name]||'\uD83C\uDFE2'}</div>
+      <div class="sh-ship-name">${name}</div>
+      <div class="sh-ship-stats">
+        <div class="sh-ship-stat"><span class="sh-ship-stat-label">Avg Ship Time</span><span class="sh-ship-stat-value">${avgTime} days</span></div>
+        <div class="sh-ship-stat"><span class="sh-ship-stat-label">Avg Ship Cost</span><span class="sh-ship-stat-value">${avgCost}</span></div>
+        <div class="sh-ship-stat"><span class="sh-ship-stat-label">Suppliers</span><span class="sh-ship-stat-value">${p.count}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  shipGrid.querySelectorAll('.sh-ship-card').forEach(card=>{
+    const handler = ()=>{
+      const platform = card.dataset.platform;
+      const filterBtns = _section.querySelectorAll('.sf-btn');
+      filterBtns.forEach(b=>b.classList.remove('active'));
+      const allBtn = _section.querySelector('.sf-btn[data-sf="all"]');
+      if(allBtn) allBtn.classList.add('active');
+      const grid = _section?.querySelector('#supplierHubGrid');
+      if(!grid) return;
+      grid.querySelectorAll('.supplier-hub-card').forEach(c=>{
+        const show = c.dataset.platform === platform;
+        if(show){ c.classList.remove('sh-card-hidden'); c.style.display=''; }
+        else { c.classList.add('sh-card-hidden'); setTimeout(()=>{ c.style.display='none'; },300); }
+      });
+      _section.scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function renderChecklist(){
+  const checklist = _section?.querySelector('#shChecklist');
+  if(!checklist) return;
+  const items = [
+    {icon:'\uD83D\uDD0D',title:'Verify Business License',desc:'Confirm the supplier has valid business registration and import/export licenses',priority:'Critical'},
+    {icon:'\uD83D\uDCCB',title:'Request Product Samples',desc:'Always order 2-3 samples before committing to bulk orders',priority:'Critical'},
+    {icon:'\uD83D\uDCAC',title:'Test Response Time',desc:'Send inquiries at different hours to verify claimed response times',priority:'High'},
+    {icon:'\uD83D\uDCCA',title:'Check Order History',desc:'Look for consistent order volume and positive feedback trends over 6+ months',priority:'High'},
+    {icon:'\uD83D\uDD04',title:'Review Return Policy',desc:'Understand refund terms, restocking fees, and dispute resolution process',priority:'High'},
+    {icon:'\uD83D\uDCF7',title:'Verify Product Photos',desc:'Request actual product photos, not just stock images',priority:'Medium'},
+    {icon:'\uD83C\uDFF7\uFE0F',title:'Compare Unit Pricing',desc:'Get quotes for different quantities to understand volume discounts',priority:'Medium'},
+    {icon:'\uD83D\uDE9A',title:'Confirm Shipping Methods',desc:'Verify available carriers, tracking options, and insurance coverage',priority:'Medium'},
+    {icon:'\uD83D\uDCDD',title:'Read Sample Reviews',desc:'Check reviews from other dropshippers who use this supplier',priority:'Low'},
+    {icon:'\uD83E\uDD1D',title:'Negotiate Terms',desc:'Discuss payment terms, exclusivity options, and custom packaging availability',priority:'Low'}
+  ];
+  const priColors = {Critical:'var(--accent-red)',High:'var(--accent-orange)',Medium:'var(--accent-cyan)',Low:'var(--text-muted)'};
+  checklist.innerHTML = items.map(i=>`
+    <div class="sh-check-item">
+      <div class="sh-check-icon">${i.icon}</div>
+      <div class="sh-check-info">
+        <div class="sh-check-title">${i.title}</div>
+        <div class="sh-check-desc">${i.desc}</div>
+      </div>
+      <div class="sh-check-priority" style="color:${priColors[i.priority]}">${i.priority}</div>
+    </div>
+  `).join('');
+}
+
+function renderPicks(){
+  const picksGrid = _section?.querySelector('#shPicksGrid');
+  if(!picksGrid) return;
+  const picks = [
+    {use:'\uD83D\uDE80 Fastest Shipping',supplier:'PawWalk USA',reason:'1-4 day delivery with Free Prime shipping',platform:'Amazon',color:'var(--accent-green)'},
+    {use:'\uD83D\uDCB0 Best Value',supplier:'FitGear Pro',reason:'Lowest cost with high order volume (320K+)',platform:'Temu',color:'var(--accent-cyan)'},
+    {use:'\u2B50 Highest Rated',supplier:'TechGear Direct',reason:'4.9 rating with 120K orders and <2h response',platform:'AliExpress',color:'var(--accent-yellow)'},
+    {use:'\uD83D\uDCE6 Largest Catalog',supplier:'BeautyGlow Co',reason:'567 products with fastest response time',platform:'CJ Dropshipping',color:'var(--accent-pink)'},
+    {use:'\uD83D\uDEE1\uFE0F Lowest Risk',supplier:'StarLight Tech',reason:'0.9% refund rate with premium quality score',platform:'DHgate',color:'var(--accent-purple)'},
+    {use:'\uD83C\uDFAF Best for Beginners',supplier:'SmartHome US',reason:'No minimum order, free shipping, US-based',platform:'Amazon',color:'var(--accent-orange)'}
+  ];
+  picksGrid.innerHTML = picks.map(p=>`
+    <div class="sh-pick-card" tabindex="0" role="button" aria-label="View ${p.supplier}" style="border-left:3px solid ${p.color}" data-supplier="${p.supplier}">
+      <div class="sh-pick-use">${p.use}</div>
+      <div class="sh-pick-supplier">${p.supplier}</div>
+      <div class="sh-pick-platform">${p.platform}</div>
+      <div class="sh-pick-reason">${p.reason}</div>
+    </div>
+  `).join('');
+  picksGrid.querySelectorAll('.sh-pick-card').forEach(card=>{
+    const handler = ()=>{ const s = SUPPLIERS.find(x=>x.name===card.dataset.supplier); if(s) showDetail(s); };
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
+
+function bindFilters(){
+  const grid = _section?.querySelector('#supplierHubGrid');
+  if(!grid) return;
+  const filterBtns = _section.querySelectorAll('.sf-btn');
+  filterBtns.forEach(btn=>{
+    const handler = ()=>{
+      filterBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.getAttribute('data-sf');
+      const cards = grid.querySelectorAll('.supplier-hub-card');
+      cards.forEach(card=>{
+        const show = filter==='all'||
+          (filter==='verified' && card.getAttribute('data-verified')==='true')||
+          (filter==='fast' && card.getAttribute('data-response').indexOf('1h')>-1)||
+          (filter==='rated' && parseFloat(card.getAttribute('data-rating'))>=4.8)||
+          (filter==='cheap' && card.getAttribute('data-platform')==='Temu');
+        if(show){ card.classList.remove('sh-card-hidden'); card.style.display=''; }
+        else { card.classList.add('sh-card-hidden'); setTimeout(()=>{ card.style.display='none'; },300); }
+      });
+    };
+    btn.addEventListener('click', handler);
+    btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
+  });
+}
 
 const SupplierHubPlugin = {
   id: 'supplier-hub',
   name: 'Find Suppliers',
   version: '3.0.0',
   description: 'Verified suppliers from all 10 platforms — compare shipping, pricing & reliability scores',
-  _section: null,
 
-  init(ctx) {},
+  init(_ctx) {},
 
-  mount(ctx) {
+  mount(_ctx) {
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -135,356 +471,21 @@ const SupplierHubPlugin = {
         ])}
       </div>`;
     container.appendChild(section);
-    const self = SupplierHubPlugin;
-    self._section = section;
+    _section = section;
 
-    self.renderCards(SUPPLIERS);
-    self.renderComparison(SUPPLIERS);
-    self.renderScores(SUPPLIERS);
-    self.renderShipping(SUPPLIERS);
-    self.renderChecklist();
-    self.renderPicks();
-    self.bindFilters();
+    renderCards(SUPPLIERS);
+    renderComparison(SUPPLIERS);
+    renderScores(SUPPLIERS);
+    renderShipping(SUPPLIERS);
+    renderChecklist();
+    renderPicks();
+    bindFilters();
   },
 
-  renderCards(suppliers){
-    const grid = this._section?.querySelector('#supplierHubGrid');
-    if(!grid) return;
-    grid.innerHTML = suppliers.map((s,i)=>{
-      const score = computeScore(s);
-      const risk = getRiskLevel(s);
-      const grade = getGrade(score);
-      return `<div class="supplier-hub-card" tabindex="0" role="button" aria-label="View ${s.name} details" data-idx="${i}" data-verified="${s.verified}" data-response="${s.response}" data-rating="${s.rating}" data-platform="${s.platform}">
-        <div class="supplier-hub-header">
-          <div class="supplier-hub-avatar" style="background:${s.color}22;color:${s.color}">${s.name.charAt(0)}</div>
-          <div><div class="supplier-hub-name">${s.name}</div><div class="supplier-hub-platform">${s.platform} \u2022 ${s.location}</div></div>
-          <div class="sh-card-grade" style="background:${grade.color}18;color:${grade.color}">${grade.grade}</div>
-        </div>
-        <div class="supplier-hub-stats">
-          <div class="supplier-hub-stat"><span class="supplier-hub-stat-value" style="color:var(--accent-yellow)">${s.rating}\u2605</span><span class="supplier-hub-stat-label">Rating</span></div>
-          <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${s.orders}</span><span class="supplier-hub-stat-label">Orders</span></div>
-          <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${s.response}</span><span class="supplier-hub-stat-label">Response</span></div>
-          <div class="supplier-hub-stat"><span class="supplier-hub-stat-value">${s.products}</span><span class="supplier-hub-stat-label">Products</span></div>
-        </div>
-        <div class="supplier-hub-score-bar"><div class="supplier-hub-score-fill" style="width:${score}%;background:${score>=90?'var(--accent-green)':score>=80?'var(--accent-cyan)':'var(--accent-orange)'}"></div><span class="supplier-hub-score-text">${score}/100</span></div>
-        <div class="supplier-hub-footer">
-          ${s.verified ? '<span class="supplier-verified">\u2713 Verified</span>' : ''}
-          <span class="sh-card-risk" style="color:${risk.color}">${risk.level} RISK</span>
-          <span class="sh-card-view">View Details \u2192</span>
-        </div>
-      </div>`;
-    }).join('');
-
-    grid.querySelectorAll('.supplier-hub-card').forEach(card=>{
-      const handler = ()=>{ const idx = parseInt(card.dataset.idx); this.showDetail(suppliers[idx]); };
-      card.addEventListener('click', handler);
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  showDetail(supplier){
-    const panel = this._section?.querySelector('#supplierDetailPanel');
-    if(!panel) return;
-    const score = computeScore(supplier);
-    const risk = getRiskLevel(supplier);
-    const grade = getGrade(score);
-
-    panel.innerHTML = `
-      <div class="sh-detail-overlay" id="shDetailClose"></div>
-      <div class="sh-detail-content">
-        <button class="sh-detail-close" id="shDetailCloseBtn" aria-label="Close detail panel">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-
-        <div class="sh-detail-hero">
-          <div class="sh-detail-avatar" style="background:${supplier.color}22;color:${supplier.color};border:2px solid ${supplier.color}">${supplier.name.charAt(0)}</div>
-          <div class="sh-detail-hero-info">
-            <h2 class="sh-detail-name">${supplier.name}</h2>
-            <div class="sh-detail-meta">${supplier.platform} \u2022 ${supplier.location} \u2022 ${supplier.specialty}</div>
-            <div class="sh-detail-badges">
-              <span class="sh-detail-badge" style="background:${grade.color}18;color:${grade.color}">Grade ${grade.grade}</span>
-              <span class="sh-detail-badge" style="background:var(--accent-yellow-dim);color:var(--accent-yellow)">${supplier.rating}\u2605</span>
-              <span class="sh-detail-badge" style="background:${risk.color}18;color:${risk.color}">${risk.level} RISK</span>
-              ${supplier.verified?'<span class="sh-detail-badge" style="background:var(--accent-green-dim);color:var(--accent-green)">\u2713 Verified</span>':''}
-            </div>
-          </div>
-          <div class="sh-detail-score-ring">
-            <svg viewBox="0 0 100 100" class="sh-detail-ring-svg">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-primary)" stroke-width="6"/>
-              <circle cx="50" cy="50" r="42" fill="none" stroke="${score>=90?'var(--accent-green)':score>=80?'var(--accent-cyan)':'var(--accent-orange)'}" stroke-width="6" stroke-dasharray="${264}" stroke-dashoffset="${264-(264*score/100)}" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 0.8s cubic-bezier(0.4,0,0.2,1)"/>
-            </svg>
-            <div class="sh-detail-score-val">${score}</div>
-            <div class="sh-detail-score-label">Score</div>
-          </div>
-        </div>
-
-        <div class="sh-detail-grid">
-          <div class="sh-detail-card">
-            <h4>\uD83D\uDCCA Key Metrics</h4>
-            <div class="sh-detail-metrics">
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Total Orders</span><span class="sh-detail-m-val">${supplier.orders}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Products</span><span class="sh-detail-m-val">${supplier.products}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Response Time</span><span class="sh-detail-m-val">${supplier.response}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Response Rate</span><span class="sh-detail-m-val">${supplier.responseRate}%</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Fulfillment Rate</span><span class="sh-detail-m-val">${supplier.fulfillmentRate}%</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Dispute Rate</span><span class="sh-detail-m-val" style="color:${supplier.disputeRate<1?'var(--accent-green)':'var(--accent-orange)'}">${supplier.disputeRate}%</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Refund Rate</span><span class="sh-detail-m-val">${supplier.refundRate}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Years Active</span><span class="sh-detail-m-val">${supplier.yearsActive} years</span></div>
-            </div>
-          </div>
-
-          <div class="sh-detail-card">
-            <h4>\uD83D\uDCE9 Shipping Info</h4>
-            <div class="sh-detail-metrics">
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Ship Time</span><span class="sh-detail-m-val">${supplier.shipTime}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Ship Cost</span><span class="sh-detail-m-val">${supplier.shipCost}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Min Order</span><span class="sh-detail-m-val">${supplier.minOrder}</span></div>
-              <div class="sh-detail-m"><span class="sh-detail-m-label">Payment Terms</span><span class="sh-detail-m-val">${supplier.paymentTerms}</span></div>
-            </div>
-          </div>
-
-          <div class="sh-detail-card">
-            <h4>\u2705 Capabilities</h4>
-            <div class="sh-detail-cap-list">
-              <div class="sh-detail-cap ${supplier.verified?'cap-yes':'cap-no'}">${supplier.verified?'✓':'✗'} Verified Supplier</div>
-              <div class="sh-detail-cap ${supplier.sampleAvailable?'cap-yes':'cap-no'}">${supplier.sampleAvailable?'✓':'✗'} Sample Available</div>
-              <div class="sh-detail-cap ${supplier.customPackaging?'cap-yes':'cap-no'}">${supplier.customPackaging?'✓':'✗'} Custom Packaging</div>
-              <div class="sh-detail-cap ${supplier.dropshipSupport?'cap-yes':'cap-no'}">${supplier.dropshipSupport?'✓':'✗'} Dropship Support</div>
-            </div>
-          </div>
-
-          <div class="sh-detail-card">
-            <h4>\uD83C\uDFC6 Top Products</h4>
-            <div class="sh-detail-products">
-              ${supplier.topProducts.map(p=>`<span class="sh-detail-product-chip" tabindex="0" role="button" aria-label="Search for ${p}" data-product="${p}">${p}</span>`).join('')}
-            </div>
-          </div>
-        </div>
-
-        <div class="sh-detail-score-bars">
-          <h4>\uD83C\uDFAF Score Breakdown</h4>
-          <div class="sh-detail-bars">
-            <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Quality</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.quality}%;background:var(--accent-green)"></div></div><span class="sh-detail-bar-val">${supplier.quality}</span></div>
-            <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Communication</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.communication}%;background:var(--accent-cyan)"></div></div><span class="sh-detail-bar-val">${supplier.communication}</span></div>
-            <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Value</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.value}%;background:var(--accent-purple)"></div></div><span class="sh-detail-bar-val">${supplier.value}</span></div>
-            <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Response Rate</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.responseRate}%;background:var(--accent-yellow)"></div></div><span class="sh-detail-bar-val">${supplier.responseRate}%</span></div>
-            <div class="sh-detail-bar-row"><span class="sh-detail-bar-label">Fulfillment</span><div class="sh-detail-bar-track"><div class="sh-detail-bar-fill" style="width:${supplier.fulfillmentRate}%;background:var(--accent-green)"></div></div><span class="sh-detail-bar-val">${supplier.fulfillmentRate}%</span></div>
-          </div>
-        </div>
-
-        <div class="sh-detail-actions">
-          <button class="sh-detail-action-btn sh-detail-primary" onclick="window.HuntDrop.navigateTo('section-profit-lab')">\uD83D\uDCB0 Calculate Profit</button>
-          <button class="sh-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-store-gen')">\uD83C\uDFEA Build Store</button>
-          <button class="sh-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-ad-studio')">\uD83C\uDFAC Create Ads</button>
-        </div>
-      </div>`;
-    panel.classList.add('sh-detail-open');
-
-    const closeBtn = panel.querySelector('#shDetailCloseBtn');
-    const overlay = panel.querySelector('#shDetailClose');
-    const closeDetail = ()=>{ panel.classList.remove('sh-detail-open'); panel.innerHTML=''; };
-    if(closeBtn) closeBtn.addEventListener('click', closeDetail);
-    if(overlay) overlay.addEventListener('click', closeDetail);
-
-    panel.querySelectorAll('.sh-detail-product-chip').forEach(chip=>{
-      const handler = ()=>{
-        const productName = chip.dataset.product;
-        if(productName && window.HuntDrop.navigateTo){
-          closeDetail();
-          setTimeout(()=>{
-            const searchInput = document.querySelector('.search-input, #searchInput');
-            if(searchInput){ searchInput.value = productName; searchInput.dispatchEvent(new Event('input',{bubbles:true})); }
-            window.HuntDrop.navigateTo('section-product-hunt');
-          },350);
-        }
-      };
-      chip.addEventListener('click', handler);
-      chip.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  renderComparison(suppliers){
-    const compBody = this._section?.querySelector('#shComparisonBody');
-    if(!compBody) return;
-    const sorted = [...suppliers].sort((a,b)=>b.rating-a.rating).slice(0,8);
-    compBody.innerHTML = sorted.map(s=>{
-      const score = computeScore(s);
-      return `<tr tabindex="0" role="button" aria-label="View ${s.name}" data-name="${s.name}">
-        <td><div class="sh-comp-name"><div class="sh-comp-avatar" style="background:${s.color}22;color:${s.color}">${s.name.charAt(0)}</div>${s.name}</div></td>
-        <td>${s.platform}</td>
-        <td><span class="sh-badge sh-badge-yellow">${s.rating}\u2605</span></td>
-        <td>${s.shipTime}</td>
-        <td>${s.shipCost}</td>
-        <td>${s.minOrder}</td>
-        <td><span class="sh-badge ${parseFloat(s.refundRate)<1.5?'sh-badge-green':'sh-badge-orange'}">${s.refundRate}</span></td>
-        <td><span class="sh-badge sh-badge-cyan">${score}</span></td>
-      </tr>`;
-    }).join('');
-    compBody.querySelectorAll('tr').forEach(row=>{
-      const handler = ()=>{ const s = suppliers.find(x=>x.name===row.dataset.name); if(s) this.showDetail(s); };
-      row.addEventListener('click', handler);
-      row.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  renderScores(suppliers){
-    const scoresGrid = this._section?.querySelector('#shScoresGrid');
-    if(!scoresGrid) return;
-    const top6 = [...suppliers].sort((a,b)=>b.rating-a.rating).slice(0,6);
-    scoresGrid.innerHTML = top6.map(s=>{
-      const score = computeScore(s);
-      return `<div class="sh-score-card" tabindex="0" role="button" aria-label="View ${s.name} scores" data-name="${s.name}">
-        <div class="sh-score-header">
-          <div class="sh-comp-avatar" style="background:${s.color}22;color:${s.color}">${s.name.charAt(0)}</div>
-          <div><div class="sh-score-name">${s.name}</div><div class="sh-score-platform">${s.platform}</div></div>
-          <div class="sh-score-total">${score}</div>
-        </div>
-        <div class="sh-score-bars">
-          <div class="sh-score-row"><span>Quality</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.quality}%;background:var(--accent-green)"></div></div><span>${s.quality}</span></div>
-          <div class="sh-score-row"><span>Communication</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.communication}%;background:var(--accent-cyan)"></div></div><span>${s.communication}</span></div>
-          <div class="sh-score-row"><span>Value</span><div class="sh-bar"><div class="sh-bar-fill" style="width:${s.value}%;background:var(--accent-purple)"></div></div><span>${s.value}</span></div>
-        </div>
-      </div>`;
-    }).join('');
-    scoresGrid.querySelectorAll('.sh-score-card').forEach(card=>{
-      const handler = ()=>{ const s = suppliers.find(x=>x.name===card.dataset.name); if(s) this.showDetail(s); };
-      card.addEventListener('click', handler);
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  renderShipping(suppliers){
-    const shipGrid = this._section?.querySelector('#shShippingGrid');
-    if(!shipGrid) return;
-    const platforms = {};
-    suppliers.forEach(s=>{
-      if(!platforms[s.platform]) platforms[s.platform]={times:[],costs:[],count:0};
-      const parts = s.shipTime.split('-');
-      platforms[s.platform].times.push((parseInt(parts[0])+parseInt(parts[1]))/2);
-      if(s.shipCost!=='Free' && s.shipCost!=='Free Prime'){
-        const c = s.shipCost.replace('$','').split('-');
-        platforms[s.platform].costs.push((parseFloat(c[0])+parseFloat(c[1]))/2);
-      }
-      platforms[s.platform].count++;
-    });
-    const icons = {'AliExpress':'\uD83C\uDF10','Amazon':'\uD83D\uDCE6','CJ Dropshipping':'\uD83D\uDE9A','DHgate':'\uD83C\uDFEA','Temu':'\uD83D\uDCB0','TikTok Shop':'\uD83C\uDFB5','Etsy':'\uD83C\uDFA8'};
-    shipGrid.innerHTML = Object.entries(platforms).map(([name,p])=>{
-      const avgTime = Math.round(p.times.reduce((a,b)=>a+b,0)/p.times.length);
-      const avgCost = p.costs.length ? '$'+(p.costs.reduce((a,b)=>a+b,0)/p.costs.length).toFixed(2) : 'Free';
-      return `<div class="sh-ship-card" tabindex="0" role="button" aria-label="Filter suppliers by ${name}" data-platform="${name}">
-        <div class="sh-ship-icon">${icons[name]||'\uD83C\uDFE2'}</div>
-        <div class="sh-ship-name">${name}</div>
-        <div class="sh-ship-stats">
-          <div class="sh-ship-stat"><span class="sh-ship-stat-label">Avg Ship Time</span><span class="sh-ship-stat-value">${avgTime} days</span></div>
-          <div class="sh-ship-stat"><span class="sh-ship-stat-label">Avg Ship Cost</span><span class="sh-ship-stat-value">${avgCost}</span></div>
-          <div class="sh-ship-stat"><span class="sh-ship-stat-label">Suppliers</span><span class="sh-ship-stat-value">${p.count}</span></div>
-        </div>
-      </div>`;
-    }).join('');
-
-    shipGrid.querySelectorAll('.sh-ship-card').forEach(card=>{
-      const handler = ()=>{
-        const platform = card.dataset.platform;
-        const filterBtns = this._section.querySelectorAll('.sf-btn');
-        filterBtns.forEach(b=>b.classList.remove('active'));
-        const allBtn = this._section.querySelector('.sf-btn[data-sf="all"]');
-        if(allBtn) allBtn.classList.add('active');
-        const grid = this._section?.querySelector('#supplierHubGrid');
-        if(!grid) return;
-        grid.querySelectorAll('.supplier-hub-card').forEach(c=>{
-          const show = c.dataset.platform === platform;
-          if(show){ c.classList.remove('sh-card-hidden'); c.style.display=''; }
-          else { c.classList.add('sh-card-hidden'); setTimeout(()=>{ c.style.display='none'; },300); }
-        });
-        this._section.scrollIntoView({behavior:'smooth',block:'start'});
-      };
-      card.addEventListener('click', handler);
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  renderChecklist(){
-    const checklist = this._section?.querySelector('#shChecklist');
-    if(!checklist) return;
-    const items = [
-      {icon:'\uD83D\uDD0D',title:'Verify Business License',desc:'Confirm the supplier has valid business registration and import/export licenses',priority:'Critical'},
-      {icon:'\uD83D\uDCCB',title:'Request Product Samples',desc:'Always order 2-3 samples before committing to bulk orders',priority:'Critical'},
-      {icon:'\uD83D\uDCAC',title:'Test Response Time',desc:'Send inquiries at different hours to verify claimed response times',priority:'High'},
-      {icon:'\uD83D\uDCCA',title:'Check Order History',desc:'Look for consistent order volume and positive feedback trends over 6+ months',priority:'High'},
-      {icon:'\uD83D\uDD04',title:'Review Return Policy',desc:'Understand refund terms, restocking fees, and dispute resolution process',priority:'High'},
-      {icon:'\uD83D\uDCF7',title:'Verify Product Photos',desc:'Request actual product photos, not just stock images',priority:'Medium'},
-      {icon:'\uD83C\uDFF7\uFE0F',title:'Compare Unit Pricing',desc:'Get quotes for different quantities to understand volume discounts',priority:'Medium'},
-      {icon:'\uD83D\uDE9A',title:'Confirm Shipping Methods',desc:'Verify available carriers, tracking options, and insurance coverage',priority:'Medium'},
-      {icon:'\uD83D\uDCDD',title:'Read Sample Reviews',desc:'Check reviews from other dropshippers who use this supplier',priority:'Low'},
-      {icon:'\uD83E\uDD1D',title:'Negotiate Terms',desc:'Discuss payment terms, exclusivity options, and custom packaging availability',priority:'Low'}
-    ];
-    const priColors = {Critical:'var(--accent-red)',High:'var(--accent-orange)',Medium:'var(--accent-cyan)',Low:'var(--text-muted)'};
-    checklist.innerHTML = items.map(i=>`
-      <div class="sh-check-item">
-        <div class="sh-check-icon">${i.icon}</div>
-        <div class="sh-check-info">
-          <div class="sh-check-title">${i.title}</div>
-          <div class="sh-check-desc">${i.desc}</div>
-        </div>
-        <div class="sh-check-priority" style="color:${priColors[i.priority]}">${i.priority}</div>
-      </div>
-    `).join('');
-  },
-
-  renderPicks(){
-    const picksGrid = this._section?.querySelector('#shPicksGrid');
-    if(!picksGrid) return;
-    const picks = [
-      {use:'\uD83D\uDE80 Fastest Shipping',supplier:'PawWalk USA',reason:'1-4 day delivery with Free Prime shipping',platform:'Amazon',color:'var(--accent-green)'},
-      {use:'\uD83D\uDCB0 Best Value',supplier:'FitGear Pro',reason:'Lowest cost with high order volume (320K+)',platform:'Temu',color:'var(--accent-cyan)'},
-      {use:'\u2B50 Highest Rated',supplier:'TechGear Direct',reason:'4.9 rating with 120K orders and <2h response',platform:'AliExpress',color:'var(--accent-yellow)'},
-      {use:'\uD83D\uDCE6 Largest Catalog',supplier:'BeautyGlow Co',reason:'567 products with fastest response time',platform:'CJ Dropshipping',color:'var(--accent-pink)'},
-      {use:'\uD83D\uDEE1\uFE0F Lowest Risk',supplier:'StarLight Tech',reason:'0.9% refund rate with premium quality score',platform:'DHgate',color:'var(--accent-purple)'},
-      {use:'\uD83C\uDFAF Best for Beginners',supplier:'SmartHome US',reason:'No minimum order, free shipping, US-based',platform:'Amazon',color:'var(--accent-orange)'}
-    ];
-    picksGrid.innerHTML = picks.map(p=>`
-      <div class="sh-pick-card" tabindex="0" role="button" aria-label="View ${p.supplier}" style="border-left:3px solid ${p.color}" data-supplier="${p.supplier}">
-        <div class="sh-pick-use">${p.use}</div>
-        <div class="sh-pick-supplier">${p.supplier}</div>
-        <div class="sh-pick-platform">${p.platform}</div>
-        <div class="sh-pick-reason">${p.reason}</div>
-      </div>
-    `).join('');
-    picksGrid.querySelectorAll('.sh-pick-card').forEach(card=>{
-      const handler = ()=>{ const s = SUPPLIERS.find(x=>x.name===card.dataset.supplier); if(s) this.showDetail(s); };
-      card.addEventListener('click', handler);
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  bindFilters(){
-    const grid = this._section?.querySelector('#supplierHubGrid');
-    if(!grid) return;
-    var filterBtns = this._section.querySelectorAll('.sf-btn');
-    filterBtns.forEach(btn=>{
-      const handler = ()=>{
-        filterBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        var filter = btn.getAttribute('data-sf');
-        var cards = grid.querySelectorAll('.supplier-hub-card');
-        cards.forEach(card=>{
-          var show = filter==='all'||
-            (filter==='verified' && card.getAttribute('data-verified')==='true')||
-            (filter==='fast' && card.getAttribute('data-response').indexOf('1h')>-1)||
-            (filter==='rated' && parseFloat(card.getAttribute('data-rating'))>=4.8)||
-            (filter==='cheap' && card.getAttribute('data-platform')==='Temu');
-          if(show){ card.classList.remove('sh-card-hidden'); card.style.display=''; }
-          else { card.classList.add('sh-card-hidden'); setTimeout(()=>{ card.style.display='none'; },300); }
-        });
-      };
-      btn.addEventListener('click', handler);
-      btn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); handler(); }});
-    });
-  },
-
-  unmount(ctx) {
+  unmount(_ctx) {
     const el = UI.$('section-supplier-hub');
     if (el) el.remove();
+    _section = null;
   }
 };
 

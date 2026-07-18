@@ -2,8 +2,11 @@
 // PLUGIN: One-Click Store Generator — PRO v4.0
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+
+let _section = null;
+let _state = {platform:'shopify',theme:'minimal',brand:null};
 
 const BrandPrefixes=['Nova','Apex','Vibe','Pulse','Glow','Zen','Flux','Luxe','Peak','Aura','Orbit','Drift','Spark','Ember','Tidal','Lunar','Ionic','Velo','Onyx','Echo'];
 const BrandSuffixes=['Lab','Co','Store','Hub','Box','Drop','Mart','Shop','Direct','World','Zone','Gear','Tech','Craft','Studio','Works','Den','Vault','Nest','Core'];
@@ -40,7 +43,7 @@ function generateBrand(product){
   return {name:prefix+' '+suffix,tagline:taglines[Math.floor(Math.random()*taglines.length)],palette,domain:(prefix+suffix).toLowerCase()+'.myshopify.com'};
 }
 
-function generateProductPage(product,brand){
+function generateProductPage(product,_brand){
   return {
     headline:`Introducing the ${product.title.split('—')[0].trim()}`,
     subheadline:`The #1 rated ${product.keywords[0]||'product'} trusted by ${product.orders}+ customers`,
@@ -91,7 +94,7 @@ function generateSEO(product,brand){
   };
 }
 
-function generatePricing(product,brand){
+function generatePricing(product,_brand){
   const base=product.platformPrices.amazon;
   const retail=(base*2.2).toFixed(2);
   const cost=base.toFixed(2);
@@ -100,7 +103,7 @@ function generatePricing(product,brand){
   return {retail,cost,profit,margin,compareAtPrice:(base*2.8).toFixed(2),currency:'USD'};
 }
 
-function generateSocialProof(product){
+function generateSocialProof(_product){
   return {
     testimonials:[
       {name:'Alex R.',role:'Verified Buyer',text:'This product changed my daily routine. Highly recommend!',avatar:'A',color:'#6366f1'},
@@ -141,304 +144,58 @@ function generatePages(){
   ];
 }
 
-const StoreGeneratorPlugin={
-  id:'store-generator',name:'Store Builder',version:'4.0.0',
-  description:'Generate a complete branded Shopify store in 60 seconds',
-  dependencies:['search-engine'],_section:null,
-  _state:{platform:'shopify',theme:'minimal',brand:null},
-
-  init(ctx){Config.defaults('storeGenerator',{enabled:true});},
-
-  mount(ctx){
-    const container=UI.$('sections-container');
-    if(!container) return;
-    const section=document.createElement('section');
-    section.className='section section-store-gen';
-    section.id='section-store-gen';
-    section.innerHTML=`
-      <div class="section-inner">
-
-        <!-- Hero Section -->
-        <div class="osg-hero">
-          <div class="osg-hero-bg-pattern"></div>
-          <div class="osg-hero-content">
-            <div class="osg-hero-badge">
-              <span class="osg-hero-badge-dot"></span>
-              Store Intelligence Engine
-            </div>
-            <h1 class="osg-hero-title">One-Click<br><span class="osg-hero-title-accent">Store Builder</span></h1>
-            <p class="osg-hero-desc">Generate a fully branded ecommerce store with product pages, legal docs, shipping rules, SEO optimization, email capture, and payment integrations — ready to launch in 60 seconds.</p>
-            <div class="osg-hero-stats">
-              <div class="osg-hero-stat"><span class="osg-hero-stat-num">60s</span><span class="osg-hero-stat-label">Build Time</span></div>
-              <div class="osg-hero-stat"><span class="osg-hero-stat-num">8</span><span class="osg-hero-stat-label">Pages</span></div>
-              <div class="osg-hero-stat"><span class="osg-hero-stat-num">6</span><span class="osg-hero-stat-label">Payments</span></div>
-              <div class="osg-hero-stat"><span class="osg-hero-stat-num">A+</span><span class="osg-hero-stat-label">SEO Score</span></div>
-            </div>
-          </div>
-          <div class="osg-hero-visual">
-            <div class="osg-hero-mockup">
-              <div class="osg-mockup-bar">
-                <span class="osg-mockup-dot osg-dot-r"></span>
-                <span class="osg-mockup-dot osg-dot-y"></span>
-                <span class="osg-mockup-dot osg-dot-g"></span>
-                <span class="osg-mockup-url">yourstore.myshopify.com</span>
-              </div>
-              <div class="osg-mockup-body">
-                <div class="osg-mockup-nav">
-                  <span class="osg-mockup-logo">⚡ Brand</span>
-                  <span class="osg-mockup-nav-items"><span>Shop</span><span>About</span><span>🛒</span></span>
-                </div>
-                <div class="osg-mockup-hero-area">
-                  <div class="osg-mockup-text-block">
-                    <div class="osg-mockup-line osg-ml-80"></div>
-                    <div class="osg-mockup-line osg-ml-60"></div>
-                    <div class="osg-mockup-btn-mock"></div>
-                  </div>
-                  <div class="osg-mockup-img-block"></div>
-                </div>
-                <div class="osg-mockup-grid">
-                  <div class="osg-mockup-card-mock"></div>
-                  <div class="osg-mockup-card-mock"></div>
-                  <div class="osg-mockup-card-mock"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Build Steps Progress -->
-        <div class="osg-steps">
-          <div class="osg-step osg-step-active" data-step="1">
-            <div class="osg-step-num">1</div>
-            <div class="osg-step-info"><div class="osg-step-title">Find Product</div><div class="osg-step-desc">Choose what to sell</div></div>
-          </div>
-          <div class="osg-step-line"></div>
-          <div class="osg-step" data-step="2">
-            <div class="osg-step-num">2</div>
-            <div class="osg-step-info"><div class="osg-step-title">Choose Platform</div><div class="osg-step-desc">Select ecommerce platform</div></div>
-          </div>
-          <div class="osg-step-line"></div>
-          <div class="osg-step" data-step="3">
-            <div class="osg-step-num">3</div>
-            <div class="osg-step-info"><div class="osg-step-title">Pick Theme</div><div class="osg-step-desc">Select design template</div></div>
-          </div>
-          <div class="osg-step-line"></div>
-          <div class="osg-step" data-step="4">
-            <div class="osg-step-num">4</div>
-            <div class="osg-step-info"><div class="osg-step-title">Generate</div><div class="osg-step-desc">Launch your store</div></div>
-          </div>
-        </div>
-
-        <!-- Step 1: Product Search -->
-        <div class="osg-panel" id="osgStep1">
-          <div class="osg-panel-header">
-            <div class="osg-panel-icon">🔍</div>
-            <div><h3 class="osg-panel-title">Find Your Winning Product</h3><p class="osg-panel-desc">Enter a product name or keyword to build your store around</p></div>
-          </div>
-          <div class="osg-input-wrap">
-            <svg class="osg-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" class="osg-input" id="sgInput" placeholder="Type a product name to build a store for...">
-            <button class="osg-btn-primary" id="sgNextBtn1">
-              <span>Continue</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-          <div class="osg-quick-picks">
-            <span class="osg-quick-label">Trending now:</span>
-            <button class="osg-quick-btn" data-q="wireless earbuds"><span class="osg-quick-emoji">🎧</span>Earbuds</button>
-            <button class="osg-quick-btn" data-q="pet gadgets"><span class="osg-quick-emoji">🐾</span>Pet Gadgets</button>
-            <button class="osg-quick-btn" data-q="kitchen organizer"><span class="osg-quick-emoji">🍳</span>Kitchen</button>
-            <button class="osg-quick-btn" data-q="posture corrector"><span class="osg-quick-emoji">🧍</span>Posture</button>
-            <button class="osg-quick-btn" data-q="galaxy projector"><span class="osg-quick-emoji">🌌</span>Galaxy Light</button>
-            <button class="osg-quick-btn" data-q="car accessories"><span class="osg-quick-emoji">🚗</span>Car Gear</button>
-          </div>
-        </div>
-
-        <!-- Step 2: Platform Selection -->
-        <div class="osg-panel osg-panel-hidden" id="osgStep2">
-          <div class="osg-panel-header">
-            <div class="osg-panel-icon">🏪</div>
-            <div><h3 class="osg-panel-title">Choose Your Platform</h3><p class="osg-panel-desc">Select the ecommerce platform for your store</p></div>
-          </div>
-          <div class="osg-platform-grid">
-            ${Platforms.map((p,i)=>`
-              <button class="osg-platform-card ${i===0?'osg-platform-active':''}" data-platform="${p.id}">
-                <div class="osg-platform-icon">${p.icon}</div>
-                <div class="osg-platform-name">${p.name}</div>
-                <div class="osg-platform-check">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </button>
-            `).join('')}
-          </div>
-          <div class="osg-panel-actions">
-            <button class="osg-btn-ghost" id="osgBack2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-              <span>Back</span>
-            </button>
-            <button class="osg-btn-primary" id="sgNextBtn2">
-              <span>Continue</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 3: Theme Selection -->
-        <div class="osg-panel osg-panel-hidden" id="osgStep3">
-          <div class="osg-panel-header">
-            <div class="osg-panel-icon">🎨</div>
-            <div><h3 class="osg-panel-title">Select Your Theme</h3><p class="osg-panel-desc">Pick a design template that matches your brand vibe</p></div>
-          </div>
-          <div class="osg-theme-grid">
-            ${ThemeTemplates.map((t,i)=>`
-              <button class="osg-theme-card ${i===0?'osg-theme-active':''}" data-theme="${t.id}">
-                <div class="osg-theme-preview">
-                  <div class="osg-theme-mock-header"></div>
-                  <div class="osg-theme-mock-hero"></div>
-                  <div class="osg-theme-mock-row">
-                    <div class="osg-theme-mock-box"></div>
-                    <div class="osg-theme-mock-box"></div>
-                    <div class="osg-theme-mock-box"></div>
-                  </div>
-                </div>
-                <div class="osg-theme-info">
-                  <div class="osg-theme-icon">${t.icon}</div>
-                  <div class="osg-theme-name">${t.name}</div>
-                  <div class="osg-theme-desc">${t.desc}</div>
-                </div>
-                <div class="osg-theme-check">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </button>
-            `).join('')}
-          </div>
-          <div class="osg-panel-actions">
-            <button class="osg-btn-ghost" id="osgBack3">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-              <span>Back</span>
-            </button>
-            <button class="osg-btn-primary osg-btn-generate" id="sgGenerateBtn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>Generate My Store</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Results -->
-        <div id="sgResults"></div>
-
-        ${window.HuntDrop.renderRelatedTools([
-          { section:'section-supplier-hub', name:'Supplier Hub', desc:'Find verified suppliers', icon:'🏢', color:'#06b6d4' },
-          { section:'section-profit-lab', name:'Profit Calculator', desc:'Calculate margins', icon:'💰', color:'#00ff88' },
-          { section:'section-budget', name:'Ad Budget Allocator', desc:'Plan ad spend', icon:'📊', color:'#a855f7' },
-          { section:'section-calendar', name:'Content Calendar', desc:'Plan launch content', icon:'📅', color:'#f97316' }
-        ])}
-      </div>`;
-    container.appendChild(section);
-    const self=StoreGeneratorPlugin;
-    self._section=section;
-
-    // Step navigation
-    const input=section.querySelector('#sgInput');
-
-    // Quick picks
-    section.querySelectorAll('.osg-quick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.q;});
-    });
-
-    // Step 1 → 2
-    section.querySelector('#sgNextBtn1')?.addEventListener('click',()=>{
-      if(!input.value.trim()){input.focus();return;}
-      self.goToStep(2);
-    });
-    input?.addEventListener('keypress',e=>{if(e.key==='Enter'){if(input.value.trim())self.goToStep(2);}});
-
-    // Step 2 → 3
-    section.querySelector('#sgNextBtn2')?.addEventListener('click',()=>self.goToStep(3));
-    section.querySelector('#osgBack2')?.addEventListener('click',()=>self.goToStep(1));
-
-    // Platform selection
-    section.querySelectorAll('.osg-platform-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        section.querySelectorAll('.osg-platform-card').forEach(c=>c.classList.remove('osg-platform-active'));
-        card.classList.add('osg-platform-active');
-        self._state.platform=card.dataset.platform;
-      });
-    });
-
-    // Step 3 → Generate
-    section.querySelector('#sgGenerateBtn')?.addEventListener('click',()=>self.generate(input?.value||''));
-    section.querySelector('#osgBack3')?.addEventListener('click',()=>self.goToStep(2));
-
-    // Theme selection
-    section.querySelectorAll('.osg-theme-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        section.querySelectorAll('.osg-theme-card').forEach(c=>c.classList.remove('osg-theme-active'));
-        card.classList.add('osg-theme-active');
-        self._state.theme=card.dataset.theme;
-      });
-    });
-  },
-
-  goToStep(n){
-    if(!this._section) return;
-    // Update step indicators
-    this._section.querySelectorAll('.osg-step').forEach(s=>{
-      const sn=parseInt(s.dataset.step);
-      s.classList.remove('osg-step-active','osg-step-done');
-      if(sn<n) s.classList.add('osg-step-done');
-      if(sn===n) s.classList.add('osg-step-active');
-    });
-    // Show/hide panels
-    for(let i=1;i<=3;i++){
-      const panel=this._section.querySelector('#osgStep'+i);
-      if(panel){
-        if(i===n){panel.classList.remove('osg-panel-hidden');panel.classList.add('osg-panel-visible');}
-        else{panel.classList.add('osg-panel-hidden');panel.classList.remove('osg-panel-visible');}
-      }
+function goToStep(n){
+  if(!_section) return;
+  _section.querySelectorAll('.osg-step').forEach(s=>{
+    const sn=parseInt(s.dataset.step);
+    s.classList.remove('osg-step-active','osg-step-done');
+    if(sn<n) s.classList.add('osg-step-done');
+    if(sn===n) s.classList.add('osg-step-active');
+  });
+  for(let i=1;i<=3;i++){
+    const panel=_section.querySelector('#osgStep'+i);
+    if(panel){
+      if(i===n){panel.classList.remove('osg-panel-hidden');panel.classList.add('osg-panel-visible');}
+      else{panel.classList.add('osg-panel-hidden');panel.classList.remove('osg-panel-visible');}
     }
-  },
+  }
+}
 
-  unmount(ctx){
-    if(this._section){this._section.remove();this._section=null;}
-  },
+function switchTab(tab){
+  if(!_section) return;
+  _section.querySelectorAll('.osg-tab-btn').forEach(b=>b.classList.remove('active'));
+  _section.querySelectorAll('.osg-tab-panel').forEach(p=>p.classList.remove('active'));
+  const tabEl=_section.querySelector('#osgTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(tabEl) tabEl.classList.add('active');
+  const panelEl=_section.querySelector('#osgPanel'+tab.charAt(0).toUpperCase()+tab.slice(1));
+  if(panelEl) panelEl.classList.add('active');
+}
 
-  switchTab(tab){
-    if(!this._section) return;
-    this._section.querySelectorAll('.osg-tab-btn').forEach(b=>b.classList.remove('active'));
-    this._section.querySelectorAll('.osg-tab-panel').forEach(p=>p.classList.remove('active'));
-    const tabEl=this._section.querySelector('#osgTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
-    if(tabEl) tabEl.classList.add('active');
-    const panelEl=this._section.querySelector('#osgPanel'+tab.charAt(0).toUpperCase()+tab.slice(1));
-    if(panelEl) panelEl.classList.add('active');
-  },
+function generate(query){
+  if(!query.trim()) return;
+  const products=window.HuntDrop.ALL_PRODUCTS||[];
+  const product=products.find(p=>
+    p.title.toLowerCase().includes(query.toLowerCase())||
+    p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
+  )||products.sort((a,b)=>b.score-a.score)[0];
+  if(!product) return;
 
-  generate(query){
-    if(!query.trim()) return;
-    const products=window.HuntDrop.ALL_PRODUCTS||[];
-    const product=products.find(p=>
-      p.title.toLowerCase().includes(query.toLowerCase())||
-      p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
-    )||products.sort((a,b)=>b.score-a.score)[0];
-    if(!product) return;
+  const brand=generateBrand(product);
+  const page=generateProductPage(product,brand);
+  const legal=generateLegalPages(brand);
+  const shipping=generateShippingRules();
+  const seo=generateSEO(product,brand);
+  const pricing=generatePricing(product,brand);
+  const social=generateSocialProof(product);
+  const payments=generatePaymentMethods();
+  const pages=generatePages();
+  const el=_section?_section.querySelector('#sgResults'):null;
+  if(!el) return;
 
-    const brand=generateBrand(product);
-    const page=generateProductPage(product,brand);
-    const legal=generateLegalPages(brand);
-    const shipping=generateShippingRules();
-    const seo=generateSEO(product,brand);
-    const pricing=generatePricing(product,brand);
-    const social=generateSocialProof(product);
-    const payments=generatePaymentMethods();
-    const pages=generatePages();
-    const el=this._section?this._section.querySelector('#sgResults'):null;
-    if(!el) return;
+  _section.querySelectorAll('.osg-step').forEach(s=>s.classList.add('osg-step-done'));
+  _section.querySelectorAll('.osg-panel').forEach(p=>{p.classList.add('osg-panel-hidden');p.classList.remove('osg-panel-visible');});
 
-    // Show step 4 (done state)
-    this._section.querySelectorAll('.osg-step').forEach(s=>s.classList.add('osg-step-done'));
-    this._section.querySelectorAll('.osg-panel').forEach(p=>{p.classList.add('osg-panel-hidden');p.classList.remove('osg-panel-visible');});
-
-    el.innerHTML=`
+  el.innerHTML=`
       <div class="osg-output">
 
         <!-- Success Banner -->
@@ -750,44 +507,272 @@ const StoreGeneratorPlugin={
         </div>
       </div>`;
 
-    // Bind tabs
-    this.switchTab('product');
-    const self=this;
+    switchTab('product');
     ['Product','Shipping','Legal','Email','Seo','Payments','Pages'].forEach(tab=>{
-      this._section.querySelector('#osgTab'+tab)?.addEventListener('click',()=>self.switchTab(tab.toLowerCase()));
+      _section.querySelector('#osgTab'+tab)?.addEventListener('click',()=>switchTab(tab.toLowerCase()));
     });
-    // Legal sub-tabs
-    this._section.querySelectorAll('.osg-legal-tab').forEach(tab=>{
+    _section.querySelectorAll('.osg-legal-tab').forEach(tab=>{
       tab.addEventListener('click',()=>{
-        this._section.querySelectorAll('.osg-legal-tab').forEach(b=>b.classList.remove('active'));
+        _section.querySelectorAll('.osg-legal-tab').forEach(b=>b.classList.remove('active'));
         tab.classList.add('active');
-        this._section.querySelectorAll('.osg-legal-content').forEach(c=>c.classList.remove('active'));
+        _section.querySelectorAll('.osg-legal-content').forEach(c=>c.classList.remove('active'));
         const legal = tab.dataset.legal || '';
-        const t=this._section.querySelector('#osgLegal'+legal.charAt(0).toUpperCase()+legal.slice(1));
+        const t=_section.querySelector('#osgLegal'+legal.charAt(0).toUpperCase()+legal.slice(1));
         if(t) t.classList.add('active');
       });
     });
-    // Device toggle
-    this._section.querySelectorAll('.osg-device-btn').forEach(btn=>{
+    _section.querySelectorAll('.osg-device-btn').forEach(btn=>{
       btn.addEventListener('click',()=>{
-        this._section.querySelectorAll('.osg-device-btn').forEach(b=>b.classList.remove('osg-device-active'));
+        _section.querySelectorAll('.osg-device-btn').forEach(b=>b.classList.remove('osg-device-active'));
         btn.classList.add('osg-device-active');
-        const frame=this._section.querySelector('#osgPreviewFrame');
+        const frame=_section.querySelector('#osgPreviewFrame');
         if(frame){
           if(btn.dataset.device==='mobile'){frame.classList.add('osg-frame-mobile');}
           else{frame.classList.remove('osg-frame-mobile');}
         }
       });
     });
-    // Copy config
-    this._section.querySelector('#osgCopyConfig')?.addEventListener('click',()=>{
-      const config={brand:brand.name,domain:brand.domain,palette:brand.palette.name,pricing,seo,platform:this._state.platform};
+    _section.querySelector('#osgCopyConfig')?.addEventListener('click',()=>{
+      const config={brand:brand.name,domain:brand.domain,palette:brand.palette.name,pricing,seo,platform:_state.platform};
       navigator.clipboard?.writeText(JSON.stringify(config,null,2));
-      const btn=this._section.querySelector('#osgCopyConfig span');
+      const btn=_section.querySelector('#osgCopyConfig span');
       if(btn){btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy Config',2000);}
     });
-    // Scroll to results
     el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+const StoreGeneratorPlugin={
+  id:'store-generator',name:'Store Builder',version:'4.0.0',
+  description:'Generate a complete branded Shopify store in 60 seconds',
+  dependencies:['search-engine'],
+
+  init(_ctx){Config.defaults('storeGenerator',{enabled:true});},
+
+  mount(_ctx){
+    const container=UI.$('sections-container');
+    if(!container) return;
+    const section=document.createElement('section');
+    section.className='section section-store-gen';
+    section.id='section-store-gen';
+    section.innerHTML=`
+      <div class="section-inner">
+
+        <!-- Hero Section -->
+        <div class="osg-hero">
+          <div class="osg-hero-bg-pattern"></div>
+          <div class="osg-hero-content">
+            <div class="osg-hero-badge">
+              <span class="osg-hero-badge-dot"></span>
+              Store Intelligence Engine
+            </div>
+            <h1 class="osg-hero-title">One-Click<br><span class="osg-hero-title-accent">Store Builder</span></h1>
+            <p class="osg-hero-desc">Generate a fully branded ecommerce store with product pages, legal docs, shipping rules, SEO optimization, email capture, and payment integrations — ready to launch in 60 seconds.</p>
+            <div class="osg-hero-stats">
+              <div class="osg-hero-stat"><span class="osg-hero-stat-num">60s</span><span class="osg-hero-stat-label">Build Time</span></div>
+              <div class="osg-hero-stat"><span class="osg-hero-stat-num">8</span><span class="osg-hero-stat-label">Pages</span></div>
+              <div class="osg-hero-stat"><span class="osg-hero-stat-num">6</span><span class="osg-hero-stat-label">Payments</span></div>
+              <div class="osg-hero-stat"><span class="osg-hero-stat-num">A+</span><span class="osg-hero-stat-label">SEO Score</span></div>
+            </div>
+          </div>
+          <div class="osg-hero-visual">
+            <div class="osg-hero-mockup">
+              <div class="osg-mockup-bar">
+                <span class="osg-mockup-dot osg-dot-r"></span>
+                <span class="osg-mockup-dot osg-dot-y"></span>
+                <span class="osg-mockup-dot osg-dot-g"></span>
+                <span class="osg-mockup-url">yourstore.myshopify.com</span>
+              </div>
+              <div class="osg-mockup-body">
+                <div class="osg-mockup-nav">
+                  <span class="osg-mockup-logo">⚡ Brand</span>
+                  <span class="osg-mockup-nav-items"><span>Shop</span><span>About</span><span>🛒</span></span>
+                </div>
+                <div class="osg-mockup-hero-area">
+                  <div class="osg-mockup-text-block">
+                    <div class="osg-mockup-line osg-ml-80"></div>
+                    <div class="osg-mockup-line osg-ml-60"></div>
+                    <div class="osg-mockup-btn-mock"></div>
+                  </div>
+                  <div class="osg-mockup-img-block"></div>
+                </div>
+                <div class="osg-mockup-grid">
+                  <div class="osg-mockup-card-mock"></div>
+                  <div class="osg-mockup-card-mock"></div>
+                  <div class="osg-mockup-card-mock"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Build Steps Progress -->
+        <div class="osg-steps">
+          <div class="osg-step osg-step-active" data-step="1">
+            <div class="osg-step-num">1</div>
+            <div class="osg-step-info"><div class="osg-step-title">Find Product</div><div class="osg-step-desc">Choose what to sell</div></div>
+          </div>
+          <div class="osg-step-line"></div>
+          <div class="osg-step" data-step="2">
+            <div class="osg-step-num">2</div>
+            <div class="osg-step-info"><div class="osg-step-title">Choose Platform</div><div class="osg-step-desc">Select ecommerce platform</div></div>
+          </div>
+          <div class="osg-step-line"></div>
+          <div class="osg-step" data-step="3">
+            <div class="osg-step-num">3</div>
+            <div class="osg-step-info"><div class="osg-step-title">Pick Theme</div><div class="osg-step-desc">Select design template</div></div>
+          </div>
+          <div class="osg-step-line"></div>
+          <div class="osg-step" data-step="4">
+            <div class="osg-step-num">4</div>
+            <div class="osg-step-info"><div class="osg-step-title">Generate</div><div class="osg-step-desc">Launch your store</div></div>
+          </div>
+        </div>
+
+        <!-- Step 1: Product Search -->
+        <div class="osg-panel" id="osgStep1">
+          <div class="osg-panel-header">
+            <div class="osg-panel-icon">🔍</div>
+            <div><h3 class="osg-panel-title">Find Your Winning Product</h3><p class="osg-panel-desc">Enter a product name or keyword to build your store around</p></div>
+          </div>
+          <div class="osg-input-wrap">
+            <svg class="osg-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="osg-input" id="sgInput" placeholder="Type a product name to build a store for...">
+            <button class="osg-btn-primary" id="sgNextBtn1">
+              <span>Continue</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="osg-quick-picks">
+            <span class="osg-quick-label">Trending now:</span>
+            <button class="osg-quick-btn" data-q="wireless earbuds"><span class="osg-quick-emoji">🎧</span>Earbuds</button>
+            <button class="osg-quick-btn" data-q="pet gadgets"><span class="osg-quick-emoji">🐾</span>Pet Gadgets</button>
+            <button class="osg-quick-btn" data-q="kitchen organizer"><span class="osg-quick-emoji">🍳</span>Kitchen</button>
+            <button class="osg-quick-btn" data-q="posture corrector"><span class="osg-quick-emoji">🧍</span>Posture</button>
+            <button class="osg-quick-btn" data-q="galaxy projector"><span class="osg-quick-emoji">🌌</span>Galaxy Light</button>
+            <button class="osg-quick-btn" data-q="car accessories"><span class="osg-quick-emoji">🚗</span>Car Gear</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Platform Selection -->
+        <div class="osg-panel osg-panel-hidden" id="osgStep2">
+          <div class="osg-panel-header">
+            <div class="osg-panel-icon">🏪</div>
+            <div><h3 class="osg-panel-title">Choose Your Platform</h3><p class="osg-panel-desc">Select the ecommerce platform for your store</p></div>
+          </div>
+          <div class="osg-platform-grid">
+            ${Platforms.map((p,i)=>`
+              <button class="osg-platform-card ${i===0?'osg-platform-active':''}" data-platform="${p.id}">
+                <div class="osg-platform-icon">${p.icon}</div>
+                <div class="osg-platform-name">${p.name}</div>
+                <div class="osg-platform-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+          <div class="osg-panel-actions">
+            <button class="osg-btn-ghost" id="osgBack2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Back</span>
+            </button>
+            <button class="osg-btn-primary" id="sgNextBtn2">
+              <span>Continue</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Theme Selection -->
+        <div class="osg-panel osg-panel-hidden" id="osgStep3">
+          <div class="osg-panel-header">
+            <div class="osg-panel-icon">🎨</div>
+            <div><h3 class="osg-panel-title">Select Your Theme</h3><p class="osg-panel-desc">Pick a design template that matches your brand vibe</p></div>
+          </div>
+          <div class="osg-theme-grid">
+            ${ThemeTemplates.map((t,i)=>`
+              <button class="osg-theme-card ${i===0?'osg-theme-active':''}" data-theme="${t.id}">
+                <div class="osg-theme-preview">
+                  <div class="osg-theme-mock-header"></div>
+                  <div class="osg-theme-mock-hero"></div>
+                  <div class="osg-theme-mock-row">
+                    <div class="osg-theme-mock-box"></div>
+                    <div class="osg-theme-mock-box"></div>
+                    <div class="osg-theme-mock-box"></div>
+                  </div>
+                </div>
+                <div class="osg-theme-info">
+                  <div class="osg-theme-icon">${t.icon}</div>
+                  <div class="osg-theme-name">${t.name}</div>
+                  <div class="osg-theme-desc">${t.desc}</div>
+                </div>
+                <div class="osg-theme-check">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+              </button>
+            `).join('')}
+          </div>
+          <div class="osg-panel-actions">
+            <button class="osg-btn-ghost" id="osgBack3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              <span>Back</span>
+            </button>
+            <button class="osg-btn-primary osg-btn-generate" id="sgGenerateBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Generate My Store</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="sgResults"></div>
+
+        ${window.HuntDrop.renderRelatedTools([
+          { section:'section-supplier-hub', name:'Supplier Hub', desc:'Find verified suppliers', icon:'🏢', color:'#06b6d4' },
+          { section:'section-profit-lab', name:'Profit Calculator', desc:'Calculate margins', icon:'💰', color:'#00ff88' },
+          { section:'section-budget', name:'Ad Budget Allocator', desc:'Plan ad spend', icon:'📊', color:'#a855f7' },
+          { section:'section-calendar', name:'Content Calendar', desc:'Plan launch content', icon:'📅', color:'#f97316' }
+        ])}
+      </div>`;
+    container.appendChild(section);
+    _section=section;
+
+    const input=section.querySelector('#sgInput');
+
+    section.querySelectorAll('.osg-quick-btn').forEach(b=>{
+      b.addEventListener('click',()=>{input.value=b.dataset.q;});
+    });
+
+    section.querySelector('#sgNextBtn1')?.addEventListener('click',()=>{
+      if(!input.value.trim()){input.focus();return;}
+      goToStep(2);
+    });
+    input?.addEventListener('keypress',e=>{if(e.key==='Enter'){if(input.value.trim())goToStep(2);}});
+
+    section.querySelector('#sgNextBtn2')?.addEventListener('click',()=>goToStep(3));
+    section.querySelector('#osgBack2')?.addEventListener('click',()=>goToStep(1));
+
+    section.querySelectorAll('.osg-platform-card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        section.querySelectorAll('.osg-platform-card').forEach(c=>c.classList.remove('osg-platform-active'));
+        card.classList.add('osg-platform-active');
+        _state.platform=card.dataset.platform;
+      });
+    });
+
+    section.querySelector('#sgGenerateBtn')?.addEventListener('click',()=>generate(input?.value||''));
+    section.querySelector('#osgBack3')?.addEventListener('click',()=>goToStep(2));
+
+    section.querySelectorAll('.osg-theme-card').forEach(card=>{
+      card.addEventListener('click',()=>{
+        section.querySelectorAll('.osg-theme-card').forEach(c=>c.classList.remove('osg-theme-active'));
+        card.classList.add('osg-theme-active');
+        _state.theme=card.dataset.theme;
+      });
+    });
+  },
+
+  unmount(_ctx){
+    if(_section){_section.remove();_section=null;}
   }
 };
 

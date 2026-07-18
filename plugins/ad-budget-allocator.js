@@ -2,16 +2,78 @@
 // PLUGIN: Ad Budget AI Allocator
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
+
+let _chart = null;
+let _platformChart = null;
+let _section = null;
+
+function getPlatformAllocation(product,amount){
+  let platforms;
+  if(product.competition==='low'){
+    platforms=[{name:'TikTok',pct:40,color:'#00f2ea'},{name:'Facebook',pct:35,color:'#1877f2'},{name:'Instagram',pct:25,color:'#e4405f'}];
+  }else if(product.competition==='medium'){
+    platforms=[{name:'Facebook',pct:45,color:'#1877f2'},{name:'TikTok',pct:30,color:'#00f2ea'},{name:'Google',pct:25,color:'#4285f4'}];
+  }else{
+    platforms=[{name:'Google',pct:40,color:'#4285f4'},{name:'Facebook',pct:35,color:'#1877f2'},{name:'Retargeting',pct:25,color:'#a855f7'}];
+  }
+  return platforms.map(p=>({name:p.name,pct:p.pct,color:p.color,amount:Math.round(amount*p.pct/100)}));
+}
+
+function getSignal(item){
+  const p=item.product;
+  if(p.score>=90&&p.competition==='low'&&p.marketSaturation<40) return 'SCALE NOW';
+  if(p.score<80||p.competition==='high'||p.marketSaturation>65) return 'PAUSE';
+  return 'TEST NEW AUDIENCE';
+}
+
+function exportCSV(allocations, budget) {
+  let csv = 'Product,Allocation,%,Daily Budget,Weekly Budget,AI Score,Signal,Est. ROI,CPA,Monthly Sales,Monthly Revenue,Monthly Profit\n';
+  allocations.forEach(function(a) {
+    csv += '"' + a.product.title.split('—')[0].trim() + '",$' + a.amount.toLocaleString() + ',' + a.pct + '%,$' + a.dailyBudget + ',$' + a.weeklyBudget + ',' + a.aiScore + ',' + a.signal + ',' + a.expectedROI + '%,$' + a.cpa.toFixed(2) + ',' + a.expectedSales + ',$' + Math.round(a.expectedRevenue).toLocaleString() + ',$' + Math.round(a.expectedProfit).toLocaleString() + '\n';
+  });
+  const totalProfit = allocations.reduce(function(s,a){return s+a.expectedProfit;},0);
+  csv += '---,---,---,---,---,---,---,---,---,---,---,---\n';
+  csv += 'TOTAL,$' + budget.toLocaleString() + ',100%,$' + Math.round(budget/30) + ',$' + Math.round(budget/4) + ',---,---,---,---,---,---,$' + Math.round(totalProfit).toLocaleString() + '\n';
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'budget-allocation.csv'; a.click();
+  URL.revokeObjectURL(url);
+  if (window.HuntDrop.UI) window.HuntDrop.UI.toast('Budget allocation exported!', 'success', 2000);
+}
+
+function renderCharts(allocations,platformTotals){
+  const canvas=_section?_section.querySelector('#baChart'):null;
+  if(!canvas) return;
+  if(_chart) _chart.destroy();
+  const colors=['rgba(0,229,255,0.7)','rgba(0,255,136,0.7)','rgba(255,138,0,0.7)','rgba(168,85,247,0.7)','rgba(236,72,153,0.7)','rgba(255,51,102,0.7)','rgba(251,191,36,0.7)','rgba(99,102,241,0.7)','rgba(14,165,233,0.7)','rgba(132,204,22,0.7)'];
+  _chart=new Chart(canvas,{
+    type:'doughnut',
+    data:{labels:allocations.map(a=>a.product.title.split('—')[0].trim()),datasets:[{data:allocations.map(a=>a.amount),backgroundColor:colors.slice(0,allocations.length),borderColor:'#06060c',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#8888a4',font:{family:'Inter',size:11},padding:10,usePointStyle:true}}}}
+  });
+
+  const platCanvas=_section?_section.querySelector('#baPlatformChart'):null;
+  if(!platCanvas) return;
+  if(_platformChart) _platformChart.destroy();
+  const platNames=Object.keys(platformTotals);
+  const platColors=platNames.map(n=>{if(n==='Facebook')return'#1877f2';if(n==='TikTok')return'#00f2ea';if(n==='Google')return'#4285f4';if(n==='Instagram')return'#e4405f';if(n==='Retargeting')return'#a855f7';return'#888'});
+  _platformChart=new Chart(platCanvas,{
+    type:'bar',
+    data:{labels:platNames,datasets:[{data:platNames.map(n=>platformTotals[n]),backgroundColor:platColors.map(c=>c+'cc'),borderColor:platColors,borderWidth:1,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.x.toLocaleString()}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8888a4',callback:v=>'$'+v}},y:{grid:{display:false},ticks:{color:'#8888a4',font:{size:12}}}}}
+  });
+}
 
 const AdBudgetAllocatorPlugin = {
   id:'ad-budget-allocator', name:'Budget Planner', version:'2.0.0',
   description:'AI-powered budget allocation with ROI projections and scaling signals',
-  _chart:null, _platformChart:null, _section:null,
 
-  init(ctx){ Config.defaults('budget',{defaultAmount:1000}); },
+  init(_ctx){ Config.defaults('budget',{defaultAmount:1000}); },
 
-  mount(ctx){
+  mount(_ctx){
     const container = UI.$('sections-container');
     if(!container) return;
     const section = document.createElement('section');
@@ -61,31 +123,33 @@ const AdBudgetAllocatorPlugin = {
         ])}
       </div>`;
     container.appendChild(section);
-    const self = AdBudgetAllocatorPlugin;
-    self._section = section;
+    _section = section;
     const btn=section.querySelector('#budgetAllocBtn');
     const input=section.querySelector('#budgetInput');
-    if(btn) btn.addEventListener('click',()=>self.allocate());
-    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')self.allocate();});
+    if(btn) btn.addEventListener('click',()=>allocate());
+    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')allocate();});
     section.querySelectorAll('.aba-preset-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.budget;self.allocate();});
+      b.addEventListener('click',()=>{input.value=b.dataset.budget;allocate();});
     });
-    self.allocate();
+    allocate();
   },
 
-  unmount(ctx){
-    if(this._chart){this._chart.destroy();this._chart=null;}
-    if(this._platformChart){this._platformChart.destroy();this._platformChart=null;}
-    if(this._section){this._section.remove();this._section=null;}
+  unmount(_ctx){
+    if(_chart){_chart.destroy();_chart=null;}
+    if(_platformChart){_platformChart.destroy();_platformChart=null;}
+    if(_section){_section.remove();_section=null;}
   },
 
-  allocate(){
-    const input=this._section?this._section.querySelector('#budgetInput'):null;
+  allocate(){ allocate(); }
+};
+
+function allocate(){
+    const input=_section?_section.querySelector('#budgetInput'):null;
     let budget=parseFloat(input?input.value:1000)||1000;
     if(budget<50) budget=50;
     const products=window.HuntDrop.ALL_PRODUCTS||[];
     if(products.length===0) return;
-    const el=this._section?this._section.querySelector('#budgetResults'):null;
+    const el=_section?_section.querySelector('#budgetResults'):null;
     if(!el) return;
 
     const scored=products.map(p=>{
@@ -101,8 +165,8 @@ const AdBudgetAllocatorPlugin = {
       const expectedSales=amount>0?Math.round(amount/item.cpa):0;
       const expectedRevenue=expectedSales*item.product.price;
       const expectedProfit=expectedRevenue*(item.product.margin/100);
-      const platforms=this.getPlatformAllocation(item.product,amount);
-      const signal=this.getSignal(item);
+      const platforms=getPlatformAllocation(item.product,amount);
+      const signal=getSignal(item);
       const weeklyBudget=Math.round(amount/4);
       const dailyBudget=Math.round(amount/30);
       return {product:item.product,amount,pct:(pct*100).toFixed(1),platforms,signal,expectedROI:expectedRevenue>0?((expectedProfit/amount)*100).toFixed(0):0,aiScore:item.aiScore,dailyBudget,weeklyBudget,expectedSales,expectedRevenue,expectedProfit,cpa:item.cpa};
@@ -232,73 +296,12 @@ const AdBudgetAllocatorPlugin = {
         <button id="budgetExportCSV" style="margin-top:16px;padding:10px 20px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:var(--radius-md);color:var(--text-secondary);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.2s">&#128190; Export Allocation to CSV</button>
       </div>`;
 
-    setTimeout(()=>{this.renderCharts(allocations,platformTotals);},100);
+    setTimeout(()=>{renderCharts(allocations,platformTotals);},100);
 
     // CSV Export
-    var self = this;
-    var exportBtn = el.querySelector('#budgetExportCSV');
-    if (exportBtn) exportBtn.addEventListener('click', function() { self.exportCSV(allocations, budget); });
-  },
-
-  getPlatformAllocation(product,amount){
-    let platforms;
-    if(product.competition==='low'){
-      platforms=[{name:'TikTok',pct:40,color:'#00f2ea'},{name:'Facebook',pct:35,color:'#1877f2'},{name:'Instagram',pct:25,color:'#e4405f'}];
-    }else if(product.competition==='medium'){
-      platforms=[{name:'Facebook',pct:45,color:'#1877f2'},{name:'TikTok',pct:30,color:'#00f2ea'},{name:'Google',pct:25,color:'#4285f4'}];
-    }else{
-      platforms=[{name:'Google',pct:40,color:'#4285f4'},{name:'Facebook',pct:35,color:'#1877f2'},{name:'Retargeting',pct:25,color:'#a855f7'}];
-    }
-    return platforms.map(p=>({name:p.name,pct:p.pct,color:p.color,amount:Math.round(amount*p.pct/100)}));
-  },
-
-  getSignal(item){
-    const p=item.product;
-    if(p.score>=90&&p.competition==='low'&&p.marketSaturation<40) return 'SCALE NOW';
-    if(p.score<80||p.competition==='high'||p.marketSaturation>65) return 'PAUSE';
-    return 'TEST NEW AUDIENCE';
-  },
-
-  exportCSV(allocations, budget) {
-    var csv = 'Product,Allocation,%,Daily Budget,Weekly Budget,AI Score,Signal,Est. ROI,CPA,Monthly Sales,Monthly Revenue,Monthly Profit\n';
-    allocations.forEach(function(a) {
-      csv += '"' + a.product.title.split('—')[0].trim() + '",$' + a.amount.toLocaleString() + ',' + a.pct + '%,$' + a.dailyBudget + ',$' + a.weeklyBudget + ',' + a.aiScore + ',' + a.signal + ',' + a.expectedROI + '%,$' + a.cpa.toFixed(2) + ',' + a.expectedSales + ',$' + Math.round(a.expectedRevenue).toLocaleString() + ',$' + Math.round(a.expectedProfit).toLocaleString() + '\n';
-    });
-    var totalProfit = allocations.reduce(function(s,a){return s+a.expectedProfit;},0);
-    csv += '---,---,---,---,---,---,---,---,---,---,---,---\n';
-    csv += 'TOTAL,$' + budget.toLocaleString() + ',100%,$' + Math.round(budget/30) + ',$' + Math.round(budget/4) + ',---,---,---,---,---,---,$' + Math.round(totalProfit).toLocaleString() + '\n';
-
-    var blob = new Blob([csv], { type: 'text/csv' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url; a.download = 'budget-allocation.csv'; a.click();
-    URL.revokeObjectURL(url);
-    if (window.HuntDrop.UI) window.HuntDrop.UI.toast('Budget allocation exported!', 'success', 2000);
-  },
-
-  renderCharts(allocations,platformTotals){
-    const canvas=this._section?this._section.querySelector('#baChart'):null;
-    if(!canvas) return;
-    if(this._chart) this._chart.destroy();
-    const colors=['rgba(0,229,255,0.7)','rgba(0,255,136,0.7)','rgba(255,138,0,0.7)','rgba(168,85,247,0.7)','rgba(236,72,153,0.7)','rgba(255,51,102,0.7)','rgba(251,191,36,0.7)','rgba(99,102,241,0.7)','rgba(14,165,233,0.7)','rgba(132,204,22,0.7)'];
-    this._chart=new Chart(canvas,{
-      type:'doughnut',
-      data:{labels:allocations.map(a=>a.product.title.split('—')[0].trim()),datasets:[{data:allocations.map(a=>a.amount),backgroundColor:colors.slice(0,allocations.length),borderColor:'#06060c',borderWidth:2}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{color:'#8888a4',font:{family:'Inter',size:11},padding:10,usePointStyle:true}}}}
-    });
-
-    const platCanvas=this._section?this._section.querySelector('#baPlatformChart'):null;
-    if(!platCanvas) return;
-    if(this._platformChart) this._platformChart.destroy();
-    const platNames=Object.keys(platformTotals);
-    const platColors=platNames.map(n=>{if(n==='Facebook')return'#1877f2';if(n==='TikTok')return'#00f2ea';if(n==='Google')return'#4285f4';if(n==='Instagram')return'#e4405f';if(n==='Retargeting')return'#a855f7';return'#888'});
-    this._platformChart=new Chart(platCanvas,{
-      type:'bar',
-      data:{labels:platNames,datasets:[{data:platNames.map(n=>platformTotals[n]),backgroundColor:platColors.map(c=>c+'cc'),borderColor:platColors,borderWidth:1,borderRadius:6}]},
-      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+c.parsed.x.toLocaleString()}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#8888a4',callback:v=>'$'+v}},y:{grid:{display:false},ticks:{color:'#8888a4',font:{size:12}}}}}
-    });
-  }
-};
+    const exportBtn = el.querySelector('#budgetExportCSV');
+    if (exportBtn) exportBtn.addEventListener('click', function() { exportCSV(allocations, budget); });
+}
 
 PluginRegistry.register('ad-budget-allocator',AdBudgetAllocatorPlugin);
 })();

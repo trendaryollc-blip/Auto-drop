@@ -9,31 +9,83 @@
 
 const {EventBus,PluginRegistry,Config,DataLayer,UI,FeatureFlags,Router} = window.HuntDrop;
 
+// ===== HTML Escape Utility =====
+const escapeHtml = UI.escapeHtml;
+
+// ===== Safe DOM Helpers — prevent XSS via innerHTML =====
+function safeSetText(el, text) {
+  if (el) el.textContent = text;
+}
+function safeSetHTML(el, trustedHtml) {
+  if (el) el.innerHTML = trustedHtml;
+}
+function safeCreateElement(tag, attrs) {
+  const el = document.createElement(tag);
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) {
+      if (k === 'textContent' || k === 'innerText') el[k] = attrs[k];
+      else if (k === 'className') el.className = attrs[k];
+      else if (k === 'style' && typeof attrs[k] === 'object') Object.assign(el.style, attrs[k]);
+      else if (k.startsWith('on') && typeof attrs[k] === 'function') el.addEventListener(k.slice(2).toLowerCase(), attrs[k]);
+      else el.setAttribute(k, attrs[k]);
+    });
+  }
+  return el;
+}
+// Override UI.toast to escape message by default
+const _origToast = UI.toast;
+UI.toast = function(msg, type, duration) {
+  if (typeof msg === 'string') msg = escapeHtml(msg);
+  _origToast.call(UI, msg, type, duration);
+};
+
+// ===== Consistent Error Logging =====
+function _logError(context, e) {
+  console.warn('[HuntDrop] ' + context + ':', e);
+}
+
+// NOTE: DataLayer.searchAll uses parallel execution natively (defined in core.js).
+// No monkey-patching needed.
+
 // ===== Debounce Utility =====
 function debounce(fn, delay) {
-  var timer;
-  return function() {
-    var args = arguments;
-    var ctx = this;
+  let timer;
+  function debounced() {
+    const args = arguments;
+    const ctx = this;
     clearTimeout(timer);
     timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
+  }
+  debounced.cancel = function() {
+    clearTimeout(timer);
+    timer = null;
   };
+  return debounced;
 }
 
 // ===== Chart.js Fallback Guard =====
 if (typeof Chart === 'undefined') {
-  window.Chart = function() { return { destroy: function(){} }; };
-  window.Chart.prototype = {};
+  var _noop = function() {};
+  var _noopReturn = function(v) { return v; };
+  var ChartStub = function() { return { destroy: _noop, update: _noop, resize: _noop, render: _noop, toBase64Image: _noopReturn, reset: _noop, stop: _noop, start: _noop, data: { datasets: [], labels: [] }, options: {}, config: {} }; };
+  ChartStub.prototype = {};
+  ChartStub.defaults = { color: '#555', font: {}, scale: {}, plugins: {} };
+  ChartStub.getChart = function() { return null; };
+  ChartStub.register = _noop;
+  ChartStub.unregister = _noop;
+  window.Chart = ChartStub;
   console.warn('[HuntDrop] Chart.js not loaded. Charts will be disabled.');
 }
 
 // ===== Global Error Handlers =====
 window.onerror = function(msg, url, line, col, error) {
   console.error('[HuntDrop] Uncaught error:', msg, 'at', url + ':' + line);
+  showErrorBanner('JavaScript Error', msg + ' at ' + (url || '').split('/').pop() + ':' + line);
   return false;
 };
 window.addEventListener('unhandledrejection', function(e) {
   console.error('[HuntDrop] Unhandled promise rejection:', e.reason);
+  showErrorBanner('Promise Error', (e.reason && e.reason.message) || 'An async operation failed');
   e.preventDefault();
 });
 
@@ -49,20 +101,67 @@ Config.defaults('search', {
   sortBy: 'score'
 });
 
-// ===== localStorage Persistence =====
-function loadPersistedState() {
+// ===== localStorage Persistence with Size Limits =====
+const LS_MAX_SIZE = 5 * 1024 * 1024; // 5MB limit
+const LS_PREFIX = 'huntdrop_';
+
+function safeSetItem(key, value) {
   try {
-    var saved = localStorage.getItem('huntdrop_state');
-    if (saved) {
-      var state = JSON.parse(saved);
+    var stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+    var totalSize = 0;
+    var huntDropEntries = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf(LS_PREFIX) === 0) {
+        var itemSize = (localStorage.getItem(k) || '').length * 2;
+        totalSize += itemSize;
+        // Track entry size and key for age-based eviction
+        huntDropEntries.push({ key: k, size: itemSize });
+      }
+    }
+    if (totalSize + stringValue.length * 2 > LS_MAX_SIZE) {
+      // FIX #17: Evict by age — most entries contain timestamps in JSON
+      // Sort: non-critical keys first (recent searches, then old state), preserve critical keys last
+      var criticalKeys = ['huntdrop_state', 'huntdrop_theme', 'huntdrop_welcome_dismissed'];
+      var orderedEntries = huntDropEntries.filter(function(e) { return e.key !== key; });
+      orderedEntries.sort(function(a, b) {
+        var aCrit = criticalKeys.indexOf(a.key) !== -1;
+        var bCrit = criticalKeys.indexOf(b.key) !== -1;
+        if (aCrit && !bCrit) return 1;  // critical keys last
+        if (!aCrit && bCrit) return -1; // non-critical first
+        return a.size - b.size; // smaller entries first within same priority
+      });
+      var spaceNeeded = (totalSize + stringValue.length * 2) - LS_MAX_SIZE;
+      var freed = 0;
+      for (var r = 0; r < orderedEntries.length && freed < spaceNeeded; r++) {
+        freed += orderedEntries[r].size;
+        localStorage.removeItem(orderedEntries[r].key);
+      }
+    }
+    localStorage.setItem(key, stringValue);
+  } catch(e) { /* quota exceeded or other error */ }
+}
+
+function safeGetItem(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? val : (fallback || null);
+  } catch(e) { return fallback || null; }
+}
+
+function loadPersistedState() {
+  const saved = safeGetItem('huntdrop_state');
+  if (saved) {
+    try {
+      const state = JSON.parse(saved);
       if (state.search) Config.set('search', Object.assign(Config.get('search') || {}, state.search));
       if (state.lastSection) Config.set('app.currentSection', state.lastSection);
-    }
-  } catch(e) {}
+    } catch(e) {}
+  }
 }
 function persistState() {
   try {
-    var state = {
+    const state = {
       search: {
         lastQuery: Config.get('search.lastQuery', ''),
         defaultPlatform: Config.get('search.defaultPlatform', 'all'),
@@ -70,8 +169,8 @@ function persistState() {
       },
       lastSection: Config.get('app.currentSection', 'section-dashboard')
     };
-    localStorage.setItem('huntdrop_state', JSON.stringify(state));
-  } catch(e) {}
+    safeSetItem('huntdrop_state', state);
+  } catch(e) { /* silently fail on unload */ }
 }
 loadPersistedState();
 window.addEventListener('beforeunload', persistState);
@@ -85,16 +184,51 @@ FeatureFlags.register('profitCalc', true);
 // ===== Navigation History =====
 window.HuntDrop._navHistory = [];
 window.HuntDrop._navMaxHistory = 20;
+let _navSetup = false;
 
-window.HuntDrop.navigateTo = function(sectionId, skipHistory) {
-  const current = Config.get('app.currentSection', 'section-dashboard');
-  if (!skipHistory && current && current !== sectionId) {
-    window.HuntDrop._navHistory.push(current);
-    if (window.HuntDrop._navHistory.length > window.HuntDrop._navMaxHistory) {
-      window.HuntDrop._navHistory.shift();
+// ===== Plugin Lifecycle on Navigation =====
+function _getPluginsForSection(sectionId) {
+  const section = document.getElementById(sectionId);
+  if (!section) {
+    // Section may not exist in DOM yet (created dynamically by plugin mount).
+    // Find plugins whose ID matches the section suffix.
+    const suffix = sectionId.replace('section-', '');
+    return PluginRegistry.getAll().filter(function(p) {
+      return p.id === suffix || sectionId === 'section-' + p.id;
+    });
+  }
+  return PluginRegistry.getAll().filter(function(p) {
+    return (p._mounted && section.querySelector('#' + p.id)) || (section.id === 'section-' + p.id);
+  });
+}
+
+async function _unmountSectionPlugins(sectionId) {
+  const plugins = _getPluginsForSection(sectionId);
+  for (let i = 0; i < plugins.length; i++) {
+      try { await PluginRegistry.unmount(plugins[i].id); } catch(e) { _logError('unmountSectionPlugins:' + plugins[i].id, e); }
+  }
+}
+
+async function _mountSectionPlugins(sectionId) {
+  const plugins = _getPluginsForSection(sectionId);
+  for (let i = 0; i < plugins.length; i++) {
+    if (!plugins[i]._mounted) {
+      try { await PluginRegistry.mount(plugins[i].id); } catch(e) { _logError('mountSectionPlugins:' + plugins[i].id, e); }
     }
   }
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+}
+
+window.HuntDrop.navigateTo = async function(sectionId, skipHistory) {
+  const current = Config.get('app.currentSection', 'section-dashboard');
+  if (current && current !== sectionId) {
+    if (!skipHistory) {
+      window.HuntDrop._navHistory.push(current);
+      if (window.HuntDrop._navHistory.length > window.HuntDrop._navMaxHistory) {
+        window.HuntDrop._navHistory.shift();
+      }
+    }
+    await _unmountSectionPlugins(current);
+  }
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   const target = document.getElementById(sectionId);
   if (target) {
@@ -102,11 +236,42 @@ window.HuntDrop.navigateTo = function(sectionId, skipHistory) {
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   Config.set('app.currentSection', sectionId);
+  Config.set('app.currentSectionId', sectionId);
+  persistState();
   const name = sectionId.replace('section-', '');
-  document.querySelectorAll('.nav-link[data-section]').forEach(l => {
+  // Update sidebar active state
+  document.querySelectorAll('.sidebar-item, .sidebar-dashboard').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('[data-section]').forEach(l => {
     if (l.dataset.section === name) l.classList.add('active');
   });
+  // Auto-expand the category containing the active item in sidebar
+  const activeItem = document.querySelector('.sidebar-item.active');
+  if (activeItem) {
+    const cat = activeItem.closest('.sidebar-cat');
+    if (cat) cat.classList.add('open');
+  }
+  window.HuntDrop._updateSidebarActive = function(sectionId) {
+    const n = (sectionId || '').replace('section-', '');
+    document.querySelectorAll('.sidebar-item, .sidebar-dashboard').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('[data-section]').forEach(l => {
+      if (l.dataset.section === n) l.classList.add('active');
+    });
+    const ai = document.querySelector('.sidebar-item.active');
+    if (ai) {
+      const c = ai.closest('.sidebar-cat');
+      if (c) c.classList.add('open');
+    }
+  };
   window.HuntDrop._updateBackBtn();
+  // Lazy-load plugin scripts for the section, then mount them
+  await loadPluginsForSection(sectionId);
+  await _mountSectionPlugins(sectionId);
+  // Re-check: plugin mount() may have dynamically created the section element
+  const targetAfterMount = document.getElementById(sectionId);
+  if (targetAfterMount && !targetAfterMount.classList.contains('active')) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    targetAfterMount.classList.add('active');
+  }
 };
 
 window.HuntDrop.goBack = function() {
@@ -127,61 +292,91 @@ function setupNavigation() {
   // Helper to navigate to a section (pushes to history)
   function navigateToSection(section) {
     window.HuntDrop.navigateTo('section-' + section);
-    closeAllDropdowns();
-  }
-
-  // Close all dropdowns
-  function closeAllDropdowns() {
-    document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
   }
 
   // Only bind these once (use a flag)
-  if (window._navSetup) return;
-  window._navSetup = true;
+  if (_navSetup) return;
+  _navSetup = true;
 
-  // EVENT DELEGATION: Handle all nav clicks from the nav container
-  const navLinks = document.querySelector('.nav-links');
-  if (navLinks) {
-    navLinks.addEventListener('click', (e) => {
-      // Find the closest clickable element
-      const dropdownItem = e.target.closest('.nav-dropdown-item[data-section]');
-      const navLink = e.target.closest('.nav-link[data-section]');
-      const dropdownTrigger = e.target.closest('.nav-dropdown-trigger');
-
-      // Dropdown item click → navigate
-      if (dropdownItem) {
+  // Sidebar navigation: click delegation on sidebar items
+  const sidebarNav = document.getElementById('sidebarNav');
+  if (sidebarNav) {
+    sidebarNav.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-section]');
+      if (item) {
         e.preventDefault();
-        e.stopPropagation();
-        const section = dropdownItem.dataset.section;
-
-        navigateToSection(section);
-        return;
-      }
-
-      // Direct nav link click (Dashboard) → navigate
-      if (navLink && !dropdownTrigger) {
-        e.preventDefault();
-        navigateToSection(navLink.dataset.section);
-        return;
-      }
-
-      // Dropdown trigger click → toggle dropdown
-      if (dropdownTrigger) {
-        e.preventDefault();
-        e.stopPropagation();
-        const dropdown = dropdownTrigger.closest('.nav-dropdown');
-        const isOpen = dropdown.classList.contains('open');
-        closeAllDropdowns();
-        if (!isOpen) dropdown.classList.add('open');
-        return;
+        navigateToSection(item.dataset.section);
+        // On mobile, close sidebar after selection
+        const sidebar = document.getElementById('appSidebar');
+        if (sidebar && sidebar.classList.contains('mobile-open')) {
+          sidebar.classList.remove('mobile-open');
+          const backdrop = document.querySelector('.sidebar-backdrop');
+          if (backdrop) backdrop.classList.remove('visible');
+        }
       }
     });
   }
 
-  // Close dropdown when clicking outside
+  // Sidebar toggle buttons
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const navSidebarToggle = document.getElementById('navSidebarToggle');
+  function toggleSidebar() {
+    const sidebar = document.getElementById('appSidebar');
+    if (!sidebar) return;
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      sidebar.classList.toggle('mobile-open');
+      const backdrop = document.querySelector('.sidebar-backdrop');
+      if (backdrop) backdrop.classList.toggle('visible', sidebar.classList.contains('mobile-open'));
+    } else {
+      sidebar.classList.toggle('collapsed');
+      document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
+      try { localStorage.setItem('huntdrop_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0'); } catch(e) {}
+    }
+  }
+  if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+  if (navSidebarToggle) navSidebarToggle.addEventListener('click', toggleSidebar);
+
+  // Mobile sidebar backdrop click to close
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.nav-dropdown')) closeAllDropdowns();
+    if (e.target.classList.contains('sidebar-backdrop')) {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) sidebar.classList.remove('mobile-open');
+      e.target.classList.remove('visible');
+    }
   });
+
+  // Restore sidebar state from localStorage
+  try {
+    if (localStorage.getItem('huntdrop_sidebar_collapsed') === '1' && window.innerWidth > 768) {
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar) {
+        sidebar.classList.add('collapsed');
+        document.body.classList.add('sidebar-collapsed');
+      }
+    }
+  } catch(e) {}
+
+  // Sidebar click expand (expanded mode): categories unfold/toggle on click
+  const sidebarCats = document.querySelectorAll('.sidebar-cat');
+  sidebarCats.forEach(cat => {
+    const header = cat.querySelector('.sidebar-cat-header');
+    if (!header) return;
+    header.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar && sidebar.classList.contains('collapsed')) return;
+      const isOpen = cat.classList.contains('open');
+      cat.classList.toggle('open', !isOpen);
+    });
+  });
+
+  // Sidebar collapsed flyout: hover on category icons shows submenu
+  setupSidebarFlyout();
+
+  // Sidebar search filter
+  setupSidebarSearch();
 
   // Quick tools card clicks (event delegation on the categories container)
   const qtCategories = document.querySelector('.qt-categories');
@@ -223,10 +418,10 @@ function setupNavigation() {
       e.preventDefault();
       // If this KPI card links to search but specifies a platform, pre-filter it
       if (card.dataset.section === 'section-search' && card.dataset.platform) {
-        var plat = card.dataset.platform;
-        var platSelect = document.getElementById('platformSelect') || document.getElementById('searchPagePlatform');
+        const plat = card.dataset.platform;
+        const platSelect = document.getElementById('platformSelect') || document.getElementById('searchPagePlatform');
         if (platSelect) platSelect.value = plat;
-        var input = document.getElementById('searchPageInput') || document.getElementById('searchInput');
+        const input = document.getElementById('searchPageInput') || document.getElementById('searchInput');
         if (input) input.value = '';
         if (window.HuntDrop) {
           window.HuntDrop.navigateTo('section-search');
@@ -235,7 +430,7 @@ function setupNavigation() {
       }
       // Scroll-to behavior (stay on dashboard but scroll to element)
       if (card.dataset.scrollTo) {
-        var target = document.getElementById(card.dataset.scrollTo);
+        const target = document.getElementById(card.dataset.scrollTo);
         if (target) {
           // Ensure dashboard section is active
           if (window.HuntDrop) {
@@ -251,12 +446,124 @@ function setupNavigation() {
   }
 }
 
+// ===== Sidebar Flyout (collapsed mode) =====
+function setupSidebarFlyout() {
+  const sidebar = document.getElementById('appSidebar');
+  const flyout = document.getElementById('sidebarFlyout');
+  if (!sidebar || !flyout) return;
+
+  let flyoutTimeout = null;
+  const cats = sidebar.querySelectorAll('.sidebar-cat');
+
+  cats.forEach(cat => {
+    const header = cat.querySelector('.sidebar-cat-header');
+    if (!header) return;
+
+    header.addEventListener('mouseenter', () => {
+      if (!sidebar.classList.contains('collapsed')) return;
+      clearTimeout(flyoutTimeout);
+
+      const catName = cat.dataset.cat;
+      const label = cat.querySelector('.sidebar-cat-label');
+      const items = cat.querySelectorAll('.sidebar-item');
+      if (!label || items.length === 0) return;
+
+      let html = `<div class="sidebar-flyout-cat">${label.textContent}</div>`;
+      items.forEach(item => {
+        const icon = item.querySelector('.sidebar-item-icon');
+        const itemLabel = item.querySelector('.sidebar-item-label');
+        const isActive = item.classList.contains('active') ? ' active' : '';
+        html += `<a href="#" class="sidebar-flyout-item${isActive}" data-section="${item.dataset.section}">${icon ? icon.textContent : ''} ${itemLabel ? itemLabel.textContent : ''}</a>`;
+      });
+      flyout.innerHTML = html;
+
+      // Position flyout next to sidebar
+      const rect = header.getBoundingClientRect();
+      flyout.style.top = rect.top + 'px';
+
+      flyout.classList.add('visible');
+    });
+
+    header.addEventListener('mouseleave', () => {
+      flyoutTimeout = setTimeout(() => flyout.classList.remove('visible'), 100);
+    });
+  });
+
+  // Keep flyout open when hovering over it
+  flyout.addEventListener('mouseenter', () => clearTimeout(flyoutTimeout));
+  flyout.addEventListener('mouseleave', () => flyout.classList.remove('visible'));
+
+  // Flyout item clicks
+  flyout.addEventListener('click', (e) => {
+    const item = e.target.closest('.sidebar-flyout-item');
+    if (item) {
+      e.preventDefault();
+      window.HuntDrop.navigateTo('section-' + item.dataset.section);
+      flyout.classList.remove('visible');
+    }
+  });
+}
+
+// ===== Sidebar Search Filter =====
+function setupSidebarSearch() {
+  const input = document.getElementById('sidebarSearch');
+  const sidebarNav = document.getElementById('sidebarNav');
+  if (!input || !sidebarNav) return;
+
+  input.addEventListener('input', () => {
+    const query = input.value.toLowerCase().trim();
+    const cats = sidebarNav.querySelectorAll('.sidebar-cat');
+    const dashboard = sidebarNav.querySelector('.sidebar-dashboard');
+    const divider = sidebarNav.querySelector('.sidebar-divider');
+    let anyVisible = false;
+
+    if (!query) {
+      cats.forEach(cat => cat.style.display = '');
+      if (dashboard) dashboard.style.display = '';
+      if (divider) divider.style.display = '';
+      return;
+    }
+
+    if (dashboard) dashboard.style.display = 'none';
+    if (divider) divider.style.display = 'none';
+
+    cats.forEach(cat => {
+      const items = cat.querySelectorAll('.sidebar-item');
+      let catHasMatch = false;
+      items.forEach(item => {
+        const label = (item.querySelector('.sidebar-item-label')?.textContent || '').toLowerCase();
+        if (label.includes(query)) {
+          item.style.display = '';
+          catHasMatch = true;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+      cat.style.display = catHasMatch ? '' : 'none';
+      if (catHasMatch) {
+        cat.classList.add('open');
+        anyVisible = true;
+      }
+    });
+  });
+
+  // Clear search on Escape
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      input.value = '';
+      input.dispatchEvent(new Event('input'));
+      input.blur();
+    }
+  });
+}
+
 // ===== Search & Filters =====
 function setupSearch() {
   const searchInput = UI.$('searchInput');
   const searchBtn = UI.$('searchBtn');
   const platformSelect = UI.$('platformSelect');
   const sortSelect = UI.$('sortSelect');
+  const sortSelectSearch = document.getElementById('sortSelectSearch');
   const priceRange = UI.$('priceRange');
   const scoreRange = UI.$('scoreRange');
   const scoreValue = UI.$('scoreValue');
@@ -266,27 +573,29 @@ function setupSearch() {
   const searchPageInput = UI.$('searchPageInput');
   const searchPageBtn = UI.$('searchPageBtn');
   const searchPagePlatform = UI.$('searchPagePlatform');
-  const sortSelectSearch = UI.$('sortSelectSearch');
-  const priceRangeSearch = UI.$('priceRangeSearch');
-  const scoreRangeSearch = UI.$('scoreRangeSearch');
-  const scoreValueSearch = UI.$('scoreValueSearch');
+
+  let _searchSyncGuard = false;
 
   const getFilters = () => ({
     platform: (searchPagePlatform?.value || platformSelect?.value || 'all'),
-    priceMax: parseInt(UI.$('priceMax')?.value || UI.$('priceMaxSearch')?.value) || parseInt(priceRange?.value || priceRangeSearch?.value) || 200,
-    margin: document.querySelector('.sr-pill[data-margin].active')?.dataset.margin || document.querySelector('.margin-btn.active')?.dataset.margin || 'all',
-    competition: document.querySelector('.sr-pill.comp-pill[data-comp].active')?.dataset.comp || document.querySelector('.comp-btn.active')?.dataset.comp || 'all',
-    sort: (sortSelectSearch?.value || sortSelect?.value || 'score'),
-    minScore: parseInt(scoreRange?.value || scoreRangeSearch?.value) || 0
+    priceMax: parseInt(UI.$('priceMax')?.value) || 9999,
+    margin: document.querySelector('.sr-pill[data-margin].active')?.dataset.margin || 'all',
+    competition: document.querySelector('.sr-pill.comp-pill[data-comp].active')?.dataset.comp || 'all',
+    sort: (sortSelect?.value || 'score'),
+    minScore: parseInt(scoreRange?.value) || 0
   });
 
   const doSearch = () => {
     const input = searchPageInput || searchInput;
     const query = input?.value?.trim() || '';
     Config.set('search.lastQuery', query);
-    // Sync inputs across pages
-    if (searchInput && input !== searchInput) searchInput.value = query;
-    if (searchPageInput && input !== searchPageInput) searchPageInput.value = query;
+    // Sync inputs across pages (with guard to prevent re-entrant loops)
+    if (!_searchSyncGuard) {
+      _searchSyncGuard = true;
+      if (searchInput && input !== searchInput) searchInput.value = query;
+      if (searchPageInput && input !== searchPageInput) searchPageInput.value = query;
+      _searchSyncGuard = false;
+    }
     EventBus.emit('filter:changed', { filters: getFilters(), query });
     // Navigate to search results page
     window.HuntDrop.navigateTo('section-search');
@@ -308,24 +617,9 @@ function setupSearch() {
   // Shared filter handlers
   if (platformSelect) platformSelect.addEventListener('change', doSearch);
   if (sortSelect) sortSelect.addEventListener('change', doSearch);
-  if (priceRange) priceRange.addEventListener('input', (e) => {
-    var pm = UI.$('priceMax'); if(pm) pm.value = e.target.value;
-    var prVal = document.getElementById('priceRangeVal');
-    if (prVal) prVal.textContent = '$' + e.target.value;
-    doSearch();
-  });
-  if (priceRangeSearch) priceRangeSearch.addEventListener('input', (e) => {
-    var pm = UI.$('priceMaxSearch'); if(pm) pm.value = e.target.value;
-    doSearch();
-  });
-  if (scoreRange) scoreRange.addEventListener('input', (e) => {
-    if (scoreValue) scoreValue.textContent = e.target.value;
-    doSearch();
-  });
-  if (scoreRangeSearch) scoreRangeSearch.addEventListener('input', (e) => {
-    if (scoreValueSearch) scoreValueSearch.textContent = e.target.value;
-    doSearch();
-  });
+
+  // Note: priceRange and scoreRange input handlers are set up by setupDebouncedFilters()
+  // with proper debouncing. Do NOT bind them here to avoid double-firing.
 
   // Search chips
   document.querySelectorAll('.search-chip').forEach(chip => {
@@ -386,97 +680,17 @@ function setupSearch() {
     if (sortSelect) sortSelect.value = 'score';
     if (sortSelectSearch) sortSelectSearch.value = 'score';
     if (priceRange) priceRange.value = 200;
-    if (priceRangeSearch) priceRangeSearch.value = 200;
     if (scoreRange) { scoreRange.value = 0; if (scoreValue) scoreValue.textContent = '0'; }
-    if (scoreRangeSearch) { scoreRangeSearch.value = 0; if (scoreValueSearch) scoreValueSearch.textContent = '0'; }
-    var pm1 = UI.$('priceMin'); if(pm1) pm1.value = '';
-    var pm2 = UI.$('priceMax'); if(pm2) pm2.value = '';
+    const pm1 = UI.$('priceMin'); if(pm1) pm1.value = '';
+    const pm2 = UI.$('priceMax'); if(pm2) pm2.value = '';
     document.querySelectorAll('.sr-pill[data-margin]').forEach((b, i) => b.classList.toggle('active', i === 0));
     document.querySelectorAll('.sr-pill.comp-pill[data-comp]').forEach((b, i) => b.classList.toggle('active', i === 0));
     doSearch();
   });
 
-  UI.$('priceMin')?.addEventListener('input', debounce(doSearch, 300));
-  UI.$('priceMax')?.addEventListener('input', debounce(function(e) {
-    var pr = priceRange || priceRangeSearch;
-    if (pr) pr.value = e.target.value || 200;
-    doSearch();
-  }, 300));
+  // Note: priceMin and priceMax input handlers are set up by setupDebouncedFilters()
+  // with proper debouncing. Do NOT bind them here to avoid double-firing.
 }
-
-// ===== Product Modal (disabled — product-detail plugin handles product views now) =====
-function setupProductModal() {
-  // Product detail is now handled by plugins/product-detail.js
-  // Keep this function for backward compatibility but remove the modal handler
-  const closeBtn = document.querySelector('.modal-close');
-  if (closeBtn) closeBtn.addEventListener('click', () => UI.closeModal());
-}
-
-function generateModalContent(p) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const fmtN = n => n>=1000?(n/1000).toFixed(1)+'K':n.toString();
-  const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
-  const esc = s => UI.escapeHtml(s);
-  const compColor = c => ({low:'var(--accent-green)',medium:'var(--accent-yellow)',high:'var(--accent-red)'}[c]);
-  const platColor = pl => ({aliexpress:'#e62e04',amazon:'#ff9900',shopify:'#96bf48',ebay:'#e53238',temu:'#fb7701',tiktok:'#00f2ea',etsy:'#f1641e',cjdropshipping:'#40c351',dhgate:'#e62e04',wish:'#2fb7ec'}[pl]||'#888');
-
-  return `
-    <div class="modal-hero">
-      <div class="modal-image"><img src="${esc(p.image)}" alt="${esc(p.title)}"></div>
-      <div class="modal-info">
-        <h2 class="modal-title">${esc(p.title)}</h2>
-        <div class="modal-price-row">
-          <span class="modal-price">$${p.price.toFixed(2)}</span>
-          <span class="modal-original-price">$${p.originalPrice.toFixed(2)}</span>
-          <span class="modal-margin-badge">${p.margin}% profit</span>
-        </div>
-        <div class="modal-stats-grid">
-          <div class="modal-stat"><span class="modal-stat-value" style="color:var(--accent-green)">${p.score}</span><span class="modal-stat-label">AI Score</span></div>
-          <div class="modal-stat"><span class="modal-stat-value">${fmtN(p.salesVelocity)}</span><span class="modal-stat-label">Sales/mo</span></div>
-          <div class="modal-stat"><span class="modal-stat-value">${p.rating}★</span><span class="modal-stat-label">${fmtN(p.reviews)} reviews</span></div>
-          <div class="modal-stat"><span class="modal-stat-value">${p.orders}</span><span class="modal-stat-label">Total Orders</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-cyan">📈</span>12-Month Sales Trend</h3><div class="chart-container"><canvas id="salesChart"></canvas></div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-green">💲</span>Cross-Platform Prices</h3><div class="platform-comparison">${Object.entries(p.platformPrices).map(([pl,pr])=>`<div class="platform-row"><span class="platform-name"><span class="platform-dot" style="background:${platColor(pl)}"></span>${esc(cap(pl))}</span><span class="platform-price">$${pr.toFixed(2)}</span></div>`).join('')}</div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-purple">📊</span>Price Distribution</h3><div class="chart-container"><canvas id="priceChart"></canvas></div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-orange">🔥</span>Market Analytics</h3><div class="demand-grid">
-      <div class="demand-card demand-card-high"><div class="demand-value" style="color:var(--accent-green)">${p.demand}</div><div class="demand-label">Demand</div><div class="demand-trend trend-up">↑ +${5+Math.floor(Math.random()*15)}%</div></div>
-      <div class="demand-card demand-card-${p.competition==='high'?'low':p.competition==='medium'?'medium':'high'}"><div class="demand-value" style="color:${compColor(p.competition)}">${esc(cap(p.competition))}</div><div class="demand-label">Competition</div><div class="demand-trend ${p.competition==='low'?'trend-up':p.competition==='medium'?'trend-stable':'trend-down'}">${p.competition==='low'?'↓ Low barrier':p.competition==='medium'?'→ Moderate':'↑ Saturated'}</div></div>
-      <div class="demand-card demand-card-high"><div class="demand-value" style="color:var(--accent-orange)">${p.marketSaturation}%</div><div class="demand-label">Saturation</div><div class="demand-trend ${p.marketSaturation<40?'trend-up':'trend-stable'}">${p.marketSaturation<40?'↓ Unsaturated':'→ Moderate'}</div></div>
-      <div class="demand-card demand-card-high"><div class="demand-value" style="color:var(--accent-cyan)">${fmtN(p.salesVelocity)}</div><div class="demand-label">Monthly Sales</div><div class="demand-trend trend-up">↑ +${8+Math.floor(Math.random()*12)}%</div></div>
-      <div class="demand-card demand-card-${p.riskScore<30?'high':p.riskScore<50?'medium':'low'}"><div class="demand-value" style="color:${p.riskScore<30?'var(--accent-green)':p.riskScore<50?'var(--accent-yellow)':'var(--accent-red)'}">${p.riskScore}/100</div><div class="demand-label">Risk Score</div><div class="demand-trend ${p.riskScore<30?'trend-up':'trend-stable'}">${p.riskScore<30?'✓ Low Risk':'→ Medium'}</div></div>
-      <div class="demand-card demand-card-high"><div class="demand-value" style="color:var(--accent-cyan);font-size:16px">${esc(p.audience.age)}</div><div class="demand-label">Target Age</div></div>
-    </div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-cyan">💡</span>Profit Breakdown</h3><div class="chart-container"><canvas id="profitChart"></canvas></div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-purple">📅</span>Seasonal Demand</h3><div class="chart-container"><canvas id="seasonChart"></canvas></div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-green">🏭</span>Suppliers</h3><div class="supplier-cards">${p.suppliers.map(s=>`<div class="supplier-card"><div class="supplier-card-header"><div class="supplier-avatar">${esc(s.name.charAt(0))}</div><div><div class="supplier-name">${esc(s.name)}</div><div class="supplier-location">${esc(s.location)}</div></div></div><div class="supplier-stats"><div class="supplier-stat"><span class="supplier-stat-label">Rating</span><span class="supplier-stat-value" style="color:var(--accent-yellow)">${s.rating}★</span></div><div class="supplier-stat"><span class="supplier-stat-label">Orders</span><span class="supplier-stat-value">${esc(s.orders)}</span></div><div class="supplier-stat"><span class="supplier-stat-label">Response</span><span class="supplier-stat-value">${esc(s.responseTime)}</span></div><div class="supplier-stat"><span class="supplier-stat-label">Status</span><span class="supplier-stat-value" style="color:${s.verified?'var(--accent-green)':'var(--accent-orange)'}">${s.verified?'✓ Verified':'Pending'}</span></div></div></div>`).join('')}</div></div>
-    <div class="modal-section"><h3 class="modal-section-title"><span class="section-icon icon-cyan">✦</span>AI Insight</h3><div style="padding:16px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);"><p class="ai-text">${esc(p.aiInsight)}</p><div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:5px">${p.keywords.slice(0,5).map(k=>`<span class="ai-tag">${esc(k)}</span>`).join('')}</div></div></div>`;
-}
-
-function renderModalCharts(p) {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const chartOpts = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false},tooltip:{backgroundColor:'#111119',borderColor:'#2a2a3d',borderWidth:1,titleFont:{family:'Outfit',size:11},bodyFont:{family:'JetBrains Mono',size:12},padding:10,displayColors:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9}}},y:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9}}}} };
-
-  // Sales chart
-  const sc = document.getElementById('salesChart');
-  if (sc) new Chart(sc, { type:'line', data:{labels:months,datasets:[{data:p.trendData,borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.06)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#00e5ff',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:3}]}, options:{...chartOpts,interaction:{intersect:false,mode:'index'}} });
-
-  // Price chart
-  const pc = document.getElementById('priceChart');
-  if (pc) { const labels=Object.keys(p.platformPrices).map(s=>s.charAt(0).toUpperCase()+s.slice(1)); new Chart(pc, { type:'bar', data:{labels,datasets:[{data:Object.values(p.platformPrices),backgroundColor:'rgba(0,229,255,0.4)',borderColor:'#00e5ff',borderWidth:1,borderRadius:5}]}, options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>'$'+v.toFixed(0)}}}} }); }
-
-  // Profit chart
-  const prc = document.getElementById('profitChart');
-  if (prc) { const sp=p.platformPrices.amazon,cost=p.price,ship=2.50,ads=sp*0.15,profit=sp-cost-ship-ads; new Chart(prc, { type:'bar', data:{labels:['Sell Price','Cost','Shipping','Ads','Net Profit'],datasets:[{data:[sp,-cost,-ship,-ads,profit],backgroundColor:['rgba(0,229,255,0.6)','rgba(255,51,102,0.6)','rgba(255,138,0,0.6)','rgba(168,85,247,0.6)',profit>0?'rgba(0,255,136,0.6)':'rgba(255,51,102,0.6)'],borderColor:['#00e5ff','#ff3366','#ff8a00','#a855f7',profit>0?'#00ff88':'#ff3366'],borderWidth:1,borderRadius:5}]}, options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,ticks:{...chartOpts.scales.y.ticks,callback:v=>'$'+v.toFixed(0)}}}} }); }
-
-  // Season chart
-  const sec = document.getElementById('seasonChart');
-  if (sec) new Chart(sec, { type:'line', data:{labels:months,datasets:[{data:p.seasonality,borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,0.06)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#a855f7',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:3}]}, options:{...chartOpts,scales:{...chartOpts.scales,y:{...chartOpts.scales.y,min:50,max:160}},interaction:{intersect:false,mode:'index'}} });
-}
-
-
 
 // ===== Skeleton & Empty State =====
 function showSkeleton() {
@@ -511,15 +725,21 @@ EventBus.on('search:results', (data) => {
 
 // Listen for search results to add related tools to search page
 EventBus.on('search:results', function(data) {
-  var container = document.getElementById('srRelatedTools');
+  const container = document.getElementById('srRelatedTools');
   if (!container) return;
-  var tools = [
+  const tools = [
     { section:'section-ai-analyst', name:'AI Analyst', desc:'Deep AI-powered product analysis', icon:'🧠', color:'var(--accent-purple)' },
     { section:'section-profit-lab', name:'Profit Calculator', desc:'Calculate exact profit margins', icon:'💰', color:'var(--accent-green)' },
     { section:'section-spy-center', name:'Spy Center', desc:'Spy on competitor stores', icon:'🔍', color:'var(--accent-orange)' },
     { section:'section-supplier-hub', name:'Supplier Hub', desc:'Find verified suppliers', icon:'🏭', color:'var(--accent-cyan)' }
   ];
   container.innerHTML = renderRelatedTools(tools);
+  container.querySelectorAll('.related-tool-card[data-section]').forEach(function(card) {
+    card.addEventListener('click', function() {
+      const section = card.getAttribute('data-section');
+      if (section) window.HuntDrop.navigateTo(section);
+    });
+  });
 });
 
 // ===== Related Tools Helper =====
@@ -528,8 +748,8 @@ function renderRelatedTools(tools) {
   const esc = s => UI.escapeHtml(s);
   const cards = tools.map(t => {
     const bg = t.color || 'var(--accent-cyan)';
-    return `<div class="related-tool-card" onclick="window.HuntDrop.navigateTo('${esc(t.section)}')" role="button" tabindex="0">
-      <div class="related-tool-icon" style="background:${esc(bg)}15;color:${esc(bg)}">${esc(t.icon||'🔗')}</div>
+    return `<div class="related-tool-card" data-section="${esc(t.section)}" role="button" tabindex="0">
+      <div class="related-tool-icon" style="background:${esc(bg)}15;color:${esc(bg)}">${t.icon||'🔗'}</div>
       <div class="related-tool-info"><div class="related-tool-name">${esc(t.name)}</div><div class="related-tool-desc">${esc(t.desc||'')}</div></div>
       <div class="related-tool-arrow">→</div>
     </div>`;
@@ -543,7 +763,13 @@ function setupKeyboard() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       UI.closeModal();
-      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+      // Close mobile sidebar
+      const sidebar = document.getElementById('appSidebar');
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
+        const backdrop = document.querySelector('.sidebar-backdrop');
+        if (backdrop) backdrop.classList.remove('visible');
+      }
       document.querySelectorAll('.huntdrop-tooltip').forEach(function(t){t.remove();});
     }
     if (e.key === '/' && document.activeElement?.id !== 'searchInput') {
@@ -554,6 +780,12 @@ function setupKeyboard() {
       e.preventDefault();
       window.HuntDrop.goBack();
     }
+    // Ctrl+B: toggle sidebar
+    if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      e.preventDefault();
+      const toggle = document.getElementById('sidebarToggle');
+      if (toggle) toggle.click();
+    }
   });
 }
 
@@ -563,26 +795,26 @@ function setupOnboarding() {
     if (localStorage.getItem('huntdrop_onboarded')) return;
   } catch(e) { return; }
 
-  var tips = [
+  const tips = [
     { target: '.hero-search', text: 'Search across 10 platforms at once! Try "wireless earbuds" or "pet gadgets".', pos: 'bottom' },
     { target: '.quick-tools', text: 'Quick Access cards let you jump to any tool instantly.', pos: 'top' },
     { target: '.trending-section', text: 'Product grid updates in real-time as you search and filter.', pos: 'top' }
   ];
 
-  var tipIndex = 0;
+  let tipIndex = 0;
   function showTip() {
     if (tipIndex >= tips.length) {
       try { localStorage.setItem('huntdrop_onboarded', '1'); } catch(e) {}
       return;
     }
-    var tip = tips[tipIndex];
-    var el = document.querySelector(tip.target);
+    const tip = tips[tipIndex];
+    const el = document.querySelector(tip.target);
     if (!el) { tipIndex++; showTip(); return; }
 
-    var overlay = document.createElement('div');
+    const overlay = document.createElement('div');
     overlay.className = 'huntdrop-tooltip';
     overlay.innerHTML = '<div class="huntdrop-tip-box">'
-      + '<div class="huntdrop-tip-text">' + tip.text + '</div>'
+      + '<div class="huntdrop-tip-text">' + escapeHtml(tip.text) + '</div>'
       + '<div class="huntdrop-tip-actions">'
       + '<span class="huntdrop-tip-count">' + (tipIndex+1) + '/' + tips.length + '</span>'
       + '<button class="huntdrop-tip-next">Got it</button>'
@@ -590,7 +822,7 @@ function setupOnboarding() {
 
     document.body.appendChild(overlay);
 
-    var rect = el.getBoundingClientRect();
+    const rect = el.getBoundingClientRect();
     overlay.querySelector('.huntdrop-tip-box').style.top = (rect.bottom + window.scrollY + 10) + 'px';
 
     overlay.querySelector('.huntdrop-tip-next').addEventListener('click', function() {
@@ -607,18 +839,18 @@ function setupOnboarding() {
 
 // ===== #15: Theme Toggle (Dark/Light Mode) =====
 function setupThemeToggle() {
-  var btn = document.getElementById('themeToggle');
+  const btn = document.getElementById('themeToggle');
   if (!btn) return;
 
   // Restore saved theme
-  var saved = localStorage.getItem('huntdrop_theme') || 'dark';
+  const saved = localStorage.getItem('huntdrop_theme') || 'dark';
   if (saved === 'light') {
     document.documentElement.setAttribute('data-theme', 'light');
   }
 
   btn.addEventListener('click', function() {
-    var current = document.documentElement.getAttribute('data-theme') || 'dark';
-    var next = current === 'dark' ? 'light' : 'dark';
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
     if (next === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
     } else {
@@ -629,51 +861,282 @@ function setupThemeToggle() {
   });
 }
 
-// ===== #16: Error Boundaries — User-facing error messages =====
+// ===== #16: Error Boundaries — Comprehensive error handling and recovery =====
+
+// Error boundary state tracking
+const _errorBoundaryState = {
+  errorCount: 0,
+  maxErrors: 5,
+  errorWindow: 60000, // 1 minute window
+  firstErrorTime: null,
+  isCircuitBroken: false
+};
+
+// Error boundary wrapper for plugin lifecycle methods
+function withErrorBoundary(fn, context, fallback) {
+  return async function(...args) {
+    try {
+      return await fn.apply(context, args);
+    } catch (error) {
+      const errorInfo = {
+        message: error.message || 'Unknown error',
+        stack: error.stack,
+        context: context,
+        timestamp: Date.now()
+      };
+      
+      // Track error frequency for circuit breaker
+      trackError(errorInfo);
+      
+      // Log to console in development
+      if (window.HuntDrop._debug) {
+        console.error(`[ErrorBoundary] ${context}:`, error);
+      }
+      
+      // Show user-friendly error banner
+      showErrorBanner(
+        `${context} Error`,
+        error.message || 'An unexpected error occurred'
+      );
+      
+      // Return fallback if provided
+      if (fallback !== undefined) {
+        return typeof fallback === 'function' ? fallback(error) : fallback;
+      }
+      
+      throw error;
+    }
+  };
+}
+
+// Track errors and implement circuit breaker pattern
+function trackError(errorInfo) {
+  const now = Date.now();
+  
+  // Reset window if expired
+  if (_errorBoundaryState.firstErrorTime && 
+      now - _errorBoundaryState.firstErrorTime > _errorBoundaryState.errorWindow) {
+    _errorBoundaryState.errorCount = 0;
+    _errorBoundaryState.firstErrorTime = null;
+    _errorBoundaryState.isCircuitBroken = false;
+  }
+  
+  // Record first error in window
+  if (!_errorBoundaryState.firstErrorTime) {
+    _errorBoundaryState.firstErrorTime = now;
+  }
+  
+  _errorBoundaryState.errorCount++;
+  
+  // Circuit breaker: too many errors in short time
+  if (_errorBoundaryState.errorCount >= _errorBoundaryState.maxErrors) {
+    _errorBoundaryState.isCircuitBroken = true;
+    showErrorBanner(
+      'System Instability Detected',
+      'Multiple errors occurred. Some features may be disabled. Please refresh the page.'
+    );
+    
+    // Log to Logger if available
+    if (window.HuntDrop.Logger) {
+      window.HuntDrop.Logger.error('Circuit breaker triggered', {
+        errorCount: _errorBoundaryState.errorCount,
+        window: _errorBoundaryState.errorWindow
+      }, 'ErrorBoundary');
+    }
+  }
+}
+
+// Check if system is in circuit broken state
+function isCircuitBroken() {
+  return _errorBoundaryState.isCircuitBroken;
+}
+
+// Reset error boundary state
+function resetErrorBoundary() {
+  _errorBoundaryState.errorCount = 0;
+  _errorBoundaryState.firstErrorTime = null;
+  _errorBoundaryState.isCircuitBroken = false;
+}
+
+// Setup error boundaries for plugin lifecycle
 function setupErrorBoundaries() {
-  window.addEventListener('error', function(e) {
-    showErrorBanner('JavaScript Error', e.message + ' at ' + (e.filename || '').split('/').pop() + ':' + e.lineno);
-  });
-  window.addEventListener('unhandledrejection', function(e) {
-    showErrorBanner('Promise Error', (e.reason && e.reason.message) || 'An async operation failed');
+  // Wrap PluginRegistry methods with error boundaries that check circuit breaker
+  var originalMount = window.HuntDrop.PluginRegistry.mount;
+  var originalInit = window.HuntDrop.PluginRegistry.init;
+  var originalUnmount = window.HuntDrop.PluginRegistry.unmount;
+  
+  window.HuntDrop.PluginRegistry.mount = async function(id) {
+    if (isCircuitBroken()) {
+      console.warn('[ErrorBoundary] Circuit broken — mount of "' + id + '" skipped');
+      return false;
+    }
+    return withErrorBoundary(originalMount, 'PluginRegistry.mount', false).call(window.HuntDrop.PluginRegistry, id);
+  };
+  
+  window.HuntDrop.PluginRegistry.init = async function(id) {
+    if (isCircuitBroken()) {
+      console.warn('[ErrorBoundary] Circuit broken — init of "' + id + '" skipped');
+      return false;
+    }
+    return withErrorBoundary(originalInit, 'PluginRegistry.init', false).call(window.HuntDrop.PluginRegistry, id);
+  };
+  
+  window.HuntDrop.PluginRegistry.unmount = async function(id) {
+    if (isCircuitBroken()) {
+      console.warn('[ErrorBoundary] Circuit broken — unmount of "' + id + '" skipped');
+      return false;
+    }
+    return withErrorBoundary(originalUnmount, 'PluginRegistry.unmount', false).call(window.HuntDrop.PluginRegistry, id);
+  };
+  
+  // Expose error boundary utilities
+  window.HuntDrop.ErrorBoundary = {
+    withErrorBoundary,
+    trackError,
+    isCircuitBroken,
+    resetErrorBoundary,
+    getState: function() { return { errorCount: _errorBoundaryState.errorCount, isCircuitBroken: _errorBoundaryState.isCircuitBroken, firstErrorTime: _errorBoundaryState.firstErrorTime }; }
+  };
+  
+  // Listen for plugin errors
+  window.HuntDrop.EventBus.on('plugin:error', function(data) {
+    trackError({
+      message: (data.error && data.error.message) || 'Plugin error',
+      context: 'plugin:' + data.pluginId,
+      timestamp: Date.now()
+    });
   });
 }
 
-function showErrorBanner(title, detail) {
-  var existing = document.getElementById('hd-error-banner');
-  if (existing) return; // Don't stack errors
-  var banner = document.createElement('div');
+// Enhanced error banner with better UX
+function showErrorBanner(title, detail, options = {}) {
+  const { duration = 8000, dismissible = true, type = 'error' } = options;
+  
+  // Remove existing banner if present
+  const existing = document.getElementById('hd-error-banner');
+  if (existing) {
+    existing.remove();
+  }
+  
+  const banner = document.createElement('div');
   banner.id = 'hd-error-banner';
-  banner.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:10001;background:var(--bg-card);border:1px solid var(--accent-red);border-radius:var(--radius-md);padding:12px 20px;max-width:500px;width:90%;box-shadow:0 8px 32px rgba(255,51,102,0.2);display:flex;align-items:center;gap:12px;animation:fadeUp 0.3s ease';
-  banner.innerHTML = '<span style="font-size:20px">⚠️</span>' +
-    '<div style="flex:1;min-width:0">' +
-      '<div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--accent-red);margin-bottom:2px">' + title + '</div>' +
-      '<div style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + detail + '</div>' +
-    '</div>' +
-    '<button onclick="this.parentElement.remove()" style="background:none;border:1px solid var(--border-primary);border-radius:var(--radius-sm);color:var(--text-muted);padding:4px 10px;font-size:11px;cursor:pointer;flex-shrink:0">Dismiss</button>';
+  banner.className = `hd-error-banner hd-error-${type}`;
+  banner.setAttribute('role', 'alert');
+  banner.setAttribute('aria-live', 'assertive');
+  
+  const colors = {
+    error: { border: 'var(--accent-red)', bg: 'rgba(255,51,102,0.1)' },
+    warning: { border: 'var(--accent-orange)', bg: 'rgba(255,138,0,0.1)' },
+    info: { border: 'var(--accent-cyan)', bg: 'rgba(0,229,255,0.1)' }
+  };
+  
+  const color = colors[type] || colors.error;
+  
+  banner.style.cssText = `
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+    background: var(--bg-card);
+    border: 1px solid ${color.border};
+    border-radius: var(--radius-md);
+    padding: 12px 20px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 8px 32px ${color.bg};
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 0.3s ease;
+  `;
+  
+  const icons = { error: '⚠️', warning: '⚡', info: 'ℹ️' };
+  const icon = icons[type] || icons.error;
+  
+  banner.innerHTML = `
+    <span style="font-size:20px">${icon}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:${color.border};margin-bottom:2px">
+        ${escapeHtml(title)}
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        ${escapeHtml(detail)}
+      </div>
+    </div>
+    ${dismissible ? `
+      <button class="hd-error-dismiss" aria-label="Dismiss error" style="
+        background: none;
+        border: 1px solid var(--border-primary);
+        border-radius: var(--radius-sm);
+        color: var(--text-muted);
+        padding: 4px 10px;
+        font-size: 11px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.2s;
+      ">Dismiss</button>
+    ` : ''}
+  `;
+  
   document.body.appendChild(banner);
-  setTimeout(function() { if (banner.parentElement) banner.remove(); }, 8000);
+  
+  // Add dismiss handler
+  if (dismissible) {
+    const dismissBtn = banner.querySelector('.hd-error-dismiss');
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', () => {
+        banner.style.animation = 'fadeDown 0.3s ease';
+        setTimeout(() => banner.remove(), 300);
+      });
+      
+      // Hover effect
+      dismissBtn.addEventListener('mouseenter', () => {
+        dismissBtn.style.background = 'var(--bg-elevated)';
+        dismissBtn.style.color = 'var(--text-primary)';
+      });
+      dismissBtn.addEventListener('mouseleave', () => {
+        dismissBtn.style.background = 'none';
+        dismissBtn.style.color = 'var(--text-muted)';
+      });
+    }
+  }
+  
+  // Auto-dismiss
+  if (duration > 0) {
+    setTimeout(() => {
+      if (banner.parentElement) {
+        banner.style.animation = 'fadeDown 0.3s ease';
+        setTimeout(() => banner.remove(), 300);
+      }
+    }, duration);
+  }
+  
+  // Log error
+  if (window.HuntDrop.Logger) {
+    window.HuntDrop.Logger.error(`${title}: ${detail}`, null, 'ErrorBanner');
+  }
 }
 
 // ===== #17: Plugin Loading States =====
 function showPluginLoading(sectionId, message) {
-  var section = document.getElementById(sectionId);
+  const section = document.getElementById(sectionId);
   if (!section) return;
-  var loader = section.querySelector('.plugin-loading-state');
+  const loader = section.querySelector('.plugin-loading-state');
   if (loader) return;
-  var div = document.createElement('div');
+  const div = document.createElement('div');
   div.className = 'plugin-loading-state';
   div.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:10px;padding:40px 20px;color:var(--text-secondary);font-size:14px';
   div.innerHTML = '<div class="ph-scan-spinner" style="width:18px;height:18px;border:2px solid var(--border-primary);border-top-color:var(--accent-cyan);border-radius:50%;animation:spin 0.8s linear infinite"></div>' +
-    '<span>' + (message || 'Loading...') + '</span>';
-  var inner = section.querySelector('.section-inner');
+    '<span>' + escapeHtml(message || 'Loading...') + '</span>';
+  const inner = section.querySelector('.section-inner');
   if (inner) inner.appendChild(div);
 }
 
 function hidePluginLoading(sectionId) {
-  var section = document.getElementById(sectionId);
+  const section = document.getElementById(sectionId);
   if (!section) return;
-  var loader = section.querySelector('.plugin-loading-state');
+  const loader = section.querySelector('.plugin-loading-state');
   if (loader) loader.remove();
 }
 
@@ -683,11 +1146,11 @@ window.HuntDrop.showErrorBanner = showErrorBanner;
 
 // ===== #18: Export Helpers for All Tools =====
 window.HuntDrop.exportCSV = function(headers, rows, filename) {
-  var csv = [headers].concat(rows).map(function(r) {
+  const csv = [headers].concat(rows).map(function(r) {
     return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
   }).join('\n');
-  var blob = new Blob([csv], { type: 'text/csv' });
-  var a = document.createElement('a');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename || 'huntdrop-export.csv';
   a.click();
@@ -695,62 +1158,54 @@ window.HuntDrop.exportCSV = function(headers, rows, filename) {
 };
 
 window.HuntDrop.exportJSON = function(data, filename) {
-  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename || 'huntdrop-export.json';
   a.click();
   URL.revokeObjectURL(a.href);
 };
 
-// ===== Utility: Debounce =====
-function debounce(fn, delay) {
-  var timer;
-  return function() {
-    var ctx = this, args = arguments;
-    clearTimeout(timer);
-    timer = setTimeout(function() { fn.apply(ctx, args); }, delay);
-  };
-}
-
 // ===== #1: KPI Stats Bar =====
 function setupKPIBar() {
-  var saved = parseInt(localStorage.getItem('huntdrop_saved_count') || '0');
-  var analyses = parseInt(localStorage.getItem('huntdrop_analysis_count') || '0');
-  var savedEl = document.getElementById('kpiSaved');
-  var analysesEl = document.getElementById('kpiAnalyses');
+  const saved = parseInt(localStorage.getItem('huntdrop_saved_count') || '0');
+  const analyses = parseInt(localStorage.getItem('huntdrop_analysis_count') || '0');
+  const savedEl = document.getElementById('kpiSaved');
+  const analysesEl = document.getElementById('kpiAnalyses');
   if (savedEl) savedEl.textContent = saved;
   if (analysesEl) analysesEl.textContent = analyses;
 
   // Listen for product saves and analyses
   EventBus.on('product:saved', function() {
-    var count = parseInt(localStorage.getItem('huntdrop_saved_count') || '0') + 1;
+    const count = parseInt(localStorage.getItem('huntdrop_saved_count') || '0') + 1;
     localStorage.setItem('huntdrop_saved_count', count);
-    var el = document.getElementById('kpiSaved');
+    const el = document.getElementById('kpiSaved');
     if (el) el.textContent = count;
   });
   EventBus.on('product:analyze', function() {
-    var count = parseInt(localStorage.getItem('huntdrop_analysis_count') || '0') + 1;
+    const count = parseInt(localStorage.getItem('huntdrop_analysis_count') || '0') + 1;
     localStorage.setItem('huntdrop_analysis_count', count);
-    var el = document.getElementById('kpiAnalyses');
+    const el = document.getElementById('kpiAnalyses');
     if (el) el.textContent = count;
   });
 
-  // Animate number counting on load
-  animateKPINumber('kpiProducts', 48291, 1200);
-  animateKPINumber('kpiTrending', 127, 800);
+  // Animate number counting on load — compute from actual data
+  const allProducts = window.HuntDrop.ALL_PRODUCTS || [];
+  const totalProducts = allProducts.length;
+  const trendingCount = allProducts.filter(function(p) { return p.score >= 85; }).length;
+  animateKPINumber('kpiProducts', totalProducts, 1200);
+  animateKPINumber('kpiTrending', trendingCount, 800);
 }
 
 function animateKPINumber(id, target, duration) {
-  var el = document.getElementById(id);
+  const el = document.getElementById(id);
   if (!el) return;
-  var start = 0;
-  var startTime = null;
+  let startTime = null;
   function step(ts) {
     if (!startTime) startTime = ts;
-    var progress = Math.min((ts - startTime) / duration, 1);
-    var eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
-    var current = Math.floor(eased * target);
+    const progress = Math.min((ts - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+    const current = Math.floor(eased * target);
     el.textContent = current >= 1000 ? current.toLocaleString() : current;
     if (progress < 1) requestAnimationFrame(step);
   }
@@ -761,8 +1216,8 @@ function animateKPINumber(id, target, duration) {
 
 // ===== #5: Quick Tools Collapse =====
 function setupQuickToolsCollapse() {
-  var toggle = document.getElementById('qtCollapseToggle');
-  var section = toggle ? toggle.closest('.quick-tools') : null;
+  const toggle = document.getElementById('qtCollapseToggle');
+  const section = toggle ? toggle.closest('.quick-tools') : null;
   if (!toggle || !section) return;
   toggle.addEventListener('click', function() {
     section.classList.toggle('collapsed');
@@ -771,7 +1226,7 @@ function setupQuickToolsCollapse() {
 
 // ===== #6: Welcome State =====
 function setupWelcomeState() {
-  var card = document.getElementById('welcomeCard');
+  const card = document.getElementById('welcomeCard');
   if (!card) return;
   try {
     if (localStorage.getItem('huntdrop_welcome_dismissed')) return;
@@ -779,7 +1234,7 @@ function setupWelcomeState() {
 
   card.style.display = 'block';
 
-  var closeBtn = document.getElementById('welcomeClose');
+  const closeBtn = document.getElementById('welcomeClose');
   if (closeBtn) {
     closeBtn.addEventListener('click', function() {
       card.style.display = 'none';
@@ -787,15 +1242,15 @@ function setupWelcomeState() {
     });
   }
 
-  var searchBtn = document.getElementById('welcomeSearchBtn');
+  const searchBtn = document.getElementById('welcomeSearchBtn');
   if (searchBtn) {
     searchBtn.addEventListener('click', function() {
-      var input = document.getElementById('searchInput');
+      const input = document.getElementById('searchInput');
       if (input) {
         input.value = 'wireless earbuds';
         input.dispatchEvent(new Event('keypress'));
         // Trigger search
-        var btn = document.getElementById('searchBtn');
+        const btn = document.getElementById('searchBtn');
         if (btn) btn.click();
       }
       completeWelcomeStep(2);
@@ -808,7 +1263,7 @@ function setupWelcomeState() {
 
 function completeWelcomeStep(num) {
   try {
-    var steps = JSON.parse(localStorage.getItem('huntdrop_welcome_steps') || '{}');
+    const steps = JSON.parse(localStorage.getItem('huntdrop_welcome_steps') || '{}');
     steps[num] = true;
     localStorage.setItem('huntdrop_welcome_steps', JSON.stringify(steps));
   } catch(e) {}
@@ -817,22 +1272,22 @@ function completeWelcomeStep(num) {
 
 function updateWelcomeProgress() {
   try {
-    var steps = JSON.parse(localStorage.getItem('huntdrop_welcome_steps') || '{}');
-    var count = Object.keys(steps).filter(function(k) { return steps[k]; }).length;
-    var bar = document.getElementById('welcomeProgress');
-    var text = document.getElementById('welcomeProgressText');
+    const steps = JSON.parse(localStorage.getItem('huntdrop_welcome_steps') || '{}');
+    const count = Object.keys(steps).filter(function(k) { return steps[k]; }).length;
+    const bar = document.getElementById('welcomeProgress');
+    const text = document.getElementById('welcomeProgressText');
     if (bar) bar.style.width = (count / 3 * 100) + '%';
     if (text) text.textContent = count + '/3 completed';
-    for (var i = 1; i <= 3; i++) {
-      var el = document.getElementById('welcomeStep' + i);
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('welcomeStep' + i);
       if (el) el.classList.toggle('completed', !!steps[i]);
     }
   } catch(e) {}
 }
 
 // ===== #3: Recent Searches =====
-var RECENT_SEARCHES_KEY = 'huntdrop_recent_searches';
-var MAX_RECENT = 8;
+const RECENT_SEARCHES_KEY = 'huntdrop_recent_searches';
+const MAX_RECENT = 8;
 
 function getRecentSearches() {
   try {
@@ -842,7 +1297,7 @@ function getRecentSearches() {
 
 function saveRecentSearch(query) {
   if (!query || !query.trim()) return;
-  var recent = getRecentSearches().filter(function(r) { return r.query !== query; });
+  let recent = getRecentSearches().filter(function(r) { return r.query !== query; });
   recent.unshift({ query: query, time: Date.now() });
   if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
   try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recent)); } catch(e) {}
@@ -850,21 +1305,21 @@ function saveRecentSearch(query) {
 }
 
 function renderRecentSearches() {
-  var recent = getRecentSearches();
+  const recent = getRecentSearches();
   // Recent chips in hero
-  var chipsContainer = document.getElementById('recentChips');
+  const chipsContainer = document.getElementById('recentChips');
   if (chipsContainer) {
     if (recent.length > 0) {
       chipsContainer.style.display = 'flex';
       chipsContainer.innerHTML = recent.slice(0, 5).map(function(r) {
-        return '<span class="recent-chip" data-query="' + r.query.replace(/"/g, '"') + '"><span class="rc-icon">🕒</span>' + r.query + '</span>';
+        return '<span class="recent-chip" data-query="' + escapeHtml(r.query) + '"><span class="rc-icon">🕒</span>' + escapeHtml(r.query) + '</span>';
       }).join('');
       // Bind click
       chipsContainer.querySelectorAll('.recent-chip').forEach(function(chip) {
         chip.addEventListener('click', function() {
-          var input = document.getElementById('searchInput');
+          const input = document.getElementById('searchInput');
           if (input) input.value = chip.dataset.query;
-          var btn = document.getElementById('searchBtn');
+          const btn = document.getElementById('searchBtn');
           if (btn) btn.click();
         });
       });
@@ -874,20 +1329,20 @@ function renderRecentSearches() {
   }
 
   // Recent searches section
-  var section = document.getElementById('recentSearchesSection');
-  var itemsContainer = document.getElementById('recentItems');
+  const section = document.getElementById('recentSearchesSection');
+  const itemsContainer = document.getElementById('recentItems');
   if (section && itemsContainer) {
     if (recent.length > 0) {
       section.style.display = 'block';
       itemsContainer.innerHTML = recent.slice(0, 6).map(function(r) {
-        var ago = getTimeAgo(r.time);
-        return '<div class="recent-item" data-query="' + r.query.replace(/"/g, '"') + '"><span class="recent-item-icon">🔍</span><span>' + r.query + '</span><span class="recent-item-time">' + ago + '</span></div>';
+        const ago = getTimeAgo(r.time);
+        return '<div class="recent-item" data-query="' + escapeHtml(r.query) + '"><span class="recent-item-icon">🔍</span><span>' + escapeHtml(r.query) + '</span><span class="recent-item-time">' + escapeHtml(ago) + '</span></div>';
       }).join('');
       itemsContainer.querySelectorAll('.recent-item').forEach(function(item) {
         item.addEventListener('click', function() {
-          var input = document.getElementById('searchInput');
+          const input = document.getElementById('searchInput');
           if (input) input.value = item.dataset.query;
-          var btn = document.getElementById('searchBtn');
+          const btn = document.getElementById('searchBtn');
           if (btn) btn.click();
         });
       });
@@ -901,7 +1356,7 @@ function renderRecentSearches() {
 }
 
 function getTimeAgo(ts) {
-  var diff = Date.now() - ts;
+  const diff = Date.now() - ts;
   if (diff < 60000) return 'just now';
   if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
   if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
@@ -909,7 +1364,7 @@ function getTimeAgo(ts) {
 }
 
 function setupClearRecentSearches() {
-  var btn = document.getElementById('clearRecentSearches');
+  const btn = document.getElementById('clearRecentSearches');
   if (btn) {
     btn.addEventListener('click', function() {
       try { localStorage.removeItem(RECENT_SEARCHES_KEY); } catch(e) {}
@@ -918,83 +1373,81 @@ function setupClearRecentSearches() {
   }
 }
 
-// ===== #2: Trending Products =====
-function setupTrendingProducts() {
-  var grid = document.getElementById('trendingGrid');
-  if (!grid) return;
+// ===== #2: Trending Products (dynamic from product data) =====
+function getTrendingData() {
+  const allProducts = window.HuntDrop.ALL_PRODUCTS || [];
+  if (allProducts.length === 0) return [];
+  return allProducts.slice().sort(function(a, b) { return b.score - a.score; }).slice(0, 8).map(function(p) {
+    let badge, badgeText;
+    if (p.score >= 90) { badge = 'hot'; badgeText = '\uD83D\uDD25 Hot'; }
+    else if (p.score >= 85) { badge = 'viral'; badgeText = '\uD83D\uDE80 Viral'; }
+    else { badge = 'new'; badgeText = '\u2728 New'; }
+    return { title: p.title, price: '$' + p.price.toFixed(2), score: p.score, badge: badge, badgeText: badgeText, image: p.image };
+  });
+}
 
-  var trendingData = [
-    { title: 'Wireless Earbuds Pro', price: '$12.99', score: 92, badge: 'hot', badgeText: '🔥 Hot', image: 'https://picsum.photos/seed/trend1/100/100' },
-    { title: 'Smart Posture Corrector', price: '$8.49', score: 87, badge: 'viral', badgeText: '🚀 Viral', image: 'https://picsum.photos/seed/trend2/100/100' },
-    { title: 'Mini Portable Projector', price: '$29.99', score: 85, badge: 'hot', badgeText: '🔥 Hot', image: 'https://picsum.photos/seed/trend3/100/100' },
-    { title: 'LED Galaxy Night Light', price: '$6.99', score: 91, badge: 'new', badgeText: '✨ New', image: 'https://picsum.photos/seed/trend4/100/100' },
-    { title: 'Pet GPS Tracker Collar', price: '$15.99', score: 88, badge: 'viral', badgeText: '🚀 Viral', image: 'https://picsum.photos/seed/trend5/100/100' },
-    { title: 'Car Phone Mount Magnetic', price: '$4.99', score: 83, badge: 'hot', badgeText: '🔥 Hot', image: 'https://picsum.photos/seed/trend6/100/100' },
-    { title: 'Kitchen Herb Garden Kit', price: '$11.49', score: 86, badge: 'new', badgeText: '✨ New', image: 'https://picsum.photos/seed/trend7/100/100' },
-    { title: 'Resistance Band Set Pro', price: '$9.99', score: 84, badge: 'hot', badgeText: '🔥 Hot', image: 'https://picsum.photos/seed/trend8/100/100' }
-  ];
-
-  grid.innerHTML = trendingData.map(function(item, i) {
+function renderTrendingCards(grid, items) {
+  grid.innerHTML = items.map(function(item, i) {
     return '<div class="trending-card" style="animation-delay:' + (i * 0.05) + 's">' +
-      '<div class="trending-card-image"><img src="' + item.image + '" alt="' + item.title + '" loading="lazy"></div>' +
+      '<div class="trending-card-image"><img src="' + escapeHtml(UI.normalizeImageUrl ? UI.normalizeImageUrl(item.image, 'https://via.placeholder.com/300x200?text=Product') : item.image) + '" alt="' + escapeHtml(item.title) + '" loading="lazy" decoding="async" fetchpriority="low"></div>' +
       '<div class="trending-card-info">' +
-        '<div class="trending-card-title">' + item.title + '</div>' +
+        '<div class="trending-card-title">' + escapeHtml(item.title) + '</div>' +
         '<div class="trending-card-meta">' +
-          '<span class="trending-card-price">' + item.price + '</span>' +
-          '<span class="trending-card-score">' + item.score + '</span>' +
-          '<span class="trending-card-badge trending-badge-' + item.badge + '">' + item.badgeText + '</span>' +
+          '<span class="trending-card-price">' + escapeHtml(item.price) + '</span>' +
+          '<span class="trending-card-score">' + escapeHtml(item.score) + '</span>' +
+          '<span class="trending-card-badge trending-badge-' + escapeHtml(item.badge) + '">' + escapeHtml(item.badgeText) + '</span>' +
         '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 
-  // Click to search
   grid.querySelectorAll('.trending-card').forEach(function(card) {
     card.addEventListener('click', function() {
-      var title = card.querySelector('.trending-card-title');
+      const title = card.querySelector('.trending-card-title');
       if (title) {
-        var input = document.getElementById('searchInput');
+        const input = document.getElementById('searchInput');
         if (input) input.value = title.textContent;
-        var btn = document.getElementById('searchBtn');
+        const btn = document.getElementById('searchBtn');
         if (btn) btn.click();
       }
     });
   });
+}
 
-  // Refresh button
-  var refreshBtn = document.getElementById('trendingRefresh');
+function setupTrendingProducts() {
+  const grid = document.getElementById('trendingGrid');
+  if (!grid) return;
+
+  const trendingData = getTrendingData();
+  if (trendingData.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px">Search for products to see trending items</div>';
+    return;
+  }
+  renderTrendingCards(grid, trendingData);
+
+  const refreshBtn = document.getElementById('trendingRefresh');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', function() {
       grid.style.opacity = '0.5';
       setTimeout(function() {
         grid.style.opacity = '1';
-        // Shuffle the data
         trendingData.sort(function() { return Math.random() - 0.5; });
-        grid.innerHTML = trendingData.map(function(item, i) {
-          return '<div class="trending-card" style="animation-delay:' + (i * 0.05) + 's">' +
-            '<div class="trending-card-image"><img src="' + item.image + '" alt="' + item.title + '" loading="lazy"></div>' +
-            '<div class="trending-card-info">' +
-              '<div class="trending-card-title">' + item.title + '</div>' +
-              '<div class="trending-card-meta">' +
-                '<span class="trending-card-price">' + item.price + '</span>' +
-                '<span class="trending-card-score">' + item.score + '</span>' +
-                '<span class="trending-card-badge trending-badge-' + item.badge + '">' + item.badgeText + '</span>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
-        }).join('');
+        renderTrendingCards(grid, trendingData);
       }, 500);
     });
   }
 }
 
 // ===== #7: Filter Panel Mobile Toggle =====
+// NOTE: filterMobileToggle, filtersPanel, filterOverlay, filterClose are not present in the base HTML.
+// This function gracefully skips if the elements don't exist (they may be added by plugins).
 function setupFilterMobileToggle() {
-  var toggleBtn = document.getElementById('filterMobileToggle');
-  var panel = document.getElementById('filtersPanel');
-  var overlay = document.getElementById('filterOverlay');
-  var closeBtn = document.getElementById('filterClose');
-  if (!toggleBtn || !panel) return;
+  const toggleBtn = document.getElementById('filterMobileToggle');
+  if (!toggleBtn) return;
+  const panel = document.getElementById('filtersPanel');
+  const overlay = document.getElementById('filterOverlay');
+  const closeBtn = document.getElementById('filterClose');
+  if (!panel) return;
 
   function openFilters() {
     panel.classList.add('mobile-open');
@@ -1011,24 +1464,24 @@ function setupFilterMobileToggle() {
   if (overlay) overlay.addEventListener('click', closeFilters);
   if (closeBtn) closeBtn.addEventListener('click', closeFilters);
 
-  // Close on Escape
+  // Close on Escape — only when panel is open
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeFilters();
+    if (e.key === 'Escape' && panel.classList.contains('mobile-open')) closeFilters();
   });
 }
 
 // ===== #8: Product Card Quick Actions =====
 function addQuickActionsToCards() {
-  var grid = document.getElementById('productsGrid');
+  const grid = document.getElementById('productsGrid');
   if (!grid) return;
-  var cards = grid.querySelectorAll('.product-card');
-  var savedProducts = getSavedProducts();
+  const cards = grid.querySelectorAll('.product-card');
+  const savedProducts = getSavedProducts();
 
   cards.forEach(function(card) {
     if (card.querySelector('.card-quick-actions')) return; // already added
-    var productId = card.dataset.productId || '';
-    var isSaved = savedProducts.indexOf(productId) !== -1;
-    var actions = document.createElement('div');
+    const productId = card.dataset.productId || '';
+    const isSaved = savedProducts.indexOf(productId) !== -1;
+    const actions = document.createElement('div');
     actions.className = 'card-quick-actions';
     actions.innerHTML =
       '<button class="quick-action-btn qa-save ' + (isSaved ? 'saved' : '') + '" data-id="' + productId + '" title="Save">' +
@@ -1048,13 +1501,13 @@ function addQuickActionsToCards() {
     // Stop card click when clicking actions
     actions.addEventListener('click', function(e) {
       e.stopPropagation();
-      var btn = e.target.closest('.quick-action-btn');
+      const btn = e.target.closest('.quick-action-btn');
       if (!btn) return;
 
       if (btn.classList.contains('qa-save')) {
         toggleSaveProduct(productId);
         btn.classList.toggle('saved');
-        var svg = btn.querySelector('svg');
+        const svg = btn.querySelector('svg');
         if (svg) svg.setAttribute('fill', btn.classList.contains('saved') ? 'currentColor' : 'none');
       } else if (btn.classList.contains('qa-analyze')) {
         EventBus.emit('product:analyze', { id: productId });
@@ -1079,8 +1532,8 @@ function getSavedProducts() {
 }
 
 function toggleSaveProduct(id) {
-  var saved = getSavedProducts();
-  var idx = saved.indexOf(id);
+  const saved = getSavedProducts();
+  const idx = saved.indexOf(id);
   if (idx !== -1) {
     saved.splice(idx, 1);
   } else {
@@ -1099,10 +1552,10 @@ EventBus.on('search:results', function() {
 function setupEmptyStateSuggestions() {
   document.querySelectorAll('.sr-empty-card').forEach(function(card) {
     card.addEventListener('click', function() {
-      var query = card.dataset.query;
-      var input = document.getElementById('searchInput');
+      const query = card.dataset.query;
+      const input = document.getElementById('searchInput');
       if (input) input.value = query;
-      var btn = document.getElementById('searchBtn');
+      const btn = document.getElementById('searchBtn');
       if (btn) btn.click();
     });
   });
@@ -1110,16 +1563,16 @@ function setupEmptyStateSuggestions() {
 
 // ===== #13: Search Enhancements =====
 function setupSearchEnhancements() {
-  var searchInput = document.getElementById('searchInput');
-  var dropdown = document.getElementById('searchDropdown');
-  var recentSection = document.getElementById('recentSearchesDropdown');
-  var recentItems = document.getElementById('recentSearchItems');
-  var suggestionsSection = document.getElementById('suggestionsDropdown');
-  var suggestionItems = document.getElementById('suggestionItems');
+  const searchInput = document.getElementById('searchInput');
+  const dropdown = document.getElementById('searchDropdown');
+  const recentSection = document.getElementById('recentSearchesDropdown');
+  const recentItems = document.getElementById('recentSearchItems');
+  const suggestionsSection = document.getElementById('suggestionsDropdown');
+  const suggestionItems = document.getElementById('suggestionItems');
 
   if (!searchInput || !dropdown) return;
 
-  var suggestions = [
+  const suggestions = [
     'wireless earbuds', 'pet gadgets', 'kitchen organizer', 'car accessories',
     'beauty tool', 'phone accessories', 'home decor', 'fitness gadget',
     'LED strip lights', 'portable blender', 'smart watch band', 'desk organizer',
@@ -1144,15 +1597,15 @@ function setupSearchEnhancements() {
   });
 
   function renderSearchDropdown() {
-    var query = searchInput.value.trim().toLowerCase();
-    var recent = getRecentSearches();
+    const query = searchInput.value.trim().toLowerCase();
+    const recent = getRecentSearches();
 
     // Recent searches
     if (recentSection && recentItems) {
       if (recent.length > 0 && !query) {
         recentSection.style.display = 'block';
         recentItems.innerHTML = recent.slice(0, 5).map(function(r) {
-          return '<div class="search-dropdown-item" data-query="' + r.query.replace(/"/g, '"') + '"><span class="sdi-icon">🕒</span><span class="sdi-text">' + r.query + '</span><span class="sdi-remove" data-remove="' + r.query.replace(/"/g, '"') + '">&times;</span></div>';
+          return '<div class="search-dropdown-item" data-query="' + escapeHtml(r.query) + '"><span class="sdi-icon">🕒</span><span class="sdi-text">' + escapeHtml(r.query) + '</span><span class="sdi-remove" data-remove="' + escapeHtml(r.query) + '">&times;</span></div>';
         }).join('');
         // Bind clicks
         recentItems.querySelectorAll('.search-dropdown-item').forEach(function(item) {
@@ -1165,7 +1618,7 @@ function setupSearchEnhancements() {
             }
             searchInput.value = item.dataset.query;
             dropdown.style.display = 'none';
-            var btn = document.getElementById('searchBtn');
+            const btn = document.getElementById('searchBtn');
             if (btn) btn.click();
           });
         });
@@ -1176,17 +1629,17 @@ function setupSearchEnhancements() {
 
     // Suggestions
     if (suggestionsSection && suggestionItems) {
-      var filtered = query ? suggestions.filter(function(s) { return s.toLowerCase().indexOf(query) !== -1; }).slice(0, 6) : suggestions.slice(0, 5);
+      const filtered = query ? suggestions.filter(function(s) { return s.toLowerCase().indexOf(query) !== -1; }).slice(0, 6) : suggestions.slice(0, 5);
       if (filtered.length > 0) {
         suggestionsSection.style.display = 'block';
         suggestionItems.innerHTML = filtered.map(function(s) {
-          return '<div class="search-dropdown-item" data-query="' + s + '"><span class="sdi-icon">💡</span><span class="sdi-text">' + s + '</span></div>';
+          return '<div class="search-dropdown-item" data-query="' + escapeHtml(s) + '"><span class="sdi-icon">💡</span><span class="sdi-text">' + escapeHtml(s) + '</span></div>';
         }).join('');
         suggestionItems.querySelectorAll('.search-dropdown-item').forEach(function(item) {
           item.addEventListener('mousedown', function() {
             searchInput.value = item.dataset.query;
             dropdown.style.display = 'none';
-            var btn = document.getElementById('searchBtn');
+            const btn = document.getElementById('searchBtn');
             if (btn) btn.click();
           });
         });
@@ -1196,7 +1649,7 @@ function setupSearchEnhancements() {
     }
 
     // Show/hide entire dropdown
-    var hasContent = (recent.length > 0 && !query) || (query && suggestions.some(function(s) { return s.toLowerCase().indexOf(query) !== -1; }));
+    const hasContent = (recent.length > 0 && !query) || (query && suggestions.some(function(s) { return s.toLowerCase().indexOf(query) !== -1; }));
     dropdown.style.display = hasContent || document.activeElement === searchInput ? 'block' : 'none';
   }
 
@@ -1209,29 +1662,30 @@ function renderSearchDropdown() {
 }
 
 function removeRecentSearch(query) {
-  var recent = getRecentSearches().filter(function(r) { return r.query !== query; });
+  const recent = getRecentSearches().filter(function(r) { return r.query !== query; });
   try { localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recent)); } catch(e) {}
   renderRecentSearches();
 }
 
 // ===== #13: Voice Search =====
 function setupVoiceSearch() {
-  var btn = document.getElementById('voiceSearchBtn');
-  var input = document.getElementById('searchInput');
+  const btn = document.getElementById('voiceSearchBtn');
+  const input = document.getElementById('searchInput');
   if (!btn || !input) return;
 
-  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    btn.style.display = 'none';
     return;
   }
+  // Show the button when speech recognition is available
+  btn.style.display = 'flex';
 
-  var recognition = new SpeechRecognition();
+  const recognition = new SpeechRecognition();
   recognition.continuous = false;
   recognition.interimResults = false;
   recognition.lang = 'en-US';
 
-  var isListening = false;
+  let isListening = false;
 
   btn.addEventListener('click', function() {
     if (isListening) {
@@ -1245,13 +1699,13 @@ function setupVoiceSearch() {
   });
 
   recognition.addEventListener('result', function(e) {
-    var transcript = e.results[0][0].transcript;
+    const transcript = e.results[0][0].transcript;
     input.value = transcript;
     btn.classList.remove('listening');
     isListening = false;
     btn.title = 'Voice search';
     // Auto-search
-    var searchBtn = document.getElementById('searchBtn');
+    const searchBtn = document.getElementById('searchBtn');
     if (searchBtn) searchBtn.click();
   });
 
@@ -1270,11 +1724,11 @@ function setupVoiceSearch() {
 
 // ===== #13: I'm Feeling Lucky =====
 function setupFeelingLucky() {
-  var btn = document.getElementById('feelingLuckyBtn');
-  var input = document.getElementById('searchInput');
+  const btn = document.getElementById('feelingLuckyBtn');
+  const input = document.getElementById('searchInput');
   if (!btn || !input) return;
 
-  var trendingQueries = [
+  const trendingQueries = [
     'wireless earbuds', 'pet gadgets', 'LED strip lights', 'portable blender',
     'smart watch band', 'car phone mount', 'kitchen organizer', 'yoga mat',
     'desk lamp', 'phone accessories', 'travel pillow', 'resistance bands',
@@ -1283,54 +1737,54 @@ function setupFeelingLucky() {
   ];
 
   btn.addEventListener('click', function() {
-    var random = trendingQueries[Math.floor(Math.random() * trendingQueries.length)];
+    const random = trendingQueries[Math.floor(Math.random() * trendingQueries.length)];
     input.value = random;
-    var searchBtn = document.getElementById('searchBtn');
+    const searchBtn = document.getElementById('searchBtn');
     if (searchBtn) searchBtn.click();
   });
 }
 
 // ===== #14: Debounce Filter Inputs =====
 function setupDebouncedFilters() {
-  var priceMin = document.getElementById('priceMin');
-  var priceMax = document.getElementById('priceMax');
-  var priceRange = document.getElementById('priceRange');
-  var scoreRange = document.getElementById('scoreRange');
+  const priceMin = document.getElementById('priceMin');
+  const priceMax = document.getElementById('priceMax');
+  const priceRange = document.getElementById('priceRange');
+  const scoreRange = document.getElementById('scoreRange');
 
   // These are already bound directly, so we replace with debounced versions
   // We remove old listeners by cloning and rebinding
   if (priceMin) {
-    var newMin = priceMin.cloneNode(true);
+    const newMin = priceMin.cloneNode(true);
     priceMin.parentNode.replaceChild(newMin, priceMin);
     newMin.addEventListener('input', debounce(function() {
-      var priceRangeEl = document.getElementById('priceRange');
+      const priceRangeEl = document.getElementById('priceRange');
       if (priceRangeEl && newMin.value) priceRangeEl.value = newMin.value;
       EventBus.emit('filter:changed', { filters: {}, query: (document.getElementById('searchInput') || {}).value || '' });
     }, 300));
   }
   if (priceMax) {
-    var newMax = priceMax.cloneNode(true);
+    const newMax = priceMax.cloneNode(true);
     priceMax.parentNode.replaceChild(newMax, priceMax);
     newMax.addEventListener('input', debounce(function() {
-      var priceRangeEl = document.getElementById('priceRange');
+      const priceRangeEl = document.getElementById('priceRange');
       if (priceRangeEl) priceRangeEl.value = newMax.value || 200;
       EventBus.emit('filter:changed', { filters: {}, query: (document.getElementById('searchInput') || {}).value || '' });
     }, 300));
   }
   if (priceRange) {
-    var newRange = priceRange.cloneNode(true);
+    const newRange = priceRange.cloneNode(true);
     priceRange.parentNode.replaceChild(newRange, priceRange);
     newRange.addEventListener('input', debounce(function() {
-      var maxInput = document.getElementById('priceMax');
+      const maxInput = document.getElementById('priceMax');
       if (maxInput) maxInput.value = newRange.value;
       EventBus.emit('filter:changed', { filters: {}, query: (document.getElementById('searchInput') || {}).value || '' });
     }, 150));
   }
   if (scoreRange) {
-    var newScore = scoreRange.cloneNode(true);
+    const newScore = scoreRange.cloneNode(true);
     scoreRange.parentNode.replaceChild(newScore, scoreRange);
     newScore.addEventListener('input', debounce(function() {
-      var scoreValue = document.getElementById('scoreValue');
+      const scoreValue = document.getElementById('scoreValue');
       if (scoreValue) scoreValue.textContent = newScore.value;
       EventBus.emit('filter:changed', { filters: {}, query: (document.getElementById('searchInput') || {}).value || '' });
     }, 150));
@@ -1368,14 +1822,14 @@ function enhanceAccessibility() {
 
   // Add keyboard navigation for tabs (arrow keys)
   document.addEventListener('keydown', function(e) {
-    var target = e.target;
+    const target = e.target;
     if (!target || target.getAttribute('role') !== 'tab') return;
-    var tablist = target.closest('[role="tablist"]');
+    const tablist = target.closest('[role="tablist"]');
     if (!tablist) return;
-    var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
-    var idx = tabs.indexOf(target);
+    const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+    const idx = tabs.indexOf(target);
     if (idx === -1) return;
-    var next = null;
+    let next = null;
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { next = tabs[(idx + 1) % tabs.length]; e.preventDefault(); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { next = tabs[(idx - 1 + tabs.length) % tabs.length]; e.preventDefault(); }
     else if (e.key === 'Home') { next = tabs[0]; e.preventDefault(); }
@@ -1384,29 +1838,194 @@ function enhanceAccessibility() {
   });
 
   // Add aria-label to icon-only buttons (buttons with only emoji/icon content)
-  document.querySelectorAll('button').forEach(function(btn) {
-    var text = btn.textContent.trim();
-    if (text.length <= 2 && !btn.getAttribute('aria-label')) {
-      var icon = text || btn.querySelector('span')?.textContent?.trim() || '';
-      if (icon.length <= 2) btn.setAttribute('aria-label', 'Button');
+  function setButtonLabel(btn) {
+    if (btn.getAttribute('aria-label')) return;
+    const text = btn.textContent.trim();
+    const hasOnlyIcon = text.length <= 2 || btn.querySelector('svg:not([aria-label])');
+    if (hasOnlyIcon) {
+      const label = btn.getAttribute('title') || btn.getAttribute('data-label') || 'Button';
+      btn.setAttribute('aria-label', label);
     }
+  }
+
+  function promoteInteractiveElement(el) {
+    if (el.matches('a, button, input, select, textarea')) return;
+    if (!el.getAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.getAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    if (!el.getAttribute('aria-label') && el.textContent.trim()) {
+      const label = el.textContent.trim().replace(/\s+/g, ' ').slice(0, 80);
+      el.setAttribute('aria-label', label);
+    }
+  }
+
+  function installA11yKeyboardSupport(root) {
+    root.querySelectorAll('[role="button"][tabindex]').forEach(function(el) {
+      if (el.dataset.a11yKeyboard) return;
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+      el.dataset.a11yKeyboard = 'true';
+    });
+  }
+
+  document.querySelectorAll('button').forEach(setButtonLabel);
+  document.querySelectorAll('.qt-card, .trending-card, .recent-item, .sr-empty-card, .related-tool-card, .product-card, .ph-result-item, .nr-list-item, .cc-list-item, .cc-platform-card, .sci-risk-card, .sci-tip-card, .sh-pick-card, .sh-score-card, .supplier-hub-card, .pd-price-card, .pd-keyword, .pd-audience-tag, .sci-detail-product-chip, .sh-detail-product-chip, [onclick], [data-action], [data-section], [data-query]').forEach(promoteInteractiveElement);
+  installA11yKeyboardSupport(document);
+
+  const a11yObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      mutation.addedNodes.forEach(function(node) {
+        if (node.nodeType !== 1) return;
+        installA11yKeyboardSupport(node);
+        node.querySelectorAll('button').forEach(setButtonLabel);
+        node.querySelectorAll('.qt-card, .trending-card, .recent-item, .sr-empty-card, .related-tool-card, .product-card, .ph-result-item, .nr-list-item, .cc-list-item, .cc-platform-card, .sci-risk-card, .sci-tip-card, .sh-pick-card, .sh-score-card, .supplier-hub-card, .pd-price-card, .pd-keyword, .pd-audience-tag, .sci-detail-product-chip, .sh-detail-product-chip, [onclick], [data-action], [data-section], [data-query]').forEach(promoteInteractiveElement);
+      });
+    });
   });
+  a11yObserver.observe(document.body || document.documentElement, { childList: true, subtree: true });
 }
+
+// ===== LAZY PLUGIN LOADER — Code Splitting =====
+const PLUGIN_MANIFEST = {
+  'section-product-hunt': ['plugins/product-hunt.js'],
+  'section-niche-radar': ['plugins/niche-radar.js'],
+  'section-market-gaps': ['plugins/market-gap-finder.js'],
+  'section-lifecycle': ['plugins/product-lifecycle.js'],
+  'section-ai-analyst': ['plugins/ai-analyst.js'],
+  'section-spy-center': ['plugins/spy-center.js'],
+  'section-battlefield': ['plugins/cb-intelligence-service.js', 'plugins/competitor-battlefield.js'],
+  'section-personas': ['plugins/customer-persona.js'],
+  'section-profit-lab': ['plugins/profit-calculator.js'],
+  'section-time-machine': ['plugins/profit-time-machine.js'],
+  'section-elasticity': ['plugins/price-elasticity.js'],
+  'section-budget': ['plugins/ad-budget-allocator.js'],
+  'section-simulator': ['plugins/business-simulator.js'],
+  'section-supplier-hub': ['plugins/supplier-hub.js'],
+  'section-supplier-intel': ['plugins/supplier-intelligence.js'],
+  'section-shipping-calc': ['plugins/shipping-calculator.js'],
+  'section-order-tracker': ['plugins/order-tracker.js'],
+  'section-refund-shield': ['plugins/refund-shield.js'],
+  'section-refund-detail': ['plugins/refund-detail.js'],
+  'section-refund-root-cause': ['plugins/refund-root-cause.js'],
+  'section-refund-supplier-risk': ['plugins/refund-supplier-risk.js'],
+  'section-cash-flow': ['plugins/cash-flow.js'],
+  'section-listing-optimizer': ['plugins/listing-optimizer.js'],
+  'section-store-connect': ['plugins/store-connect.js'],
+  'section-ad-studio': ['plugins/ai-key-manager.js', 'plugins/ad-studio.js'],
+  'section-calendar': ['plugins/content-calendar.js'],
+  'section-objections': ['plugins/objection-handler.js'],
+  'section-store-gen': ['plugins/store-generator.js'],
+  'section-health': ['plugins/store-health.js'],
+  'section-bundles': ['plugins/bundle-intelligence.js'],
+  'section-coach': ['plugins/ai-key-manager.js', 'plugins/ai-web-search.js', 'plugins/ai-context-builder.js', 'plugins/ai-system-health.js', 'plugins/ai-risk-analyzer.js', 'plugins/ai-chat-service.js', 'plugins/ai-business-coach.js'],
+  'section-ai-settings': ['plugins/ai-key-manager.js', 'plugins/ai-web-search.js', 'plugins/platform-connectors.js', 'plugins/ai-settings.js'],
+  'section-settings': ['plugins/settings-page.js']
+};
+
+const _loadedPlugins = new Set();
+// FIX #1: Use Map for proper promise caching to prevent race conditions
+const _loadingPlugins = new Map();
+// FIX #1: Add a queue for pending load requests to prevent duplicate loads
+const _pendingLoads = new Map();
+const CRITICAL_PLUGINS = ['plugins/platform-connectors.js', 'plugins/data-adapters.js', 'plugins/search-engine.js', 'plugins/product-grid.js', 'plugins/product-detail.js'];
+
+function _loadScript(src) {
+  // Already loaded - return immediately
+  if (_loadedPlugins.has(src)) return Promise.resolve();
+  
+  // FIX #1: Check if already loading - return existing promise to prevent race condition
+  if (_loadingPlugins.has(src)) return _loadingPlugins.get(src);
+  
+  // FIX #1: Check if there's a pending load request - queue it
+  if (_pendingLoads.has(src)) return _pendingLoads.get(src);
+  
+  // Add timeout to prevent hanging promises
+  var LOAD_TIMEOUT = 30000; // 30 seconds
+  
+  // FIX #1: Create the load promise and store it immediately to prevent race conditions
+  var loadPromise = new Promise(function(resolve, reject) {
+    var timeoutId = setTimeout(function() {
+      _loadingPlugins.delete(src);
+      _pendingLoads.delete(src);
+      reject(new Error('Load timeout: ' + src));
+    }, LOAD_TIMEOUT);
+    
+    var script = document.createElement('script');
+    script.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'v=' + Date.now();
+    script.onload = function() { 
+      clearTimeout(timeoutId);
+      _loadedPlugins.add(src); 
+      _loadingPlugins.delete(src);
+      _pendingLoads.delete(src);
+      resolve(); 
+    };
+    script.onerror = function() { 
+      clearTimeout(timeoutId);
+      _loadingPlugins.delete(src);
+      _pendingLoads.delete(src);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Failed to load: ' + src)); 
+    };
+    document.head.appendChild(script);
+  });
+  
+  // FIX #1: Store promise in both maps for proper tracking
+  _loadingPlugins.set(src, loadPromise);
+  _pendingLoads.set(src, loadPromise);
+  
+  return loadPromise;
+}
+
+async function loadPluginsForSection(sectionId) {
+  const files = PLUGIN_MANIFEST[sectionId];
+  if (!files || files.length === 0) return;
+  const toLoad = files.filter(function(f) { return !_loadedPlugins.has(f); });
+  if (toLoad.length === 0) return;
+  const beforePlugins = new Set(PluginRegistry.getAll().map(function(p) { return p.id; }));
+  await Promise.all(toLoad.map(function(f) {
+    return _loadScript(f).catch(function(e) { console.warn('[HuntDrop] Lazy load failed:', f, e); });
+  }));
+  const newPlugins = PluginRegistry.getAll().filter(function(p) { return !beforePlugins.has(p.id); });
+  // Init all in parallel (init doesn't access other plugins)
+  await Promise.allSettled(newPlugins.map(function(p) {
+    return PluginRegistry.init(p.id).catch(function(e) { console.warn('[HuntDrop] Init after lazy load:', p.id, e); });
+  }));
+  // Mount infra plugins (no dependencies) in parallel, then feature plugins in parallel
+  const infra = newPlugins.filter(function(p) { return !p.dependencies || p.dependencies.length === 0; });
+  const features = newPlugins.filter(function(p) { return p.dependencies && p.dependencies.length > 0; });
+  await Promise.allSettled(infra.map(function(p) {
+    return PluginRegistry.mount(p.id).catch(function(e) { console.warn('[HuntDrop] Mount infra:', p.id, e); });
+  }));
+  await Promise.allSettled(features.map(function(p) {
+    return PluginRegistry.mount(p.id).catch(function(e) { console.warn('[HuntDrop] Mount feature:', p.id, e); });
+  }));
+}
+
+// Handle 'navigate' events emitted by plugins (e.g. ai-analyst)
+EventBus.on('navigate', function(data) {
+  if (data && data.section) window.HuntDrop.navigateTo(data.section);
+});
 
 // ===== BOOT SEQUENCE =====
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log(`%c✦ HuntDrop AI v${Config.get('app.version')} — Booting...`, 'color: #00e5ff; font-weight: bold;');
+  if (window.HuntDrop._debug) console.log(`%c✦ HuntDrop AI v${Config.get('app.version')} — Booting...`, 'color: #00e5ff; font-weight: bold;');
 
   // 1. Setup core UI
   setupNavigation();
   setupSearch();
-  setupProductModal();
   setupKeyboard();
   setupOnboarding();
 
   // Back button
   const backBtn = document.getElementById('navBackBtn');
   if (backBtn) backBtn.addEventListener('click', () => window.HuntDrop.goBack());
+
+  // Settings gear button
+  const settingsBtn = document.getElementById('navSettingsBtn');
+  if (settingsBtn) settingsBtn.addEventListener('click', () => window.HuntDrop.navigateTo('section-settings'));
 
   // 1b. Setup all new dashboard features
   setupThemeToggle();          // #15: Dark/Light Mode Toggle
@@ -1425,35 +2044,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   hookRecentSearchSaving();    // #3: Hook to save recent searches
   hookWelcomeTracking();       // #6: Hook welcome step tracking
 
-  // 2. Load and initialize all plugins (this injects sections into #sections-container)
-  const plugins = PluginRegistry.getAll();
-  for (const plugin of plugins) {
-    await PluginRegistry.init(plugin.id);
-  }
-  for (const plugin of plugins) {
-    await PluginRegistry.mount(plugin.id);
-  }
+  // 2. Load critical plugins first (data-adapters, search-engine, product-grid, product-detail)
+  await Promise.all(CRITICAL_PLUGINS.map(function(src) {
+    return _loadScript(src).catch(function(e) { console.error('[HuntDrop] Critical plugin load failed:', src, e); });
+  }));
 
-  // 3. Restore last visited section or default to dashboard
+  const criticalPlugins = PluginRegistry.getAll();
+  await Promise.allSettled(criticalPlugins.map(function(p) {
+    return PluginRegistry.init(p.id).catch(function(e) { console.error('[HuntDrop] Critical init failed:', p.id, e); });
+  }));
+  await Promise.allSettled(criticalPlugins.map(function(p) {
+    return PluginRegistry.mount(p.id).catch(function(e) { console.error('[HuntDrop] Critical mount failed:', p.id, e); });
+  }));
+
+  // 3. Restore last visited section or default to dashboard (lazy-loads plugins on demand)
   const savedSection = Config.get('app.currentSection', 'section-dashboard');
-  const targetExists = document.getElementById(savedSection);
-  window.HuntDrop.navigateTo(targetExists ? savedSection : 'section-dashboard', true);
+  const targetExists = document.getElementById(savedSection) || PLUGIN_MANIFEST[savedSection];
+  await window.HuntDrop.navigateTo(targetExists ? savedSection : 'section-dashboard', true);
 
-  // 4. Initial search to populate grid
-  EventBus.emit('filter:changed', { filters: {}, query: '' });
-
-  // 4b. Setup debounced filters (after initial search to avoid double-fire)
+  // 4. Setup debounced filters before initial search to ensure debounce is active
   setupDebouncedFilters();     // #14: Debounce filter inputs
+
+  // 4b. Initial search to populate grid
+  EventBus.emit('filter:changed', { filters: {}, query: '' });
 
   // 5. Accessibility enhancements
   enhanceAccessibility();
 
-  // 15. Preload critical plugin CSS (ensure they're applied)
-  document.querySelectorAll('link[media="print"]').forEach(function(link) {
-    link.media = 'all';
-  });
+  // 6. Register Service Worker for offline support (skip on file:// protocol)
+  if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').then(function(reg) {
+        if (window.HuntDrop._debug) console.log('[HuntDrop] Service Worker registered:', reg.scope);
+      }).catch(function(err) {
+        console.warn('[HuntDrop] Service Worker registration failed:', err);
+      });
+    });
+  }
 
-  console.log(`%c✦ HuntDrop AI Ready — ${plugins.length} plugins loaded`, 'color: #00ff88; font-weight: bold;');
+  if (window.HuntDrop._debug) console.log(`%c✦ HuntDrop AI Ready — ${criticalPlugins.length} critical plugins loaded, remaining lazy-loaded on navigation`, 'color: #00ff88; font-weight: bold;');
 });
 
 })();

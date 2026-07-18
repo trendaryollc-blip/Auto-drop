@@ -2,7 +2,7 @@
 // PLUGIN: AI Web Search — Configurable search providers
 // ============================================================================
 (function(){
-const {PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry,Config} = window.HuntDrop;
 
 const SEARCH_PROVIDERS = {
   tavily: {
@@ -31,16 +31,16 @@ const AIWebSearch = {
   version: '1.0.0',
   providers: SEARCH_PROVIDERS,
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('webSearch', {
       provider: 'tavily',
       key: ''
     });
   },
 
-  mount(ctx) {},
+  mount(_ctx) {},
 
-  unmount(ctx) {},
+  unmount(_ctx) {},
 
   getProvider() {
     return Config.get('webSearch.provider') || 'tavily';
@@ -64,8 +64,8 @@ const AIWebSearch = {
 
   async search(query, numResults) {
     if (!this.hasKey()) return this.fallbackSearch(query);
-    var provider = this.getProvider();
-    var key = this.getKey();
+    const provider = this.getProvider();
+    const key = this.getKey();
     try {
       switch(provider) {
         case 'tavily': return await this.searchTavily(query, key, numResults);
@@ -80,7 +80,7 @@ const AIWebSearch = {
   },
 
   async searchTavily(query, key, numResults) {
-    var resp = await fetch(SEARCH_PROVIDERS.tavily.endpoint, {
+    const resp = await fetch(SEARCH_PROVIDERS.tavily.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -91,7 +91,7 @@ const AIWebSearch = {
         include_answer: true
       })
     });
-    var data = await resp.json();
+    const data = await resp.json();
     return {
       answer: data.answer || '',
       results: (data.results || []).map(function(r) {
@@ -101,12 +101,12 @@ const AIWebSearch = {
   },
 
   async searchSerper(query, key, numResults) {
-    var resp = await fetch(SEARCH_PROVIDERS.serper.endpoint, {
+    const resp = await fetch(SEARCH_PROVIDERS.serper.endpoint, {
       method: 'POST',
       headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
       body: JSON.stringify({ q: query, num: numResults || 5 })
     });
-    var data = await resp.json();
+    const data = await resp.json();
     return {
       answer: '',
       results: (data.organic || []).map(function(r) {
@@ -116,11 +116,11 @@ const AIWebSearch = {
   },
 
   async searchBrave(query, key, numResults) {
-    var resp = await fetch(SEARCH_PROVIDERS.brave.endpoint + '?q=' + encodeURIComponent(query) + '&count=' + (numResults || 5), {
+    const resp = await fetch(SEARCH_PROVIDERS.brave.endpoint + '?q=' + encodeURIComponent(query) + '&count=' + (numResults || 5), {
       method: 'GET',
       headers: { 'Accept': 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': key }
     });
-    var data = await resp.json();
+    const data = await resp.json();
     return {
       answer: '',
       results: (data.web?.results || []).map(function(r) {
@@ -129,7 +129,7 @@ const AIWebSearch = {
     };
   },
 
-  fallbackSearch(query) {
+  fallbackSearch(_query) {
     return {
       answer: '',
       results: [],
@@ -139,13 +139,13 @@ const AIWebSearch = {
   },
 
   async searchProductPrices(productName) {
-    var queries = [
+    const queries = [
       productName + ' price buy online 2026',
       productName + ' Amazon eBay Shopify price'
     ];
-    var allResults = [];
-    for (var i = 0; i < queries.length; i++) {
-      var r = await this.search(queries[i], 3);
+    let allResults = [];
+    for (let i = 0; i < queries.length; i++) {
+      const r = await this.search(queries[i], 3);
       if (r.results) allResults = allResults.concat(r.results);
     }
     return { query: productName, results: allResults.slice(0, 8) };
@@ -171,7 +171,7 @@ const AIWebSearch = {
     if (!searchData || !searchData.results || searchData.results.length === 0) {
       return 'No web search results available.';
     }
-    var output = 'WEB SEARCH RESULTS:\n';
+    let output = 'WEB SEARCH RESULTS:\n';
     if (searchData.answer) output += 'Summary: ' + searchData.answer + '\n\n';
     searchData.results.forEach(function(r, i) {
       output += (i + 1) + '. ' + r.title + '\n';

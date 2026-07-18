@@ -5,20 +5,23 @@
 // Map, Profit Simulator, Seasonal Heatmap, Niche Comparison
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+let _section = null;
+let _detailOpen = false;
+let _keydownHandler = null;
 
 const NICHES = [
   {id:1,name:"Smart Pet Tech",emoji:"\uD83D\uDC3E",score:94,heat:"hot",growth:"+34%",products:2847,revenue:"$4.2M",avgMargin:74,competition:"low",saturation:28,sellers:42,searchVol:"186K/mo",lifecycle:"growing",blueOcean:82,confidence:91,topProducts:[{name:"GPS Tracker Collar",price:24.99,img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop"},{name:"Auto Pet Feeder",price:39.99,img:"https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=80&h=80&fit=crop"},{name:"Pet Camera Treat",price:29.99,img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=80&h=80&fit=crop"}],trendData:[42,48,55,62,70,78,85,88,90,92,93,94],seasonality:[85,80,78,82,88,92,95,100,105,110,115,120],platforms:[{name:"Amazon",sellers:18,avgPrice:42.99},{name:"Shopify",sellers:12,avgPrice:49.99},{name:"TikTok",sellers:8,avgPrice:29.99},{name:"AliExpress",sellers:4,avgPrice:15.99}],audience:{age:"25-45",gender:"All",interests:["Pets","Tech","Home"]},riskScore:18,insight:"Pet tech is booming with 34% growth. Only 42 sellers across all platforms. GPS collars and smart feeders dominate. Auto-ship consumables (food, filters) create recurring revenue. TikTok pet content drives viral potential. Recommend starting with GPS collar at $29.99."},
   {id:2,name:"WFH Ergonomics",emoji:"\uD83D\uDDA5\uFE0F",score:91,heat:"hot",growth:"+28%",products:1923,revenue:"$3.1M",avgMargin:71,competition:"low",saturation:32,sellers:38,searchVol:"142K/mo",lifecycle:"growing",blueOcean:76,confidence:88,topProducts:[{name:"Posture Corrector",price:19.99,img:"https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=80&h=80&fit=crop"},{name:"Desk Cable Mgmt",price:24.99,img:"https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?w=80&h=80&fit=crop"},{name:"Monitor Light Bar",price:34.99,img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop"}],trendData:[55,58,62,68,72,75,78,80,82,85,88,91],seasonality:[110,105,100,95,90,85,85,90,100,110,115,120],platforms:[{name:"Amazon",sellers:15,avgPrice:34.99},{name:"Shopify",sellers:10,avgPrice:44.99},{name:"TikTok",sellers:8,avgPrice:24.99},{name:"Etsy",sellers:5,avgPrice:39.99}],audience:{age:"22-40",gender:"All",interests:["WFH","Office","Health","Tech"]},riskScore:22,insight:"Permanent WFH shift created massive demand. Posture correctors and desk accessories dominate. Smart vibration reminders are the premium differentiator. Content marketing (before/after posture) drives organic traffic. Bundle desk accessories for higher AOV."},
   {id:3,name:"Kawaii Home Decor",emoji:"\uD83C\uDF38",score:88,heat:"hot",growth:"+42%",products:3456,revenue:"$2.8M",avgMargin:78,competition:"medium",saturation:45,sellers:67,searchVol:"210K/mo",lifecycle:"growing",blueOcean:58,confidence:85,topProducts:[{name:"Cloud LED Lamp",price:22.99,img:"https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=80&h=80&fit=crop"},{name:"Cactus Night Light",price:14.99,img:"https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=80&h=80&fit=crop"},{name:"Miniature Set",price:18.99,img:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=80&h=80&fit=crop"}],trendData:[30,38,48,55,62,68,72,76,80,83,86,88],seasonality:[95,85,75,70,65,60,60,65,75,90,110,140],platforms:[{name:"Etsy",sellers:22,avgPrice:24.99},{name:"TikTok",sellers:18,avgPrice:19.99},{name:"Shopify",sellers:15,avgPrice:29.99},{name:"Amazon",sellers:12,avgPrice:22.99}],audience:{age:"14-28",gender:"Female",interests:["Kawaii","Aesthetic","Decor","Gifts"]},riskScore:30,insight:"Fastest growing niche (+42%). Kawaii aesthetic is a global cultural movement, not a trend. Touch-dimming silicone lights dominate. Gift item with massive Q4 potential. Etsy is the #1 platform. Create a branded kawaii collection for premium positioning."},
   {id:4,name:"Eco Kitchen",emoji:"\uD83C\uDF3F",score:85,heat:"warm",growth:"+19%",products:2134,revenue:"$2.2M",avgMargin:76,competition:"low",saturation:25,sellers:31,searchVol:"98K/mo",lifecycle:"mature",blueOcean:79,confidence:82,topProducts:[{name:"Bamboo Utensil Set",price:12.99,img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=80&h=80&fit=crop"},{name:"Silicone Food Bags",price:9.99,img:"https://images.unsplash.com/photo-1584568694244-44ed00122f74?w=80&h=80&fit=crop"},{name:"Beeswax Wraps",price:14.99,img:"https://images.unsplash.com/photo-1607006344380-b6775a0824a7?w=80&h=80&fit=crop"}],trendData:[50,52,55,58,60,63,66,70,74,78,82,85],seasonality:[90,85,80,85,90,95,100,105,110,115,120,130],platforms:[{name:"Etsy",sellers:12,avgPrice:18.99},{name:"Shopify",sellers:9,avgPrice:24.99},{name:"Amazon",sellers:7,avgPrice:16.99},{name:"TikTok",sellers:3,avgPrice:14.99}],audience:{age:"25-45",gender:"All",interests:["Sustainability","Cooking","Eco","Health"]},riskScore:20,insight:"Sustainability is a permanent consumer shift. Low competition with premium pricing potential. Bamboo and silicone products dominate. Eco Kitchen branding creates loyalty. Subscription model potential (refill wraps). Earth Day and holiday gifting peaks."},
-  {id:5,name:"Car Accessories",emoji:"\uD83D\uDE97",score:82,heat:"warm",growth:"+15%",products:4567,revenue:"$5.1M",avgMargin:73,competition:"high",saturation:68,sellers:124,searchVol:"320K/mo",lifecycle:"mature",blueOcean:32,confidence:75,topProducts:[{name:"Car Vacuum",price:29.99,img:"https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=80&h=80&fit=crop"},{name:"LED Interior Lights",price:14.99,img:"https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=80&h=80&fit=crop"},{name:"Phone Mount",price:12.99,img:"https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=80&h=80&fit=crop"}],trendData:[60,62,63,64,65,66,68,70,72,75,78,82],seasonality:[95,90,90,95,100,100,100,100,100,105,105,110],platforms:[{name:"Amazon",sellers:45,avgPrice:24.99},{name:"AliExpress",sellers:35,avgPrice:8.99},{name:"Temu",sellers:25,avgPrice:7.99},{name:"eBay",sellers:19,avgPrice:19.99}],audience:{age:"20-55",gender:"Male",interests:["Cars","Driving","Tech"]},riskScore:45,insight:"High volume but very competitive. Differentiate through bundling (kit of 5 accessories) or premium packaging. LED interior lights and car vacuums have consistent demand. MagSafe-compatible mounts are the new opportunity. Focus on Tesla/EV accessories for less competition."},
+  {id:5,name:"Car Accessories",emoji:"\uD83D\uDE97",score:82,heat:"warm",growth:"+15%",products:4567,revenue:"$5.1M",avgMargin:73,competition:"high",saturation:68,sellers:124,searchVol:"320K/mo",lifecycle:"mature",blueOcean:32,confidence:75,topProducts:[{name:"Car Vacuum",price:29.99,img:"https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=80&h=80&fit=crop"},{name:"LED Interior Lights",price:14.99,img:"https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=80&h=80&fit=crop"},{name:"Phone Mount",price:12.99,img:"https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=80&h=80&fit=crop"}],trendData:[60,62,63,64,65,66,68,70,72,75,78,82],seasonality:[95,90,90,95,100,100,100,100,100,105,105,110],platforms:[{name:"Amazon",sellers:45,avgPrice:24.99},{name:"AliExpress",sellers:35,avgPrice:8.99},{name:"Temu",sellers:25,avgPrice:7.99},{name:"eBay",sellers:19,avgPrice:19.99}],audience:{age:"20-55",gender:"Male",interests:["Cars","Driving","Tech"]},riskScore:45,insight:"High volume but very competitive. Differentiate through bundling (kit of 5 accessories) or premium packaging. LED interior lights and car vacuums have consistent demand. MagSafe-compatible mounts are the new opportunity. Focus on Tesla/EV accessories for less competition."},
   {id:6,name:"Beauty Tech",emoji:"\uD83D\uDC84",score:80,heat:"warm",growth:"+22%",products:1876,revenue:"$3.5M",avgMargin:79,competition:"low",saturation:30,sellers:35,searchVol:"156K/mo",lifecycle:"growing",blueOcean:74,confidence:86,topProducts:[{name:"Heated Eyelash Curler",price:16.99,img:"https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=80&h=80&fit=crop"},{name:"LED Face Mask",price:34.99,img:"https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=80&h=80&fit=crop"},{name:"Facial Ice Roller",price:12.99,img:"https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=80&h=80&fit=crop"}],trendData:[35,40,48,55,60,65,68,70,72,75,78,80],seasonality:[100,110,105,100,95,90,90,95,100,110,120,130],platforms:[{name:"TikTok",sellers:14,avgPrice:22.99},{name:"Amazon",sellers:10,avgPrice:24.99},{name:"Shopify",sellers:7,avgPrice:29.99},{name:"Etsy",sellers:4,avgPrice:19.99}],audience:{age:"16-35",gender:"Female",interests:["Beauty","Skincare","TikTok","Makeup"]},riskScore:22,insight:"TikTok drives massive beauty tech demand. Heated eyelash curlers and LED masks are viral winners. Influencer marketing ROI is highest in beauty. USB-rechargeable feature is a must. Bundle with skincare tools for premium kits. Low competition = high opportunity."},
-  {id:7,name:"Smart Sleep Tech",emoji:"\uD83D\uDE34",score:87,heat:"hot",growth:"+31%",products:1245,revenue:"$2.8M",avgMargin:77,competition:"low",saturation:22,sellers:28,searchVol:"124K/mo",lifecycle:"emerging",blueOcean:85,confidence:89,topProducts:[{name:"Sleep Tracker Ring",price:49.99,img:"https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=80&h=80&fit=crop"},{name:"Smart Alarm Clock",price:34.99,img:"https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=80&h=80&fit=crop"},{name:"White Noise Machine",price:24.99,img:"https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=80&h=80&fit=crop"}],trendData:[20,28,38,48,55,62,68,73,78,82,85,87],seasonality:[115,110,105,100,95,90,88,90,95,105,115,125],platforms:[{name:"Amazon",sellers:12,avgPrice:44.99},{name:"Shopify",sellers:8,avgPrice:54.99},{name:"TikTok",sellers:5,avgPrice:34.99},{name:"AliExpress",sellers:3,avgPrice:18.99}],audience:{age:"25-50",gender:"All",interests:["Sleep","Health","Wellness","Biohacking"]},riskScore:16,insight:"Emerging niche with massive blue ocean potential (85/100). Only 28 sellers. Sleep tracking rings are the next wearable wave. Smart alarm clocks with sunrise simulation trending. Only 5 sellers on TikTok = huge opportunity. Partner with sleep influencers for viral content."},
+  {id:7,name:"Smart Sleep Tech",emoji:"\uD83D\uDE34",score:87,heat:"hot",growth:"+31%",products:1245,revenue:"$2.8M",avgMargin:77,competition:"low",saturation:22,sellers:28,searchVol:"124K/mo",lifecycle:"emerging",blueOcean:85,confidence:89,topProducts:[{name:"Sleep Tracker Ring",price:49.99,img:"https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=80&h=80&fit=crop"},{name:"Smart Alarm Clock",price:34.99,img:"https://images.unsplash.com/photo-1563861826100-9cb868fdbe1c?w=80&h=80&fit=crop"},{name:"White Noise Machine",price:24.99,img:"https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=80&h=80&fit=crop"}],trendData:[20,28,38,48,55,62,68,73,78,82,85,87],seasonality:[115,110,105,100,95,90,88,90,95,105,115,125],platforms:[{name:"Amazon",sellers:12,avgPrice:44.99},{name:"Shopify",sellers:8,avgPrice:54.99},{name:"TikTok",sellers:5,avgPrice:34.99},{name:"AliExpress",sellers:3,avgPrice:18.99}],audience:{age:"25-50",gender:"All",interests:["Sleep","Health","Wellness","Biohacking"]},riskScore:16,insight:"Emerging niche with massive blue ocean potential (85/100). Only 28 sellers. Sleep tracking rings are the next wearable wave. Smart alarm clocks with sunrise simulation trending. Only 5 sellers on TikTok = huge opportunity. Partner with sleep influencers for viral content."},
   {id:8,name:"Mental Health Gadgets",emoji:"\uD83E\uDDE0",score:83,heat:"warm",growth:"+26%",products:987,revenue:"$1.8M",avgMargin:81,competition:"low",saturation:19,sellers:22,searchVol:"78K/mo",lifecycle:"emerging",blueOcean:87,confidence:84,topProducts:[{name:"Fidget Stress Device",price:14.99,img:"https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=80&h=80&fit=crop"},{name:"Meditation Band",price:29.99,img:"https://images.unsplash.com/photo-1545389336-cf090694435e?w=80&h=80&fit=crop"},{name:"Mood Light",price:19.99,img:"https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=80&h=80&fit=crop"}],trendData:[15,22,30,38,45,52,58,64,70,76,80,83],seasonality:[110,105,100,95,90,88,85,88,92,100,108,115],platforms:[{name:"Etsy",sellers:9,avgPrice:24.99},{name:"Shopify",sellers:7,avgPrice:34.99},{name:"Amazon",sellers:4,avgPrice:22.99},{name:"TikTok",sellers:2,avgPrice:19.99}],audience:{age:"18-40",gender:"All",interests:["Mental Health","Wellness","Anxiety","Meditation"]},riskScore:15,insight:"Highest blue ocean index (87/100). Only 22 sellers across all platforms. Mental health awareness at all-time high. Fidget devices and meditation aids dominate. Only 2 sellers on TikTok = massive untapped potential. Create a 'Mindful Tech' brand. Premium pricing justified by wellness positioning."},
   {id:9,name:"Travel Tech",emoji:"\u2708\uFE0F",score:81,heat:"warm",growth:"+18%",products:2340,revenue:"$2.6M",avgMargin:74,competition:"medium",saturation:42,sellers:56,searchVol:"168K/mo",lifecycle:"growing",blueOcean:55,confidence:78,topProducts:[{name:"Universal Adapter",price:24.99,img:"https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=80&h=80&fit=crop"},{name:"Travel Hub USB-C",price:29.99,img:"https://images.unsplash.com/photo-1583394838336-acd977736f90?w=80&h=80&fit=crop"},{name:"Packing Cubes Set",price:19.99,img:"https://images.unsplash.com/photo-1553531384-cc64ac80f931?w=80&h=80&fit=crop"}],trendData:[45,48,50,52,55,58,60,63,66,70,75,81],seasonality:[70,65,70,80,90,100,110,105,100,95,90,100],platforms:[{name:"Amazon",sellers:22,avgPrice:29.99},{name:"AliExpress",sellers:18,avgPrice:12.99},{name:"Shopify",sellers:10,avgPrice:34.99},{name:"TikTok",sellers:6,avgPrice:24.99}],audience:{age:"20-40",gender:"All",interests:["Travel","Tech","Digital Nomad","Adventure"]},riskScore:35,insight:"Travel rebound driving steady growth. Smart adapters with GaN fast charging are premium winners. Digital nomad niche is underserved. Bundle travel tech kits for higher AOV. Summer and holiday travel peaks. TikTok travel content drives discovery."},
-  {id:10,name:"Kids STEM Toys",emoji:"\uD83C\uDFAE",score:79,heat:"cool",growth:"+16%",products:3120,revenue:"$3.8M",avgMargin:72,competition:"medium",saturation:48,sellers:72,searchVol:"195K/mo",lifecycle:"mature",blueOcean:48,confidence:74,topProducts:[{name:"Robot Kit",price:39.99,img:"https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=80&h=80&fit=crop"},{name:"Coding Mouse",price:24.99,img:"https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=80&h=80&fit=crop"},{name:"Science Kit",price:29.99,img:"https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=80&h=80&fit=crop"}],trendData:[45,47,48,50,52,55,58,62,66,70,74,79],seasonality:[80,75,70,70,75,80,80,80,85,100,130,150],platforms:[{name:"Amazon",sellers:30,avgPrice:44.99},{name:"AliExpress",sellers:22,avgPrice:18.99},{name:"Shopify",sellers:12,avgPrice:49.99},{name:"TikTok",sellers:8,avgPrice:34.99}],audience:{age:"25-45",gender:"All",interests:["Kids","Education","STEM","Parenting"]},riskScore:38,insight:"STEM education is recession-proof. App-connected robots are the premium differentiator. Q4 holiday season drives 60% of annual sales. Bundle with coding courses for higher perceived value. Amazon is the dominant platform. Gender-neutral marketing expands TAM."},
+  {id:10,name:"Kids STEM Toys",emoji:"\uD83C\uDFAE",score:79,heat:"cool",growth:"+16%",products:3120,revenue:"$3.8M",avgMargin:72,competition:"medium",saturation:48,sellers:72,searchVol:"195K/mo",lifecycle:"mature",blueOcean:48,confidence:74,topProducts:[{name:"Robot Kit",price:39.99,img:"https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=80&h=80&fit=crop"},{name:"Coding Mouse",price:24.99,img:"https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=80&h=80&fit=crop"},{name:"Science Kit",price:29.99,img:"https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=80&h=80&fit=crop"}],trendData:[45,47,48,50,52,55,58,62,66,70,74,79],seasonality:[80,75,70,70,75,80,80,80,85,100,130,150],platforms:[{name:"Amazon",sellers:30,avgPrice:44.99},{name:"AliExpress",sellers:22,avgPrice:18.99},{name:"Shopify",sellers:12,avgPrice:49.99},{name:"TikTok",sellers:8,avgPrice:34.99}],audience:{age:"25-45",gender:"All",interests:["Kids","Education","STEM","Parenting"]},riskScore:38,insight:"STEM education is recession-proof. App-connected robots are the premium differentiator. Q4 holiday season drives 60% of annual sales. Bundle with coding courses for higher perceived value. Amazon is the dominant platform. Gender-neutral marketing expands TAM."},
   {id:11,name:"Plant Care Tech",emoji:"\uD83C\uDF31",score:84,heat:"warm",growth:"+24%",products:1120,revenue:"$1.4M",avgMargin:80,competition:"low",saturation:24,sellers:26,searchVol:"89K/mo",lifecycle:"emerging",blueOcean:81,confidence:83,topProducts:[{name:"Soil Moisture Meter",price:14.99,img:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=80&h=80&fit=crop"},{name:"Self-Watering Pot",price:19.99,img:"https://images.unsplash.com/photo-1459411552884-841db9b3cc2a?w=80&h=80&fit=crop"},{name:"Grow Light Bulb",price:16.99,img:"https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=80&h=80&fit=crop"}],trendData:[18,24,32,40,48,55,60,65,70,75,80,84],seasonality:[85,80,85,95,105,110,110,105,100,95,88,82],platforms:[{name:"Etsy",sellers:10,avgPrice:22.99},{name:"Amazon",sellers:8,avgPrice:19.99},{name:"Shopify",sellers:5,avgPrice:24.99},{name:"TikTok",sellers:3,avgPrice:17.99}],audience:{age:"22-38",gender:"Female",interests:["Plants","Indoor Garden","Home","Wellness"]},riskScore:18,insight:"Indoor plant parents are willing to pay premium for smart care tools. Bluetooth soil sensors with app are the next wave. Only 3 TikTok sellers = huge opportunity. Plant care content goes viral consistently. Bundle with plant accessories for higher AOV."},
   {id:12,name:"Gaming Accessories",emoji:"\uD83C\uDFAE",score:77,heat:"cool",growth:"+12%",products:5200,revenue:"$6.2M",avgMargin:68,competition:"high",saturation:72,sellers:156,searchVol:"420K/mo",lifecycle:"mature",blueOcean:22,confidence:70,topProducts:[{name:"RGB Mousepad",price:14.99,img:"https://images.unsplash.com/photo-1527814050087-3793815479db?w=80&h=80&fit=crop"},{name:"Controller Grip",price:9.99,img:"https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=80&h=80&fit=crop"},{name:"Headset Stand",price:19.99,img:"https://images.unsplash.com/photo-1599474924187-334a4ae5bd3c?w=80&h=80&fit=crop"}],trendData:[55,56,58,60,62,64,66,68,70,72,74,77],seasonality:[90,85,80,80,85,90,90,90,95,100,115,130],platforms:[{name:"Amazon",sellers:65,avgPrice:19.99},{name:"AliExpress",sellers:45,avgPrice:8.99},{name:"Temu",sellers:30,avgPrice:6.99},{name:"eBay",sellers:16,avgPrice:14.99}],audience:{age:"16-30",gender:"Male",interests:["Gaming","Tech","Esports","Streaming"]},riskScore:50,insight:"High volume but extremely competitive. Niche down to specific games or platforms (PS5, Switch). Ergonomic gaming accessories are underserved. Streaming gear (ring lights, mic arms) adjacent opportunity. Avoid commodity items like basic mousepads."}
 ];
@@ -89,20 +92,17 @@ const NicheRadarPlugin = {
   version:'2.0.0',
   description:'Professional niche discovery with Blue Ocean Index, lifecycle tracking, competitor density maps, and profit simulation',
   dependencies:['search-engine'],
-  _section:null,
-  _detailOpen:false,
 
-  init(ctx){ Config.defaults('nicheRadar',{enabled:true}); },
+  init(_ctx){ Config.defaults('nicheRadar',{enabled:true}); },
 
-  mount(ctx){
+  mount(_ctx){
     const container = UI.$('sections-container');
     if(!container) return;
 
     const section = document.createElement('section');
     section.className = 'section section-niche';
     section.id = 'section-niche-radar';
-    const self = NicheRadarPlugin;
-    self._section = section;
+    _section = section;
 
     const avgScore = Math.round(NICHES.reduce((a,n)=>a+n.score,0)/NICHES.length);
     const hottest = NICHES.reduce((a,n)=>n.score>a.score?n:a);
@@ -121,7 +121,7 @@ const NicheRadarPlugin = {
       const n = NICHES[i];
       const heatColor = n.heat==='hot'?'var(--accent-red)':n.heat==='warm'?'var(--accent-orange)':'var(--accent-cyan)';
       const lifecycleColor = n.lifecycle==='emerging'?'var(--accent-cyan)':n.lifecycle==='growing'?'var(--accent-green)':'var(--accent-orange)';
-      nicheCardsHtml.push(`<div class="nr-card" data-id="${n.id}" style="animation-delay:${i*0.06}s"><div class="nr-card-top"><div class="nr-card-title-row"><span class="nr-card-emoji">${esc(n.emoji)}</span><span class="nr-card-name">${esc(n.name)}</span><span class="nr-card-score" style="background:${heatColor}22;color:${heatColor}">${n.score}</span></div><div class="nr-card-tags"><span class="nr-tag nr-tag-lifecycle" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span><span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth}</span><span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Ocean: ${n.blueOcean}</span></div></div><div class="nr-card-spark">${renderSparkline(n.trendData, heatColor, 280, 50)}</div><div class="nr-card-metrics"><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-metric-lbl">Growth</span></div><div class="nr-metric"><span class="nr-metric-val">${n.products.toLocaleString()}</span><span class="nr-metric-lbl">Products</span></div><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-metric-lbl">Revenue</span></div><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-metric-lbl">Avg Margin</span></div></div><div class="nr-card-comp"><span class="nr-comp-label">Competition</span>${renderCompetitionBar(n.saturation)}</div><div class="nr-card-heat">${renderHeatmap(n.seasonality)}</div><div class="nr-card-platforms">${renderPlatformChips(n.platforms)}</div><div class="nr-card-products">${n.topProducts.map(p=>'<div class="nr-prod-chip"><img src="'+esc(p.img)+'" class="nr-prod-img" alt="" onerror="this.style.display=\'none\'"><span class="nr-prod-name">'+esc(p.name)+'</span><span class="nr-prod-price">$'+p.price+'</span></div>').join('')}</div><div class="nr-card-actions"><button class="nr-btn nr-btn-primary" onclick="window.HuntDrop._nicheExplore(${n.id})">Explore Products</button><button class="nr-btn nr-btn-ghost" onclick="window.HuntDrop._nicheDetail(${n.id})">Full Analysis</button></div></div>`);
+      nicheCardsHtml.push(`<div class="nr-card" data-id="${n.id}" style="animation-delay:${i*0.06}s" onclick="event.stopPropagation();window.HuntDrop._nicheDetail(${n.id})"><div class="nr-card-top"><div class="nr-card-title-row"><span class="nr-card-emoji">${esc(n.emoji)}</span><span class="nr-card-name">${esc(n.name)}</span><span class="nr-card-score" style="background:${heatColor}22;color:${heatColor}">${n.score}</span></div><div class="nr-card-tags"><span class="nr-tag nr-tag-lifecycle" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span><span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth}</span><span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Ocean: ${n.blueOcean}</span></div></div><div class="nr-card-spark">${renderSparkline(n.trendData, heatColor, 280, 50)}</div><div class="nr-card-metrics"><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-metric-lbl">Growth</span></div><div class="nr-metric"><span class="nr-metric-val">${n.products.toLocaleString()}</span><span class="nr-metric-lbl">Products</span></div><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-metric-lbl">Revenue</span></div><div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-metric-lbl">Avg Margin</span></div></div><div class="nr-card-comp"><span class="nr-comp-label">Competition</span>${renderCompetitionBar(n.saturation)}</div><div class="nr-card-heat">${renderHeatmap(n.seasonality)}</div><div class="nr-card-platforms">${renderPlatformChips(n.platforms)}</div><div class="nr-card-products">${n.topProducts.map(p=>'<div class="nr-prod-chip"><img src="'+esc(p.img)+'" class="nr-prod-img" alt="" onerror="this.style.display=\'none\'"><span class="nr-prod-name">'+esc(p.name)+'</span><span class="nr-prod-price">$'+p.price+'</span></div>').join('')}</div><div class="nr-card-actions"><button class="nr-btn nr-btn-primary" onclick="event.stopPropagation();window.HuntDrop._nicheExplore(${n.id})">Explore Products</button><button class="nr-btn nr-btn-ghost" onclick="event.stopPropagation();window.HuntDrop._nicheDetail(${n.id})">Full Analysis</button></div></div>`);
     }
 
     section.innerHTML = `
@@ -129,9 +129,9 @@ const NicheRadarPlugin = {
         <div class="nr-hero" style="animation:fadeUp 0.5s ease both">
           <h2 class="section-title">Niche Radar</h2>
           <p class="section-desc">Discover untapped niches, track lifecycle stages, and find blue ocean opportunities before everyone else</p>
-          <div class="nr-search-bar">
+          <div class="nr-search-bar" role="search" aria-label="Niche search and filters">
             <input type="text" id="nicheSearch" placeholder="Search niches..." class="nr-search-input" autocomplete="off">
-            <div class="nr-filter-row">
+            <div class="nr-filter-row" role="group" aria-label="Niche filters">
               <button class="nr-filter active" data-filter="all" onclick="window.HuntDrop._nicheFilter(this,'all')">All</button>
               <button class="nr-filter" data-filter="hot" onclick="window.HuntDrop._nicheFilter(this,'hot')">Hot</button>
               <button class="nr-filter" data-filter="warm" onclick="window.HuntDrop._nicheFilter(this,'warm')">Warm</button>
@@ -170,7 +170,6 @@ const NicheRadarPlugin = {
           <h3 class="nr-section-title"><span class="nr-section-icon" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">🎯</span>All Niches</h3>
           <div class="nr-grid" id="nicheGrid">${nicheCardsHtml.join('')}</div>
         </div>
-        <div class="nr-detail-overlay" id="nicheDetailOverlay" onclick="if(event.target===this)window.HuntDrop._nicheCloseDetail()"><div class="nr-detail-panel" id="nicheDetailPanel"></div></div>
         ${window.HuntDrop.renderRelatedTools([
           {section:'section-product-hunt',name:'Product Hunt',desc:'Find winning products',icon:'🔥',color:'#FF6B6B'},
           {section:'section-market-gaps',name:'Market Gaps',desc:'Find underserved markets',icon:'🔍',color:'#4ECDC4'},
@@ -179,217 +178,220 @@ const NicheRadarPlugin = {
         ])}
       </div>`;
     container.appendChild(section);
-    self._section = section;
+    _section = section;
 
     const searchEl = section.querySelector('#nicheSearch');
-    if(searchEl) searchEl.addEventListener('input', function(){ self._applyFilters(); });
+    if(searchEl) searchEl.addEventListener('input', function(){ applyFilters(); });
 
-    self._keydownHandler = function(e){ if(e.key==='Escape'&&self._detailOpen) self._closeDetail(); };
-    document.addEventListener('keydown', self._keydownHandler);
+    _keydownHandler = function(e){ if(e.key==='Escape'&&_detailOpen) closeDetail(); };
+    document.addEventListener('keydown', _keydownHandler);
   },
 
-  _renderGrid(niches) {
-    const grid = this._section.querySelector('#nicheGrid');
-    if(!grid) { console.warn('[NicheRadar] #nicheGrid not found'); return; }
-    if(niches.length === 0) {
-      grid.innerHTML = '<div class="nr-empty">No niches match your filters</div>';
-      return;
+  unmount(_ctx) {
+    if(_keydownHandler) {
+      document.removeEventListener('keydown', _keydownHandler);
+      _keydownHandler = null;
     }
-    const cards = [];
-    for(const n of niches) {
-      try {
-        const heatColor = n.heat==='hot'?'var(--accent-red)':n.heat==='warm'?'var(--accent-orange)':'var(--accent-cyan)';
-        const lifecycleColor = n.lifecycle==='emerging'?'var(--accent-cyan)':n.lifecycle==='growing'?'var(--accent-green)':'var(--accent-orange)';
-        cards.push(`<div class="nr-card" data-id="${n.id}">
-        <div class="nr-card-top">
-          <div class="nr-card-title-row">
-            <span class="nr-card-emoji">${esc(n.emoji)}</span>
-            <span class="nr-card-name">${esc(n.name)}</span>
-            <span class="nr-card-score" style="background:${heatColor}22;color:${heatColor}">${n.score}</span>
-          </div>
-          <div class="nr-card-tags">
-            <span class="nr-tag nr-tag-lifecycle" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span>
-            <span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth}</span>
-            <span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Ocean: ${n.blueOcean}</span>
-          </div>
-        </div>
-        <div class="nr-card-spark">${renderSparkline(n.trendData, heatColor, 280, 50)}</div>
-        <div class="nr-card-metrics">
-          <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-metric-lbl">Growth</span></div>
-          <div class="nr-metric"><span class="nr-metric-val">${n.products.toLocaleString()}</span><span class="nr-metric-lbl">Products</span></div>
-          <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-metric-lbl">Revenue</span></div>
-          <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-metric-lbl">Avg Margin</span></div>
-        </div>
-        <div class="nr-card-comp">
-          <span class="nr-comp-label">Competition</span>
-          ${renderCompetitionBar(n.saturation)}
-        </div>
-        <div class="nr-card-heat">${renderHeatmap(n.seasonality)}</div>
-        <div class="nr-card-platforms">${renderPlatformChips(n.platforms)}</div>
-        <div class="nr-card-products">
-          ${n.topProducts.map(p => `<div class="nr-prod-chip"><img src="${esc(p.img)}" class="nr-prod-img" alt="" onerror="this.style.display='none'"><span class="nr-prod-name">${esc(p.name)}</span><span class="nr-prod-price">$${p.price}</span></div>`).join('')}
-        </div>
-        <div class="nr-card-actions">
-          <button class="nr-btn nr-btn-primary" onclick="window.HuntDrop._nicheExplore(${n.id})">Explore Products</button>
-          <button class="nr-btn nr-btn-ghost" onclick="window.HuntDrop._nicheDetail(${n.id})">Full Analysis</button>
-        </div>
-      </div>`);
-      } catch(cardErr) {
-        console.error('[NicheRadar] Card render error for', n.name, cardErr);
-      }
-    }
-    grid.innerHTML = cards.join('');
-  },
-
-  _renderSeasonal() {
-    const grid = this._section.querySelector('#seasonalGrid');
-    if(!grid) return;
-    const now = new Date().getMonth();
-    const upcoming = [];
-    for(let i = 0; i < 4; i++) {
-      upcoming.push(SEASONAL_PEAKS[(now + i) % 12]);
-    }
-    grid.innerHTML = upcoming.map(s => `
-      <div class="nr-seasonal-card">
-        <div class="nr-seasonal-month">${esc(s.month)}</div>
-        <div class="nr-seasonal-niches">${s.niches.map(n => `<span class="nr-seasonal-niche">${esc(n)}</span>`).join('')}</div>
-        <div class="nr-seasonal-reason">${esc(s.reason)}</div>
-      </div>`).join('');
-  },
-
-  _renderDetail(id) {
-    const n = NICHES.find(x => x.id === id);
-    if(!n) return;
-    const panel = this._section.querySelector('#nicheDetailPanel');
-    const overlay = this._section.querySelector('#nicheDetailOverlay');
-    if(!panel || !overlay) return;
-
-    const heatColor = n.heat==='hot'?'var(--accent-red)':n.heat==='warm'?'var(--accent-orange)':'var(--accent-cyan)';
-    const lifecycleColor = n.lifecycle==='emerging'?'var(--accent-cyan)':n.lifecycle==='growing'?'var(--accent-green)':'var(--accent-orange)';
-    const profitExample = Math.round(n.avgMargin * 0.6);
-
-    panel.innerHTML = `
-      <button class="nr-detail-close" id="nrDetailClose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      <div class="nr-detail-hero">
-        <span class="nr-detail-emoji">${esc(n.emoji)}</span>
-        <div>
-          <h2 class="nr-detail-name">${esc(n.name)}</h2>
-          <div class="nr-detail-tags">
-            <span class="nr-tag" style="background:${heatColor}22;color:${heatColor}">Score ${n.score}/100</span>
-            <span class="nr-tag" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span>
-            <span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth} growth</span>
-            <span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Blue Ocean: ${n.blueOcean}/100</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">12-Month Trend</h4>
-        <div class="nr-detail-spark">${renderSparkline(n.trendData, heatColor, 500, 80)}</div>
-      </div>
-
-      <div class="nr-detail-metrics">
-        <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-dm-lbl">Growth</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val">${n.products.toLocaleString()}</span><span class="nr-dm-lbl">Products</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-dm-lbl">Revenue</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-dm-lbl">Avg Margin</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val">${n.sellers}</span><span class="nr-dm-lbl">Sellers</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val">${n.searchVol}</span><span class="nr-dm-lbl">Search Vol</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val" style="color:${n.riskScore<30?'var(--accent-green)':n.riskScore<50?'var(--accent-yellow)':'var(--accent-red)'}">${n.riskScore}/100</span><span class="nr-dm-lbl">Risk Score</span></div>
-        <div class="nr-dm-card"><span class="nr-dm-val">${n.confidence}%</span><span class="nr-dm-lbl">AI Confidence</span></div>
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">Competition by Platform</h4>
-        <div class="nr-detail-platforms">${n.platforms.map(p => {
-          const barW = Math.min((p.sellers / 50) * 100, 100);
-          const c = p.sellers < 8 ? 'var(--accent-green)' : p.sellers < 20 ? 'var(--accent-yellow)' : 'var(--accent-red)';
-          return `<div class="nr-dplat-row"><span class="nr-dplat-name">${esc(p.name)}</span><div class="nr-dplat-bar-wrap"><div class="nr-dplat-bar" style="width:${barW}%;background:${c}"></div></div><span class="nr-dplat-count">${p.sellers} sellers</span><span class="nr-dplat-avg">avg $${p.avgPrice}</span></div>`;
-        }).join('')}</div>
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">Seasonal Demand</h4>
-        ${renderHeatmap(n.seasonality)}
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">Target Audience</h4>
-        <div class="nr-audience"><span class="nr-aud-chip">Age: ${n.audience.age}</span><span class="nr-aud-chip">Gender: ${n.audience.gender}</span>${n.audience.interests.map(i => `<span class="nr-aud-chip">${esc(i)}</span>`).join('')}</div>
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">Profit Simulator</h4>
-        <div class="nr-simulator">
-          <div class="nr-sim-row"><span>Estimated monthly sales</span><span class="nr-sim-val">200 units</span></div>
-          <div class="nr-sim-row"><span>Avg sell price (Amazon)</span><span class="nr-sim-val">$${n.platforms[0]?.avgPrice || 29.99}</span></div>
-          <div class="nr-sim-row"><span>Cost + shipping</span><span class="nr-sim-val" style="color:var(--accent-red)">-$${(n.platforms[0]?.avgPrice * (1 - n.avgMargin/100) * 0.6).toFixed(2)}</span></div>
-          <div class="nr-sim-row"><span>Ad cost per sale (~15%)</span><span class="nr-sim-val" style="color:var(--accent-red)">-$${(n.platforms[0]?.avgPrice * 0.15).toFixed(2)}</span></div>
-          <div class="nr-sim-divider"></div>
-          <div class="nr-sim-row nr-sim-total"><span>Est. Monthly Profit</span><span class="nr-sim-val" style="color:var(--accent-green)">$${Math.round(200 * n.platforms[0]?.avgPrice * (n.avgMargin/100) * 0.65).toLocaleString()}</span></div>
-        </div>
-      </div>
-
-      <div class="nr-detail-section">
-        <h4 class="nr-detail-subtitle">AI Insight</h4>
-        <p class="nr-insight-text">${esc(n.insight)}</p>
-      </div>
-
-      <div class="nr-detail-actions">
-        <button class="nr-btn nr-btn-primary nr-btn-lg" onclick="window.HuntDrop._nicheCloseDetail();window.HuntDrop._nicheExplore(${n.id})">Explore Products in ${esc(n.name)}</button>
-        <button class="nr-btn nr-btn-ghost nr-btn-lg" onclick="window.HuntDrop._nicheCloseDetail();window.HuntDrop.navigateTo('section-supplier-hub')">Find Suppliers</button>
-      </div>`;
-
-    overlay.classList.add('nr-detail-open');
-    this._detailOpen = true;
-  },
-
-  _closeDetail() {
-    const overlay = this._section?.querySelector('#nicheDetailOverlay');
-    if(overlay) overlay.classList.remove('nr-detail-open');
-    this._detailOpen = false;
-  },
-
-  _applyFilters() {
-    const section = this._section;
-    if(!section) return;
-    const query = (section.querySelector('#nicheSearch')?.value || '').toLowerCase();
-    const activeFilter = section.querySelector('.nr-filter.active')?.dataset.filter || 'all';
-    const sortBy = section.querySelector('#nicheSort')?.value || 'score';
-
-    let filtered = NICHES.filter(n => {
-      if(query && !n.name.toLowerCase().includes(query)) return false;
-      if(activeFilter === 'hot' && n.heat !== 'hot') return false;
-      if(activeFilter === 'warm' && n.heat !== 'warm') return false;
-      if(activeFilter === 'cool' && n.heat !== 'cool') return false;
-      if(activeFilter === 'emerging' && n.lifecycle !== 'emerging') return false;
-      if(activeFilter === 'growing' && n.lifecycle !== 'growing') return false;
-      if(activeFilter === 'mature' && n.lifecycle !== 'mature') return false;
-      return true;
-    });
-
-    const sortFns = {
-      score: (a,b) => b.score - a.score,
-      growth: (a,b) => parseInt(b.growth) - parseInt(a.growth),
-      blueOcean: (a,b) => b.blueOcean - a.blueOcean,
-      revenue: (a,b) => parseFloat(b.revenue.replace(/[$M]/g,'')) - parseFloat(a.revenue.replace(/[$M]/g,'')),
-      competition: (a,b) => a.saturation - b.saturation
-    };
-    filtered.sort(sortFns[sortBy] || sortFns.score);
-
-    this._renderGrid(filtered);
-  },
-
-  unmount(ctx) {
-    if(NicheRadarPlugin._keydownHandler) {
-      document.removeEventListener('keydown', NicheRadarPlugin._keydownHandler);
-      NicheRadarPlugin._keydownHandler = null;
-    }
-    if(NicheRadarPlugin._section) NicheRadarPlugin._section.remove();
-    NicheRadarPlugin._section = null;
-    this._section = null;
+    if(_section) _section.remove();
+    _section = null;
+    _detailOpen = false;
+    delete window.HuntDrop._nicheExplore;
+    delete window.HuntDrop._nicheDetail;
+    delete window.HuntDrop._nicheFilter;
+    delete window.HuntDrop._nicheSort;
+    delete window.HuntDrop._nicheCloseDetail;
   }
 };
+
+function renderGrid(niches) {
+  const grid = _section.querySelector('#nicheGrid');
+  if(!grid) { console.warn('[NicheRadar] #nicheGrid not found'); return; }
+  if(niches.length === 0) {
+    grid.innerHTML = '<div class="nr-empty">No niches match your filters</div>';
+    return;
+  }
+  const cards = [];
+  for(const n of niches) {
+    try {
+      const heatColor = n.heat==='hot'?'var(--accent-red)':n.heat==='warm'?'var(--accent-orange)':'var(--accent-cyan)';
+      const lifecycleColor = n.lifecycle==='emerging'?'var(--accent-cyan)':n.lifecycle==='growing'?'var(--accent-green)':'var(--accent-orange)';
+      cards.push(`<div class="nr-card" data-id="${n.id}" onclick="event.stopPropagation();window.HuntDrop._nicheDetail(${n.id})">
+      <div class="nr-card-top">
+        <div class="nr-card-title-row">
+          <span class="nr-card-emoji">${esc(n.emoji)}</span>
+          <span class="nr-card-name">${esc(n.name)}</span>
+          <span class="nr-card-score" style="background:${heatColor}22;color:${heatColor}">${n.score}</span>
+        </div>
+        <div class="nr-card-tags">
+          <span class="nr-tag nr-tag-lifecycle" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span>
+          <span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth}</span>
+          <span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Ocean: ${n.blueOcean}</span>
+        </div>
+      </div>
+      <div class="nr-card-spark">${renderSparkline(n.trendData, heatColor, 280, 50)}</div>
+      <div class="nr-card-metrics">
+        <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-metric-lbl">Growth</span></div>
+        <div class="nr-metric"><span class="nr-metric-val">${n.products.toLocaleString()}</span><span class="nr-metric-lbl">Products</span></div>
+        <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-metric-lbl">Revenue</span></div>
+        <div class="nr-metric"><span class="nr-metric-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-metric-lbl">Avg Margin</span></div>
+      </div>
+      <div class="nr-card-comp">
+        <span class="nr-comp-label">Competition</span>
+        ${renderCompetitionBar(n.saturation)}
+      </div>
+      <div class="nr-card-heat">${renderHeatmap(n.seasonality)}</div>
+      <div class="nr-card-platforms">${renderPlatformChips(n.platforms)}</div>
+      <div class="nr-card-products">
+        ${n.topProducts.map(p => `<div class="nr-prod-chip"><img src="${esc(p.img)}" class="nr-prod-img" alt="" onerror="this.style.display='none'"><span class="nr-prod-name">${esc(p.name)}</span><span class="nr-prod-price">$${p.price}</span></div>`).join('')}
+      </div>
+      <div class="nr-card-actions">
+        <button class="nr-btn nr-btn-primary" onclick="event.stopPropagation();window.HuntDrop._nicheExplore(${n.id})">Explore Products</button>
+        <button class="nr-btn nr-btn-ghost" onclick="event.stopPropagation();window.HuntDrop._nicheDetail(${n.id})">Full Analysis</button>
+      </div>
+    </div>`);
+    } catch(cardErr) {
+      console.error('[NicheRadar] Card render error for', n.name, cardErr);
+    }
+  }
+  grid.innerHTML = cards.join('');
+}
+
+function renderSeasonal() {
+  const grid = _section.querySelector('#seasonalGrid');
+  if(!grid) return;
+  const now = new Date().getMonth();
+  const upcoming = [];
+  for(let i = 0; i < 4; i++) {
+    upcoming.push(SEASONAL_PEAKS[(now + i) % 12]);
+  }
+  grid.innerHTML = upcoming.map(s => `
+    <div class="nr-seasonal-card">
+      <div class="nr-seasonal-month">${esc(s.month)}</div>
+      <div class="nr-seasonal-niches">${s.niches.map(n => `<span class="nr-seasonal-niche">${esc(n)}</span>`).join('')}</div>
+      <div class="nr-seasonal-reason">${esc(s.reason)}</div>
+    </div>`).join('');
+}
+
+function renderDetailPanel(id) {
+  const n = NICHES.find(x => x.id === id);
+  if(!n) return;
+  const panel = _section.querySelector('#nicheDetailPanel');
+  const overlay = _section.querySelector('#nicheDetailOverlay');
+  if(!panel || !overlay) return;
+
+  const heatColor = n.heat==='hot'?'var(--accent-red)':n.heat==='warm'?'var(--accent-orange)':'var(--accent-cyan)';
+  const lifecycleColor = n.lifecycle==='emerging'?'var(--accent-cyan)':n.lifecycle==='growing'?'var(--accent-green)':'var(--accent-orange)';
+
+  panel.innerHTML = `
+    <button class="nr-detail-close" id="nrDetailClose"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="nr-detail-hero">
+      <span class="nr-detail-emoji">${esc(n.emoji)}</span>
+      <div>
+        <h2 class="nr-detail-name">${esc(n.name)}</h2>
+        <div class="nr-detail-tags">
+          <span class="nr-tag" style="background:${heatColor}22;color:${heatColor}">Score ${n.score}/100</span>
+          <span class="nr-tag" style="background:${lifecycleColor}18;color:${lifecycleColor}">${n.lifecycle}</span>
+          <span class="nr-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${n.growth} growth</span>
+          <span class="nr-tag" style="background:var(--accent-orange-dim);color:var(--accent-orange)">Blue Ocean: ${n.blueOcean}/100</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">12-Month Trend</h4>
+      <div class="nr-detail-spark">${renderSparkline(n.trendData, heatColor, 500, 80)}</div>
+    </div>
+
+    <div class="nr-detail-metrics">
+      <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-green)">${n.growth}</span><span class="nr-dm-lbl">Growth</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val">${n.products.toLocaleString()}</span><span class="nr-dm-lbl">Products</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-cyan)">${n.revenue}</span><span class="nr-dm-lbl">Revenue</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val" style="color:var(--accent-green)">${n.avgMargin}%</span><span class="nr-dm-lbl">Avg Margin</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val">${n.sellers}</span><span class="nr-dm-lbl">Sellers</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val">${n.searchVol}</span><span class="nr-dm-lbl">Search Vol</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val" style="color:${n.riskScore<30?'var(--accent-green)':n.riskScore<50?'var(--accent-yellow)':'var(--accent-red)'}">${n.riskScore}/100</span><span class="nr-dm-lbl">Risk Score</span></div>
+      <div class="nr-dm-card"><span class="nr-dm-val">${n.confidence}%</span><span class="nr-dm-lbl">AI Confidence</span></div>
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">Competition by Platform</h4>
+      <div class="nr-detail-platforms">${n.platforms.map(p => {
+        const barW = Math.min((p.sellers / 50) * 100, 100);
+        const c = p.sellers < 8 ? 'var(--accent-green)' : p.sellers < 20 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+        return `<div class="nr-dplat-row"><span class="nr-dplat-name">${esc(p.name)}</span><div class="nr-dplat-bar-wrap"><div class="nr-dplat-bar" style="width:${barW}%;background:${c}"></div></div><span class="nr-dplat-count">${p.sellers} sellers</span><span class="nr-dplat-avg">avg $${p.avgPrice}</span></div>`;
+      }).join('')}</div>
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">Seasonal Demand</h4>
+      ${renderHeatmap(n.seasonality)}
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">Target Audience</h4>
+      <div class="nr-audience"><span class="nr-aud-chip">Age: ${n.audience.age}</span><span class="nr-aud-chip">Gender: ${n.audience.gender}</span>${n.audience.interests.map(i => `<span class="nr-aud-chip">${esc(i)}</span>`).join('')}</div>
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">Profit Simulator</h4>
+      <div class="nr-simulator">
+        <div class="nr-sim-row"><span>Estimated monthly sales</span><span class="nr-sim-val">200 units</span></div>
+        <div class="nr-sim-row"><span>Avg sell price (Amazon)</span><span class="nr-sim-val">$${n.platforms[0]?.avgPrice || 29.99}</span></div>
+        <div class="nr-sim-row"><span>Cost + shipping</span><span class="nr-sim-val" style="color:var(--accent-red)">-$${(n.platforms[0]?.avgPrice * (1 - n.avgMargin/100) * 0.6).toFixed(2)}</span></div>
+        <div class="nr-sim-row"><span>Ad cost per sale (~15%)</span><span class="nr-sim-val" style="color:var(--accent-red)">-$${(n.platforms[0]?.avgPrice * 0.15).toFixed(2)}</span></div>
+        <div class="nr-sim-divider"></div>
+        <div class="nr-sim-row nr-sim-total"><span>Est. Monthly Profit</span><span class="nr-sim-val" style="color:var(--accent-green)">$${Math.round(200 * n.platforms[0]?.avgPrice * (n.avgMargin/100) * 0.65).toLocaleString()}</span></div>
+      </div>
+    </div>
+
+    <div class="nr-detail-section">
+      <h4 class="nr-detail-subtitle">AI Insight</h4>
+      <p class="nr-insight-text">${esc(n.insight)}</p>
+    </div>
+
+    <div class="nr-detail-actions">
+      <button class="nr-btn nr-btn-primary nr-btn-lg" onclick="window.HuntDrop._nicheCloseDetail();window.HuntDrop._nicheExplore(${n.id})">Explore Products in ${esc(n.name)}</button>
+      <button class="nr-btn nr-btn-ghost nr-btn-lg" onclick="window.HuntDrop._nicheCloseDetail();window.HuntDrop.navigateTo('section-supplier-hub')">Find Suppliers</button>
+    </div>`;
+
+  overlay.classList.add('nr-detail-open');
+  _detailOpen = true;
+}
+
+function closeDetail() {
+  const overlay = _section?.querySelector('#nicheDetailOverlay');
+  if(overlay) overlay.classList.remove('nr-detail-open');
+  _detailOpen = false;
+}
+
+function applyFilters() {
+  if(!_section) return;
+  const query = (_section.querySelector('#nicheSearch')?.value || '').toLowerCase();
+  const activeFilter = _section.querySelector('.nr-filter.active')?.dataset.filter || 'all';
+  const sortBy = _section.querySelector('#nicheSort')?.value || 'score';
+
+  const filtered = NICHES.filter(n => {
+    if(query && !n.name.toLowerCase().includes(query)) return false;
+    if(activeFilter === 'hot' && n.heat !== 'hot') return false;
+    if(activeFilter === 'warm' && n.heat !== 'warm') return false;
+    if(activeFilter === 'cool' && n.heat !== 'cool') return false;
+    if(activeFilter === 'emerging' && n.lifecycle !== 'emerging') return false;
+    if(activeFilter === 'growing' && n.lifecycle !== 'growing') return false;
+    if(activeFilter === 'mature' && n.lifecycle !== 'mature') return false;
+    return true;
+  });
+
+  const sortFns = {
+    score: (a,b) => b.score - a.score,
+    growth: (a,b) => parseInt(b.growth) - parseInt(a.growth),
+    blueOcean: (a,b) => b.blueOcean - a.blueOcean,
+    revenue: (a,b) => parseFloat(b.revenue.replace(/[$M]/g,'')) - parseFloat(a.revenue.replace(/[$M]/g,'')),
+    competition: (a,b) => a.saturation - b.saturation
+  };
+  filtered.sort(sortFns[sortBy] || sortFns.score);
+
+  renderGrid(filtered);
+}
 
 window.HuntDrop._nicheExplore = function(idOrName) {
   const niche = typeof idOrName === 'number' ? NICHES.find(n => n.id === idOrName) : NICHES.find(n => n.name === idOrName);
@@ -534,10 +536,10 @@ window.HuntDrop._nicheDetail = function(id) {
             </defs>
             <path d="${trendArea}" fill="url(#ndTrendGrad)"/>
             <path d="${trendPath}" fill="none" stroke="${heatColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            ${trendPoints.map((p,i) => '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="'+heatColor+'" opacity="0.8"/>').join('')}
+            ${trendPoints.map((p,_i) => '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3" fill="'+heatColor+'" opacity="0.8"/>').join('')}
           </svg>
           <div class="nd-trend-labels">
-            ${months.map((m,i) => '<span class="nd-trend-label">'+m+'</span>').join('')}
+            ${months.map((m,_i) => '<span class="nd-trend-label">'+m+'</span>').join('')}
           </div>
           <div class="nd-trend-range">
             <span style="color:var(--text-muted)">Low: ${tMin}</span>
@@ -643,33 +645,23 @@ window.HuntDrop._nicheDetail = function(id) {
 
   container.appendChild(section);
 
-  // Hide niche grid, show detail
-  const nicheSection = document.getElementById('section-niche-radar');
-  if(nicheSection) nicheSection.classList.remove('active');
-  section.classList.add('active');
-
-  // Scroll to top
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.HuntDrop.navigateTo('section-niche-detail');
 };
 
 window.HuntDrop._nicheCloseDetail = function() {
   const detail = document.getElementById('section-niche-detail');
   if(detail) detail.remove();
-  const nicheSection = document.getElementById('section-niche-radar');
-  if(nicheSection) nicheSection.classList.add('active');
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  window.HuntDrop.navigateTo('section-niche-radar');
 };
 
-window.HuntDrop._nicheFilter = function(btn, filter) {
+window.HuntDrop._nicheFilter = function(btn, _filter) {
   btn.closest('.nr-filter-row').querySelectorAll('.nr-filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const plugin = window.HuntDrop.PluginRegistry.get('niche-radar');
-  if(plugin && plugin._applyFilters) plugin._applyFilters();
+  applyFilters();
 };
 
-window.HuntDrop._nicheSort = function(val) {
-  const plugin = window.HuntDrop.PluginRegistry.get('niche-radar');
-  if(plugin && plugin._applyFilters) plugin._applyFilters();
+window.HuntDrop._nicheSort = function(_val) {
+  applyFilters();
 };
 
 window.HuntDrop.PluginRegistry.register('niche-radar', NicheRadarPlugin);

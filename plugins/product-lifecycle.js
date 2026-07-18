@@ -3,6 +3,7 @@
 // ============================================================================
 (function(){
 const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const esc = s => UI.escapeHtml(String(s||''));
 
 const STAGES = {
   Rising:   {color:'var(--accent-green)', hex:'#00ff88', emoji:'🟢', action:'Enter now — early stage advantage'},
@@ -38,7 +39,7 @@ let _analyzed = [];
 let _activeFilter = 'all';
 let _activeSort = 'confidence';
 
-function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function _sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
 function getPlatColor(p){
   const m={aliexpress:'#e62e04',amazon:'#ff9900',shopify:'#96bf48',ebay:'#e53238',temu:'#fb7701',tiktok:'#00f2ea',etsy:'#f1641e',cjdropshipping:'#40c351',dhgate:'#e62e04',wish:'#2fb7ec'};
@@ -57,7 +58,6 @@ function analyzeProduct(p){
   if(t.length<12) return null;
   const recent3=(t[9]+t[10]+t[11])/3;
   const prev3=(t[6]+t[7]+t[8])/3;
-  const early3=(t[0]+t[1]+t[2])/3;
   const growthRecent=prev3>0?(recent3-prev3)/prev3:0;
   const peakVal=Math.max(...t);
   const peakRatio=peakVal>0?t[11]/peakVal:0;
@@ -129,9 +129,9 @@ function renderInsights(){
   const el=UI.$('lcInsights');
   if(!el||!_analyzed.length) return;
   const rising=_analyzed.filter(a=>a.stage==='Rising');
-  const peak=_analyzed.filter(a=>a.stage==='Peak');
+  const _peak=_analyzed.filter(a=>a.stage==='Peak');
   const declining=_analyzed.filter(a=>a.stage==='Declining');
-  const avgConf=Math.round(_analyzed.reduce((s,a)=>s+a.confidence,0)/_analyzed.length);
+  const _avgConf=Math.round(_analyzed.reduce((s,a)=>s+a.confidence,0)/_analyzed.length);
   const topRiser=rising.sort((a,b)=>b.confidence-a.confidence)[0];
   const bestProfit=[..._analyzed].sort((a,b)=> parseFloat(b.profit)-parseFloat(a.profit))[0];
 
@@ -248,7 +248,7 @@ function renderFilters(){
 }
 
 function getFiltered(){
-  let items=_activeFilter==='all'?[..._analyzed]:_analyzed.filter(a=>a.stage===_activeFilter);
+  const items=_activeFilter==='all'?[..._analyzed]:_analyzed.filter(a=>a.stage===_activeFilter);
   const sorters={
     confidence:(a,b)=>b.confidence-a.confidence,
     score:(a,b)=>b.product.score-a.product.score,
@@ -280,30 +280,30 @@ function renderGrid(){
     return `
       <div class="lc-card lc-card-${item.stage.toLowerCase()}" data-id="${p.id}">
         <div class="lc-card-top">
-          <img src="${p.image}" alt="" class="lc-card-img">
+          <img src="${esc(p.image)}" alt="" class="lc-card-img">
           <div class="lc-card-info">
-            <div class="lc-card-title">${p.title.split('—')[0].trim()}</div>
-            <div class="lc-card-meta"><span class="lc-card-meta-dot" style="background:${getPlatColor(p.platform)}"></span>${cap(p.platform)} · ${p.category||'General'}</div>
+            <div class="lc-card-title">${esc(p.title.split('—')[0].trim())}</div>
+            <div class="lc-card-meta"><span class="lc-card-meta-dot" style="background:${esc(getPlatColor(p.platform))}"></span>${esc(cap(p.platform))} · ${esc(p.category||'General')}</div>
           </div>
-          <div class="lc-badge" style="background:${s.color}15;color:${s.color};border:1px solid ${s.color}33"><span class="lc-badge-dot"></span>${item.stage}</div>
+          <div class="lc-badge" style="background:${esc(s.color)}15;color:${esc(s.color)};border:1px solid ${esc(s.color)}33"><span class="lc-badge-dot"></span>${esc(item.stage)}</div>
         </div>
         <div class="lc-card-conf">
           <div class="lc-conf-row">
             <span class="lc-conf-label">Confidence</span>
-            <div class="lc-conf-bar"><div class="lc-conf-fill" style="width:${item.confidence}%;background:${s.color}"></div></div>
-            <span class="lc-conf-val" style="color:${s.color}">${item.confidence}%</span>
+            <div class="lc-conf-bar"><div class="lc-conf-fill" style="width:${item.confidence}%;background:${esc(s.color)}"></div></div>
+            <span class="lc-conf-val" style="color:${esc(s.color)}">${item.confidence}%</span>
           </div>
           <div class="lc-days-row">
             <span class="lc-days-label">Days to next stage</span>
-            <span class="lc-days-val" style="color:${s.color}">${item.daysToNext} days</span>
+            <span class="lc-days-val" style="color:${esc(s.color)}">${item.daysToNext} days</span>
           </div>
         </div>
         <div class="lc-card-chart"><canvas id="${sparkId}"></canvas></div>
         <div class="lc-card-metrics">
           <div class="lc-metric"><span class="lc-metric-val" style="color:var(--accent-green)">${item.avgGrowth}%</span><span class="lc-metric-lbl">Growth</span></div>
-          <div class="lc-metric"><span class="lc-metric-val">${p.salesVelocity.toLocaleString()}</span><span class="lc-metric-lbl">Sales/mo</span></div>
-          <div class="lc-metric"><span class="lc-metric-val" style="color:var(--accent-cyan)">${p.marketSaturation}%</span><span class="lc-metric-lbl">Saturation</span></div>
-          <div class="lc-metric"><span class="lc-metric-val">${p.competition}</span><span class="lc-metric-lbl">Competition</span></div>
+          <div class="lc-metric"><span class="lc-metric-val">${esc(p.salesVelocity.toLocaleString())}</span><span class="lc-metric-lbl">Sales/mo</span></div>
+          <div class="lc-metric"><span class="lc-metric-val" style="color:var(--accent-cyan)">${esc(p.marketSaturation)}%</span><span class="lc-metric-lbl">Saturation</span></div>
+          <div class="lc-metric"><span class="lc-metric-val">${esc(p.competition)}</span><span class="lc-metric-lbl">Competition</span></div>
         </div>
         <div class="lc-card-platforms">
           ${item.platforms.slice(0,5).map(pl=>`<span class="lc-plat-chip"><span class="lc-plat-dot" style="background:${pl.color}"></span>${cap(pl.name)} <span class="lc-plat-price">$${pl.price.toFixed(2)}</span></span>`).join('')}
@@ -344,8 +344,7 @@ function renderGrid(){
     btn.addEventListener('click',e=>{
       e.stopPropagation();
       const action=btn.dataset.action;
-      const id=btn.dataset.id;
-      const item=_analyzed.find(a=>a.product.id===id);
+      const id=Number(btn.dataset.id);
       if(action==='analyze') EventBus.emit('product:analyze',{id});
       else if(action==='suppliers') navigateTo('section-supplier-hub');
       else if(action==='adcopy') navigateTo('section-ad-studio');
@@ -362,13 +361,17 @@ function renderGrid(){
 
 function renderSparklines(items){
   if(typeof Chart==='undefined') return;
+  if(!items || !_section) return;
   items.forEach(item=>{
+    if(!item || !item.product || !item.product.id) return;
     const canvasId='lcSpark_'+item.product.id;
-    const canvas=_section?_section.querySelector('#'+CSS.escape(canvasId)):null;
+    const canvas=_section.querySelector('#'+CSS.escape(canvasId));
     if(!canvas) return;
-    if(canvas._chart){try{canvas._chart.destroy()}catch(e){}}
+    const ctx=canvas.getContext('2d');
+    if(!ctx) return;
+    if(canvas._chart){try{canvas._chart.destroy()}catch{/* ignored */}}
     const c=STAGES[item.stage].hex;
-    const grad=canvas.getContext('2d').createLinearGradient(0,0,0,70);
+    const grad=ctx.createLinearGradient(0,0,0,70);
     grad.addColorStop(0,c+'30');
     grad.addColorStop(1,c+'05');
     canvas._chart=new Chart(canvas,{
@@ -427,13 +430,11 @@ const P={
   name:'Product Life Cycle',
   version:'2.0.0',
   description:'Complete lifecycle intelligence — stage detection, timing, actions, and export',
-  _section:null,
-
-  init(ctx){
+  init(_ctx){
     Config.defaults('lifecycle',{enabled:true});
   },
 
-  mount(ctx){
+  mount(_ctx){
     const container=UI.$('sections-container');
     if(!container) return;
     const section=document.createElement('section');
@@ -441,18 +442,17 @@ const P={
     section.id='section-lifecycle';
     section.innerHTML=buildHTML();
     container.appendChild(section);
-    this._section=section;
     _section=section;
     analyzeAll();
   },
 
-  unmount(ctx){
-    if(this._section){
-      this._section.querySelectorAll('canvas').forEach(function(c){
-        if(c._chart){try{c._chart.destroy();}catch(e){}c._chart=null;}
+  unmount(_ctx){
+    if(_section){
+      _section.querySelectorAll('canvas').forEach(function(c){
+        if(c._chart){try{c._chart.destroy();}catch{/* ignored */}c._chart=null;}
       });
-      this._section.remove();
-      this._section=null;
+      _section.remove();
+      _section=null;
     }
     _section=null;
   }

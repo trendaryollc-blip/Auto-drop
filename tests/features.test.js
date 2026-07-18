@@ -7,7 +7,6 @@ describe('Feature: Search → Results Rendering', () => {
   beforeAll(() => {
     setupDashboardDOM();
     HuntDrop = loadCore();
-    loadScript('mock-api.js');
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
     loadScript('plugins/product-grid.js');
@@ -42,7 +41,6 @@ describe('Feature: Card Click → product:analyze', () => {
   beforeAll(async () => {
     setupDashboardDOM();
     HuntDrop = loadCore();
-    loadScript('mock-api.js');
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
     loadScript('plugins/product-grid.js');
@@ -77,7 +75,6 @@ describe('Feature: Filter → Search Integration', () => {
   beforeAll(() => {
     setupDashboardDOM();
     HuntDrop = loadCore();
-    loadScript('mock-api.js');
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
   });

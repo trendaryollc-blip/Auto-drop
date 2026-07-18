@@ -2,18 +2,18 @@
 // PLUGIN: AI Context Builder — Gathers full app state for AI
 // ============================================================================
 (function(){
-const {PluginRegistry,Config,UI} = window.HuntDrop;
+const {PluginRegistry,Config} = window.HuntDrop;
 
 const AIContextBuilder = {
   id: 'ai-context-builder',
   name: 'AI Context Builder',
   version: '1.0.0',
 
-  init(ctx) {},
+  init(_ctx) {},
 
-  mount(ctx) {},
+  mount(_ctx) {},
 
-  unmount(ctx) {},
+  unmount(_ctx) {},
 
   buildFullContext() {
     return {
@@ -27,7 +27,7 @@ const AIContextBuilder = {
   },
 
   getProducts() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
     return products.map(function(p) {
       return {
         id: p.id,
@@ -95,9 +95,9 @@ const AIContextBuilder = {
   },
 
   getSystemHealth() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var issues = [];
-    var warnings = [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const issues = [];
+    const warnings = [];
 
     products.forEach(function(p) {
       if (!p.price || p.price <= 0) issues.push(p.title + ': invalid price');
@@ -114,14 +114,14 @@ const AIContextBuilder = {
       }
     });
 
-    var adapterCount = window.HuntDrop.DataLayer ? window.HuntDrop.DataLayer.getAdapters().length : 0;
+    const adapterCount = window.HuntDrop.DataLayer ? window.HuntDrop.DataLayer.getAdapters().length : 0;
     if (adapterCount < 10) issues.push('Only ' + adapterCount + '/10 platform adapters loaded');
 
-    var sections = document.querySelectorAll('.section[id]').length;
-    var navLinks = document.querySelectorAll('[data-section]').length;
+    const sections = document.querySelectorAll('.section[id]').length;
+    const navLinks = document.querySelectorAll('[data-section]').length;
     if (navLinks > sections + 5) warnings.push('Some navigation links may be broken');
 
-    var score = 100;
+    let score = 100;
     score -= issues.length * 10;
     score -= warnings.length * 3;
     score = Math.max(0, Math.min(100, score));
@@ -155,7 +155,7 @@ const AIContextBuilder = {
   },
 
   getProductsSummary() {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
     if (products.length === 0) return 'No products loaded.';
     return products.map(function(p) {
       return p.title + ' (' + p.platform + ') - Score:' + p.score + ' Margin:' + p.margin + '% Price:$' + p.price + ' Competition:' + p.competition;
@@ -163,20 +163,20 @@ const AIContextBuilder = {
   },
 
   getTopProducts(count) {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
     return products.sort(function(a, b) { return b.score - a.score; }).slice(0, count || 3);
   },
 
   getProductsByCategory(category) {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
     return products.filter(function(p) {
       return p.category && p.category.toLowerCase().indexOf(category.toLowerCase()) > -1;
     });
   },
 
   getProductByTitle(title) {
-    var products = window.HuntDrop.ALL_PRODUCTS || [];
-    var lowerTitle = title.toLowerCase();
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const lowerTitle = title.toLowerCase();
     return products.find(function(p) {
       return p.title.toLowerCase().indexOf(lowerTitle) > -1 ||
              p.keywords.some(function(k) { return k.toLowerCase().indexOf(lowerTitle) > -1; });

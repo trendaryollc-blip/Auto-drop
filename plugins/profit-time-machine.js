@@ -2,10 +2,14 @@
 // PLUGIN: Profit Time Machine v3 — Complete Forecast Intelligence
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let _section = null;
+let _chart = null;
+let _chartSat = null;
 
 function projectData(trendData, seasonality, days) {
   const len = trendData.length;
@@ -67,7 +71,7 @@ function formatMoney(n) { return '$'+Math.abs(n).toFixed(0).replace(/\B(?=(\d{3}
 function formatMoneyDec(n) { return '$'+Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 
 function getHistory() {
-  try { return JSON.parse(localStorage.getItem('ptm_history') || '[]'); } catch(e) { return []; }
+  try { return JSON.parse(localStorage.getItem('ptm_history') || '[]'); } catch { return []; }
 }
 function saveHistory(entry) {
   try {
@@ -75,38 +79,11 @@ function saveHistory(entry) {
     h.unshift(entry);
     if (h.length > 20) h.length = 20;
     localStorage.setItem('ptm_history', JSON.stringify(h));
-  } catch(e) {}
+  } catch { /* ignored */ }
 }
 
-const ProfitTimeMachinePlugin = {
-  id:'profit-time-machine', name:'Sales Forecast', version:'3.0.0',
-  description:'Predictive profit analytics — see the future before your competitors',
-  dependencies:['search-engine'], _section:null, _chart:null, _chartSat:null,
-
-  init(ctx){ Config.defaults('profitTimeMachine',{enabled:true}); },
-
-  mount(ctx){
-    const container = UI.$('sections-container');
-    if (!container) return;
-    const self = ProfitTimeMachinePlugin;
-    const section = document.createElement('section');
-    section.className = 'section section-profit-time-machine';
-    section.id = 'section-time-machine';
-    section.innerHTML = self.buildHTML();
-    container.appendChild(section);
-    self._section = section;
-    self.bindEvents();
-    self.renderEmptyState();
-  },
-
-  unmount(ctx){
-    if(this._chart){this._chart.destroy();this._chart=null;}
-    if(this._chartSat){this._chartSat.destroy();this._chartSat=null;}
-    if(this._section){this._section.remove();this._section=null;}
-  },
-
-  buildHTML(){
-    return `
+function buildHTML() {
+  return `
       <div class="section-inner">
         <div class="ptm-hero">
           <div class="ptm-hero-badge">🔮 Time Travel Intelligence</div>
@@ -133,34 +110,34 @@ const ProfitTimeMachinePlugin = {
         <div id="ptmEmpty" class="ptm-empty"></div>
         <div id="ptmResults" class="ptm-results"></div>
       </div>`;
-  },
+}
 
-  bindEvents(){
-    const el = this._section;
-    if(!el) return;
-    const btn = el.querySelector('#ptmAnalyzeBtn');
-    const input = el.querySelector('#ptmInput');
-    if(btn) btn.addEventListener('click',()=>this.analyze(input?.value||''));
-    if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')this.analyze(input.value);});
-  },
+function bindEvents(){
+  const el = _section;
+  if(!el) return;
+  const btn = el.querySelector('#ptmAnalyzeBtn');
+  const input = el.querySelector('#ptmInput');
+  if(btn) btn.addEventListener('click',()=>analyze(input?.value||''));
+  if(input) input.addEventListener('keypress',e=>{if(e.key==='Enter')analyze(input.value);});
+}
 
-  renderEmptyState(){
-    const chips = this._section?.querySelector('#ptmChips');
-    const empty = this._section?.querySelector('#ptmEmpty');
-    if(!chips || !empty) return;
-    const products = window.HuntDrop.ALL_PRODUCTS || [];
-    const trending = [...products].sort((a,b)=>b.salesVelocity-a.salesVelocity).slice(0,6);
-    chips.innerHTML = trending.map(p=>`<button class="ptm-chip" data-q="${esc(p.title.split('—')[0].trim())}"><img src="${esc(p.image)}" class="ptm-chip-img" alt=""><span class="ptm-chip-name">${esc(p.title.split('—')[0].trim())}</span><span class="ptm-chip-score">${p.score}</span></button>`).join('');
-    chips.querySelectorAll('.ptm-chip').forEach(c=>{
-      c.addEventListener('click',()=>{
-        const input = this._section?.querySelector('#ptmInput');
-        if(input) input.value = c.dataset.q;
-        this.analyze(c.dataset.q);
-      });
+function renderEmptyState(){
+  const chips = _section?.querySelector('#ptmChips');
+  const empty = _section?.querySelector('#ptmEmpty');
+  if(!chips || !empty) return;
+  const products = window.HuntDrop.ALL_PRODUCTS || [];
+  const trending = [...products].sort((a,b)=>b.salesVelocity-a.salesVelocity).slice(0,6);
+  chips.innerHTML = trending.map(p=>`<button class="ptm-chip" data-q="${esc(p.title.split('—')[0].trim())}"><img src="${esc(p.image)}" class="ptm-chip-img" alt=""><span class="ptm-chip-name">${esc(p.title.split('—')[0].trim())}</span><span class="ptm-chip-score">${p.score}</span></button>`).join('');
+  chips.querySelectorAll('.ptm-chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const input = _section?.querySelector('#ptmInput');
+      if(input) input.value = c.dataset.q;
+      analyze(c.dataset.q);
     });
+  });
 
-    const history = getHistory();
-    empty.innerHTML = `
+  const history = getHistory();
+  empty.innerHTML = `
       <div class="ptm-empty-grid">
         <div class="ptm-empty-card">
           <div class="ptm-empty-icon">🚀</div>
@@ -191,76 +168,76 @@ const ProfitTimeMachinePlugin = {
           </div>
         </div>`:''}
       </div>`;
-    empty.querySelectorAll('.ptm-history-item').forEach(item=>{
-      item.addEventListener('click',()=>{
-        const input = this._section?.querySelector('#ptmInput');
-        if(input) input.value = item.dataset.q;
-        this.analyze(item.dataset.q);
-      });
+  empty.querySelectorAll('.ptm-history-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+      const input = _section?.querySelector('#ptmInput');
+      if(input) input.value = item.dataset.q;
+      analyze(item.dataset.q);
     });
-  },
+  });
+}
 
-  analyze(query){
-    if(!query.trim()) return;
-    const products = window.HuntDrop.ALL_PRODUCTS || [];
-    const product = products.find(p=>
-      p.title.toLowerCase().includes(query.toLowerCase())||
-      p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
-    )||[...products].sort((a,b)=>b.score-a.score)[0];
-    if(!product) return;
+function analyze(query){
+  if(!query.trim()) return;
+  const products = window.HuntDrop.ALL_PRODUCTS || [];
+  const product = products.find(p=>
+    p.title.toLowerCase().includes(query.toLowerCase())||
+    p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
+  )||[...products].sort((a,b)=>b.score-a.score)[0];
+  if(!product) return;
 
-    const cost = product.price;
-    const sellPrice = product.platformPrices.amazon;
-    const shipping = 2.50;
-    const adSpend = product.adSpendAvg || sellPrice * 0.15;
-    const profitPerSale = sellPrice - cost - shipping - adSpend;
-    const monthlySales = product.salesVelocity;
-    const currentMonthlyProfit = profitPerSale * monthlySales;
-    const currentMonthlyRevenue = sellPrice * monthlySales;
+  const cost = product.price;
+  const sellPrice = product.platformPrices.amazon;
+  const shipping = 2.50;
+  const adSpend = product.adSpendAvg || sellPrice * 0.15;
+  const profitPerSale = sellPrice - cost - shipping - adSpend;
+  const monthlySales = product.salesVelocity;
+  const currentMonthlyProfit = profitPerSale * monthlySales;
+  const currentMonthlyRevenue = sellPrice * monthlySales;
 
-    const {projected,labels} = projectData(product.trendData,product.seasonality,90);
-    const confidence = calculateConfidence(product);
-    const timing = getTimingRecommendation(confidence,product.trendData,product.seasonality);
-    const peak = detectPeak(product.trendData,projected);
+  const {projected,labels} = projectData(product.trendData,product.seasonality,90);
+  const confidence = calculateConfidence(product);
+  const timing = getTimingRecommendation(confidence,product.trendData,product.seasonality);
+  const peak = detectPeak(product.trendData,projected);
 
-    const proj30sales = projected.slice(0,30).reduce((a,b)=>a+b,0);
-    const proj60sales = projected.slice(0,60).reduce((a,b)=>a+b,0);
-    const proj90sales = projected.reduce((a,b)=>a+b,0);
-    const proj30profit = proj30sales * profitPerSale;
-    const proj60profit = proj60sales * profitPerSale;
-    const proj90profit = proj90sales * profitPerSale;
-    const proj30rev = proj30sales * sellPrice;
-    const proj90rev = proj90sales * sellPrice;
-    const profitDelta = currentMonthlyProfit>0?((proj30/currentMonthlyProfit-proj30sales*profitPerSale/currentMonthlyProfit/30*30)*100||0).toFixed(0):0;
+  const proj30sales = projected.slice(0,30).reduce((a,b)=>a+b,0);
+  const proj60sales = projected.slice(0,60).reduce((a,b)=>a+b,0);
+  const proj90sales = projected.reduce((a,b)=>a+b,0);
+  const proj30profit = proj30sales * profitPerSale;
+  const _proj60profit = proj60sales * profitPerSale;
+  const proj90profit = proj90sales * profitPerSale;
+  const proj30rev = proj30sales * sellPrice;
+  const proj90rev = proj90sales * sellPrice;
+  const _profitDelta = currentMonthlyProfit>0?((proj30profit/currentMonthlyProfit-proj30sales*profitPerSale/currentMonthlyProfit/30*30)*100||0).toFixed(0):0;
 
-    const breakEvenUnits = Math.ceil((cost + shipping + adSpend) / profitPerSale);
-    const breakEvenDays = monthlySales > 0 ? Math.ceil(breakEvenUnits / (monthlySales/30)) : 999;
+  const breakEvenUnits = Math.ceil((cost + shipping + adSpend) / profitPerSale);
+  const breakEvenDays = monthlySales > 0 ? Math.ceil(breakEvenUnits / (monthlySales/30)) : 999;
 
-    const saturationRate = product.marketSaturation || 50;
-    const daysToSaturation = Math.round((100 - saturationRate) / (saturationRate > 60 ? 1.2 : 0.6));
+  const saturationRate = product.marketSaturation || 50;
+  const daysToSaturation = Math.round((100 - saturationRate) / (saturationRate > 60 ? 1.2 : 0.6));
 
-    const avgOrderValue = sellPrice;
-    const units30 = Math.round(proj30sales);
-    const units90 = Math.round(proj90sales);
-    const recommendedInventory = Math.round(units30 * 1.3);
-    const reorderPoint = Math.round(units30 / 3);
+  const _avgOrderValue = sellPrice;
+  const units30 = Math.round(proj30sales);
+  const units90 = Math.round(proj90sales);
+  const recommendedInventory = Math.round(units30 * 1.3);
+  const reorderPoint = Math.round(units30 / 3);
 
-    saveHistory({
-      title: product.title.split('—')[0].trim(),
-      timing: timing.action,
-      timingColor: timing.color,
-      confidence,
-      date: new Date().toLocaleDateString()
-    });
+  saveHistory({
+    title: product.title.split('—')[0].trim(),
+    timing: timing.action,
+    timingColor: timing.color,
+    confidence,
+    date: new Date().toLocaleDateString()
+  });
 
-    const el = this._section?this._section.querySelector('#ptmResults'):null;
-    const empty = this._section?this._section.querySelector('#ptmEmpty'):null;
-    const chips = this._section?this._section.querySelector('#ptmChips'):null;
-    if(empty) empty.innerHTML = '';
-    if(chips) chips.innerHTML = '';
-    if(!el) return;
+  const el = _section?_section.querySelector('#ptmResults'):null;
+  const empty = _section?_section.querySelector('#ptmEmpty'):null;
+  const chips = _section?_section.querySelector('#ptmChips'):null;
+  if(empty) empty.innerHTML = '';
+  if(chips) chips.innerHTML = '';
+  if(!el) return;
 
-    el.innerHTML = `
+  el.innerHTML = `
       <div class="ptm-output">
         <div class="ptm-product-header">
           <div class="ptm-product-img"><img src="${esc(product.image)}" alt=""></div>
@@ -386,7 +363,7 @@ const ProfitTimeMachinePlugin = {
           <div class="ptm-table-wrap">
             <table class="ptm-table">
               <thead><tr><th>Month</th><th>Projected Sales</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Cumulative</th></tr></thead>
-              <tbody>${this.buildMonthlyTable(projected, sellPrice, cost, shipping, adSpend)}</tbody>
+              <tbody>${buildMonthlyTable(projected, sellPrice, cost, shipping, adSpend)}</tbody>
             </table>
           </div>
         </div>
@@ -450,25 +427,25 @@ const ProfitTimeMachinePlugin = {
         {section:'section-simulator',name:'Business Simulator',desc:'Model scenarios',icon:'🚀',color:'#00e5ff'}
       ])}`;
 
-    this.bindResultEvents(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales);
-    this.renderCharts(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales, saturationRate);
-  },
+  bindResultEvents(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales);
+  renderCharts(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales, saturationRate);
+}
 
-  buildMonthlyTable(projected, sellPrice, cost, shipping, adSpend) {
-    const profitPerSale = sellPrice - cost - shipping - adSpend;
-    let cumulative = 0;
-    const monthlySales = projected.slice(0,30).reduce((a,b)=>a+b,0)/3;
-    const rows = [];
-    for(let m=0; m<3; m++){
-      const slice = projected.slice(m*30,(m+1)*30);
-      const sales = slice.reduce((a,b)=>a+b,0);
-      const revenue = sales * sellPrice;
-      const totalCost = sales * (cost + shipping + adSpend);
-      const profit = sales * profitPerSale;
-      cumulative += profit;
-      const d = new Date(); d.setMonth(d.getMonth()+m);
-      const monthName = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
-      rows.push(`<tr>
+function buildMonthlyTable(projected, sellPrice, cost, shipping, adSpend) {
+  const profitPerSale = sellPrice - cost - shipping - adSpend;
+  let cumulative = 0;
+  const _monthlySales = projected.slice(0,30).reduce((a,b)=>a+b,0)/3;
+  const rows = [];
+  for(let m=0; m<3; m++){
+    const slice = projected.slice(m*30,(m+1)*30);
+    const sales = slice.reduce((a,b)=>a+b,0);
+    const revenue = sales * sellPrice;
+    const totalCost = sales * (cost + shipping + adSpend);
+    const profit = sales * profitPerSale;
+    cumulative += profit;
+    const d = new Date(); d.setMonth(d.getMonth()+m);
+    const monthName = d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    rows.push(`<tr>
         <td class="ptm-td-month">${monthName}</td>
         <td>${Math.round(sales).toLocaleString()} units</td>
         <td style="color:var(--accent-cyan)">${formatMoney(revenue)}</td>
@@ -476,46 +453,46 @@ const ProfitTimeMachinePlugin = {
         <td style="color:${profit>=0?'var(--accent-green)':'var(--accent-red)'}">${formatMoney(profit)}</td>
         <td style="color:${cumulative>=0?'var(--accent-green)':'var(--accent-red)'}">${formatMoney(cumulative)}</td>
       </tr>`);
-    }
-    return rows.join('');
-  },
+  }
+  return rows.join('');
+}
 
-  bindResultEvents(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales){
-    const el = this._section;
-    if(!el) return;
+function bindResultEvents(product, projected, labels, sellPrice, cost, shipping, adSpend, _monthlySales){
+  const el = _section;
+  if(!el) return;
 
-    const csvBtn = el.querySelector('#ptmExportCsv');
-    if(csvBtn) csvBtn.addEventListener('click',()=>this.exportCSV(projected,labels,sellPrice,cost,shipping,adSpend));
+  const csvBtn = el.querySelector('#ptmExportCsv');
+  if(csvBtn) csvBtn.addEventListener('click',()=>exportCSV(product,projected,labels,sellPrice,cost,shipping,adSpend));
 
-    const compareBtn = el.querySelector('#ptmCompareBtn');
-    if(compareBtn) compareBtn.addEventListener('click',()=>this.showCompare(product));
-  },
+  const compareBtn = el.querySelector('#ptmCompareBtn');
+  if(compareBtn) compareBtn.addEventListener('click',()=>showCompare(product));
+}
 
-  exportCSV(projected, labels, sellPrice, cost, shipping, adSpend){
-    const profitPerSale = sellPrice - cost - shipping - adSpend;
-    let cumulative = 0;
-    const headers = ['Day','Date','Projected Sales','Revenue','Costs','Profit','Cumulative Profit'];
-    const rows = projected.map((sales,i)=>{
-      const revenue = sales * sellPrice;
-      const costs = sales * (cost + shipping + adSpend);
-      const profit = sales * profitPerSale;
-      cumulative += profit;
-      return [i+1, labels[i], Math.round(sales), '$'+revenue.toFixed(0), '$'+costs.toFixed(0), '$'+profit.toFixed(0), '$'+cumulative.toFixed(0)];
-    });
-    const csv = [headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
-    const blob = new Blob([csv],{type:'text/csv'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'profit-forecast-' + product.title.split('—')[0].trim().replace(/\s+/g,'-').toLowerCase() + '.csv';
-    a.click();
-  },
+function exportCSV(product, projected, labels, sellPrice, cost, shipping, adSpend){
+  const profitPerSale = sellPrice - cost - shipping - adSpend;
+  let cumulative = 0;
+  const headers = ['Day','Date','Projected Sales','Revenue','Costs','Profit','Cumulative Profit'];
+  const rows = projected.map((sales,i)=>{
+    const revenue = sales * sellPrice;
+    const costs = sales * (cost + shipping + adSpend);
+    const profit = sales * profitPerSale;
+    cumulative += profit;
+    return [i+1, labels[i], Math.round(sales), '$'+revenue.toFixed(0), '$'+costs.toFixed(0), '$'+profit.toFixed(0), '$'+cumulative.toFixed(0)];
+  });
+  const csv = [headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'profit-forecast-' + product.title.split('—')[0].trim().replace(/\s+/g,'-').toLowerCase() + '.csv';
+  a.click();
+}
 
-  showCompare(currentProduct){
-    const el = this._section?.querySelector('#ptmCompare');
-    if(!el) return;
-    const products = (window.HuntDrop.ALL_PRODUCTS||[]).filter(p=>p.id!==currentProduct.id).slice(0,4);
-    if(!products.length){el.innerHTML='';return;}
-    el.innerHTML = `
+function showCompare(currentProduct){
+  const el = _section?.querySelector('#ptmCompare');
+  if(!el) return;
+  const products = (window.HuntDrop.ALL_PRODUCTS||[]).filter(p=>p.id!==currentProduct.id).slice(0,4);
+  if(!products.length){el.innerHTML='';return;}
+  el.innerHTML = `
       <div class="ptm-compare">
         <h3>⚖️ Compare With Other Products</h3>
         <p class="ptm-compare-sub">Click a product to run its forecast</p>
@@ -538,55 +515,81 @@ const ProfitTimeMachinePlugin = {
           }).join('')}
         </div>
       </div>`;
-    el.querySelectorAll('.ptm-compare-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        const input = this._section?.querySelector('#ptmInput');
-        if(input) input.value = card.dataset.q;
-        this.analyze(card.dataset.q);
-        window.scrollTo({top:0,behavior:'smooth'});
-      });
+  el.querySelectorAll('.ptm-compare-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      const input = _section?.querySelector('#ptmInput');
+      if(input) input.value = card.dataset.q;
+      analyze(card.dataset.q);
+      window.scrollTo({top:0,behavior:'smooth'});
     });
+  });
+}
+
+function renderCharts(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales, saturationRate){
+  setTimeout(()=>{
+    const canvas = _section?_section.querySelector('#ptmChart'):null;
+    if(!canvas) return;
+    const profitPerSale = sellPrice - cost - shipping - adSpend;
+    const histLabels = MONTHS;
+    const fullLabels = [...histLabels,...labels];
+    const fullData = [...product.trendData,...projected];
+    const profitData = fullData.map(v=>Math.round(v*profitPerSale));
+    const revData = fullData.map(v=>Math.round(v*sellPrice));
+    const breakEven = fullData.map(()=>Math.round(monthlySales*profitPerSale*0.7));
+    if(_chart) _chart.destroy();
+    _chart = new Chart(canvas,{
+      type:'line',
+      data:{labels:fullLabels.filter((_,i)=>i%6===0),datasets:[
+        {label:'Profit',data:profitData.filter((_,i)=>i%6===0),borderColor:'#00ff88',backgroundColor:'rgba(0,255,136,0.08)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#00ff88',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:2,pointHoverRadius:6},
+        {label:'Revenue',data:revData.filter((_,i)=>i%6===0),borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.05)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#00e5ff',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:2,pointHoverRadius:6},
+        {label:'Break-even',data:breakEven.filter((_,i)=>i%6===0),borderColor:'rgba(255,138,0,0.5)',borderWidth:1,borderDash:[6,4],pointRadius:0,fill:false}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111119',borderColor:'#2a2a3d',borderWidth:1,titleFont:{family:'Outfit',size:11},bodyFont:{family:'JetBrains Mono',size:12},padding:12,displayColors:false,callbacks:{label:c=>c.dataset.label+': $'+c.parsed.y.toLocaleString()}}},scales:{x:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},maxTicksLimit:12}},y:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>'$'+v}}},interaction:{intersect:false,mode:'index'}}
+    });
+
+    const satCanvas = _section?_section.querySelector('#ptmSatChart'):null;
+    if(satCanvas){
+      if(_chartSat) _chartSat.destroy();
+      const satData = [];
+      const satLabels = [];
+      for(let i=0;i<90;i+=3){
+        const sat = Math.min(98, saturationRate + (i * (saturationRate>60?1.2:0.6)));
+        satData.push(Math.round(sat));
+        satLabels.push('Day '+(i+1));
+      }
+      _chartSat = new Chart(satCanvas,{
+        type:'line',
+        data:{labels:satLabels,datasets:[{label:'Saturation %',data:satData,borderColor:'#ff3366',backgroundColor:'rgba(255,51,102,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:0}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'}}}}
+      });
+    }
+  },150);
+}
+
+const ProfitTimeMachinePlugin = {
+  id:'profit-time-machine', name:'Sales Forecast', version:'3.0.0',
+  description:'Predictive profit analytics — see the future before your competitors',
+  dependencies:['search-engine'],
+
+  init(_ctx){ Config.defaults('profitTimeMachine',{enabled:true}); },
+
+  mount(_ctx){
+    const container = UI.$('sections-container');
+    if (!container) return;
+    const section = document.createElement('section');
+    section.className = 'section section-profit-time-machine';
+    section.id = 'section-time-machine';
+    section.innerHTML = buildHTML();
+    container.appendChild(section);
+    _section = section;
+    bindEvents();
+    renderEmptyState();
   },
 
-  renderCharts(product, projected, labels, sellPrice, cost, shipping, adSpend, monthlySales, saturationRate){
-    setTimeout(()=>{
-      const canvas = this._section?this._section.querySelector('#ptmChart'):null;
-      if(!canvas) return;
-      const profitPerSale = sellPrice - cost - shipping - adSpend;
-      const histLabels = MONTHS;
-      const fullLabels = [...histLabels,...labels];
-      const fullData = [...product.trendData,...projected];
-      const profitData = fullData.map(v=>Math.round(v*profitPerSale));
-      const revData = fullData.map(v=>Math.round(v*sellPrice));
-      const breakEven = fullData.map(()=>Math.round(monthlySales*profitPerSale*0.7));
-      if(this._chart) this._chart.destroy();
-      this._chart = new Chart(canvas,{
-        type:'line',
-        data:{labels:fullLabels.filter((_,i)=>i%6===0),datasets:[
-          {label:'Profit',data:profitData.filter((_,i)=>i%6===0),borderColor:'#00ff88',backgroundColor:'rgba(0,255,136,0.08)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#00ff88',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:2,pointHoverRadius:6},
-          {label:'Revenue',data:revData.filter((_,i)=>i%6===0),borderColor:'#00e5ff',backgroundColor:'rgba(0,229,255,0.05)',borderWidth:2,fill:true,tension:0.4,pointBackgroundColor:'#00e5ff',pointBorderColor:'#06060c',pointBorderWidth:2,pointRadius:2,pointHoverRadius:6},
-          {label:'Break-even',data:breakEven.filter((_,i)=>i%6===0),borderColor:'rgba(255,138,0,0.5)',borderWidth:1,borderDash:[6,4],pointRadius:0,fill:false}
-        ]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111119',borderColor:'#2a2a3d',borderWidth:1,titleFont:{family:'Outfit',size:11},bodyFont:{family:'JetBrains Mono',size:12},padding:12,displayColors:false,callbacks:{label:c=>c.dataset.label+': $'+c.parsed.y.toLocaleString()}}},scales:{x:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},maxTicksLimit:12}},y:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>'$'+v}}},interaction:{intersect:false,mode:'index'}}
-      });
-
-      const satCanvas = this._section?this._section.querySelector('#ptmSatChart'):null;
-      if(satCanvas){
-        if(this._chartSat) this._chartSat.destroy();
-        const satData = [];
-        const satLabels = [];
-        for(let i=0;i<90;i+=3){
-          const sat = Math.min(98, saturationRate + (i * (saturationRate>60?1.2:0.6)));
-          satData.push(Math.round(sat));
-          satLabels.push('Day '+(i+1));
-        }
-        this._chartSat = new Chart(satCanvas,{
-          type:'line',
-          data:{labels:satLabels,datasets:[{label:'Saturation %',data:satData,borderColor:'#ff3366',backgroundColor:'rgba(255,51,102,0.08)',borderWidth:2,fill:true,tension:0.4,pointRadius:0}]},
-          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{min:0,max:100,grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>v+'%'}}}}
-        });
-      }
-    },150);
+  unmount(_ctx){
+    if(_chart){_chart.destroy();_chart=null;}
+    if(_chartSat){_chartSat.destroy();_chartSat=null;}
+    if(_section){_section.remove();_section=null;}
   }
 };
 

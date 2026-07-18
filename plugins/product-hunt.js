@@ -2,8 +2,19 @@
 // PLUGIN: Product Hunt v2 — AI Hunting Console with Kill Zone Detection
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,Config,UI,DataLayer} = window.HuntDrop;
+const {EventBus,PluginRegistry,Config,UI} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+function sanitizeHTML(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  tmp.querySelectorAll('script,style,iframe,object,embed,form,input,textarea,select,button,link,meta').forEach(el => el.remove());
+  tmp.querySelectorAll('[onclick],[onerror],[onload],[onmouseover],[onfocus],[onblur]').forEach(el => {
+    Array.from(el.attributes).forEach(attr => {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+    });
+  });
+  return tmp.innerHTML;
+}
 
 function navigateTo(sectionId){
   window.HuntDrop.navigateTo(sectionId);
@@ -51,6 +62,7 @@ let _scanning = false;
 let _activeFilter = 'all';
 let _activeSort = 'score';
 let _watchlist = JSON.parse(localStorage.getItem('ph_watchlist') || '[]');
+let _placeholderInterval = null;
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -69,7 +81,7 @@ function buildHTML() {
         <p class="ph-console-desc">Type what you're looking for — AI searches 10 platforms simultaneously, validates demand, checks competition, and finds arbitrage opportunities.</p>
       </div>
 
-      <div class="ph-prompt-wrap">
+      <div class="ph-prompt-wrap" role="search" aria-label="Product search">
         <div class="ph-prompt-box">
           <textarea class="ph-prompt-textarea" id="phPrompt" placeholder="${PROMPT_SUGGESTIONS[0]}" rows="3"></textarea>
           <div class="ph-prompt-footer">
@@ -197,7 +209,7 @@ function addChatMsg(type, text) {
   if (!msgs) return;
   const div = document.createElement('div');
   div.className = 'ph-chat-msg ' + type;
-  div.innerHTML = text;
+  div.innerHTML = type === 'user' ? esc(text) : sanitizeHTML(text);
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
   _chatHistory.push({role: type, content: text});
@@ -487,7 +499,7 @@ function renderStats() {
   const safe = _searchResults.filter(p => !p.killZone).length;
   const kill = total - safe;
   const avgMargin = Math.round(_searchResults.reduce((s,p) => s + p.margin, 0) / total);
-  const avgScore = Math.round(_searchResults.reduce((s,p) => s + p.score, 0) / total);
+  const _avgScore = Math.round(_searchResults.reduce((s,p) => s + p.score, 0) / total);
   const bestProfit = Math.max(..._searchResults.map(p => p.arbitrage?.profit || 0));
 
   el.innerHTML = `
@@ -700,14 +712,17 @@ function removeFromWatchlist(id) {
 
 // ===== RENDER SPARKLINES =====
 function renderSparklines(products) {
+  if (!products) return;
   products.forEach(p => {
+    if (!p || !p.id) return;
     const canvas = document.getElementById('spark-' + p.id);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     const data = p.trendData || [];
     if (!data.length) return;
 
-    const w = canvas.parentElement.offsetWidth || 260;
+    const w = canvas.parentElement?.offsetWidth || 260;
     const h = 28;
     canvas.width = w * 2;
     canvas.height = h * 2;
@@ -1107,7 +1122,7 @@ function bindEvents() {
   if (prompt) {
     prompt.addEventListener('keypress', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); startHunt(prompt.value); }});
     let pi = 0;
-    setInterval(() => { if(document.activeElement !== prompt && !prompt.value) { pi = (pi+1) % PROMPT_SUGGESTIONS.length; prompt.placeholder = PROMPT_SUGGESTIONS[pi]; }}, 4000);
+    _placeholderInterval = setInterval(() => { if(document.activeElement !== prompt && !prompt.value) { pi = (pi+1) % PROMPT_SUGGESTIONS.length; prompt.placeholder = PROMPT_SUGGESTIONS[pi]; }}, 4000);
   }
 
   if (_section) {
@@ -1219,11 +1234,11 @@ function bindEvents() {
     // ===== IMPORT SECTION: Image Panel =====
     const dropzone = UI.$('phDropzone');
     const fileInput = UI.$('phFileInput');
-    const dropzoneContent = UI.$('phDropzoneContent');
-    const dropzonePreview = UI.$('phDropzonePreview');
-    const previewImg = UI.$('phPreviewImg');
-    const previewName = UI.$('phPreviewName');
-    const previewSize = UI.$('phPreviewSize');
+    const _dropzoneContent = UI.$('phDropzoneContent');
+    const _dropzonePreview = UI.$('phDropzonePreview');
+    const _previewImg = UI.$('phPreviewImg');
+    const _previewName = UI.$('phPreviewName');
+    const _previewSize = UI.$('phPreviewSize');
     const imageSearch = UI.$('phImageSearch');
     const imageRemove = UI.$('phImageRemove');
 
@@ -1273,11 +1288,11 @@ PluginRegistry.register('product-hunt', {
   description: 'AI-powered product hunting with Kill Zone detection',
   dependencies: [],
 
-  init(ctx) {
+  init(_ctx) {
     Config.defaults('producthunt', { depth: 'quick', platforms: ['all'] });
   },
 
-  mount(ctx) {
+  mount(_ctx) {
     const container = UI.$('sections-container');
     if (!container) return;
 
@@ -1292,12 +1307,17 @@ PluginRegistry.register('product-hunt', {
     mountChatSidebar();
   },
 
-  unmount(ctx) {
+  unmount(_ctx) {
+    if (_placeholderInterval) { clearInterval(_placeholderInterval); _placeholderInterval = null; }
     const chat = UI.$('phChatSidebar');
     if (chat) chat.remove();
     const toggle = UI.$('phChatToggle');
     if (toggle) toggle.remove();
     if (_section) { _section.remove(); _section = null; }
+    _chatOpen = false;
+    _chatHistory = [];
+    _searchResults = [];
+    _scanning = false;
   }
 });
 })();

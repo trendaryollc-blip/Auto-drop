@@ -2,93 +2,51 @@
 // PLUGIN: Market Gap Finder — Find Hidden Opportunities (Complete Rebuild)
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,DataLayer,UI,Config} = window.HuntDrop;
+const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
 const esc = s => UI.escapeHtml(s);
+function debounce(fn, ms) { let t; return function() { const args = arguments, ctx = this; clearTimeout(t); t = setTimeout(function() { fn.apply(ctx, args); }, ms); }; }
 
 function navigateTo(sectionId){
   window.HuntDrop.navigateTo(sectionId);
 }
 
-const P = {
-  id:'market-gap-finder',
-  name:'Market Gaps',
-  version:'3.0.0',
-  description:'Find Hidden Opportunities — gap scoring, arbitrage, emerging niches, competitor battlefield, niche radar, lifecycle tracking, AI insights',
-  dependencies:['search-engine'],
-  _section:null,
-  _filters:{ search:'', category:'all', gapMin:0, trend:'all', sort:'gap-desc' },
-  _watchlist:JSON.parse(localStorage.getItem('mg_watchlist')||'[]'),
-  _charts:{},
-  _chartsInit:false,
 
-  init(ctx){ Config.defaults('marketGap',{enabled:true}); },
+let _section = null;
+let _filters = { search:'', category:'all', gapMin:0, trend:'all', sort:'gap-desc' };
+let _watchlist = JSON.parse(localStorage.getItem('mg_watchlist')||'[]');
+let _charts = {};
+let _chartsInit = false;
 
-  mount(ctx){
-    const container = UI.$('sections-container');
-    if(!container) return;
-    const s = document.createElement('section');
-    s.className = 'section section-market-gap-finder';
-    s.id = 'section-market-gaps';
-    const rTools = (window.HuntDrop && window.HuntDrop.renderRelatedTools) ? window.HuntDrop.renderRelatedTools([
-        {section:'section-product-hunt',name:'Product Hunt Scout',desc:'Discover trending products',icon:'&#x1F525;',color:'#ff8a00'},
-        {section:'section-supplier-intel',name:'Supplier Intelligence',desc:'Verify suppliers',icon:'&#x1F6E1;',color:'#00e5ff'},
-        {section:'section-niche-radar',name:'Niche Radar',desc:'Validate niche profitability',icon:'&#x1F50D;',color:'#a855f7'},
-        {section:'section-lifecycle',name:'Product Lifecycle',desc:'Track niche maturity',icon:'&#x1F4C8;',color:'#00ff88'}
-      ]) : '';
-    s.innerHTML = `<div class="section-inner">
-      ${P._renderHero()}
-      <div id="mgAIScan"></div>
-      <div id="mgDataMeta"></div>
-      <div id="mgFilters"></div>
-      <div id="mgStats"></div>
-      <div id="mgInsights"></div>
-      <div id="mgCharts"></div>
-      <div id="mgCategories"></div>
-      <div id="mgTabs"></div>
-      <div id="mgTabContent"></div>
-      <div id="mgBattlefield"></div>
-      <div id="mgNicheRadar"></div>
-      <div id="mgLifecycle"></div>
-      <div id="mgProductHunt"></div>
-      <div id="mgActionZone"></div>
-      <div id="mgCalculator"></div>
-      ${rTools}</div>`;
-    container.appendChild(s);
-    P._section = s;
-    P._render();
-  },
+function _getFilteredGaps(){
+    let gaps=[...DATA.gaps]; const f=_filters;
+    if(f.search){const q=f.search.toLowerCase();gaps=gaps.filter(g=>g.category.toLowerCase().includes(q)||g.topProduct.toLowerCase().includes(q)||g.keywords.some(k=>k.toLowerCase().includes(q)));}
+    if(f.category!=='all') gaps=gaps.filter(g=>g.category===f.category);
+    if(f.gapMin>0) gaps=gaps.filter(g=>g.gap>=f.gapMin);
+    if(f.trend!=='all') gaps=gaps.filter(g=>g.trend===f.trend);
+    if(f.sort==='gap-desc') gaps.sort((a,b)=>b.gap-a.gap);
+    else if(f.sort==='gap-asc') gaps.sort((a,b)=>a.gap-b.gap);
+    else if(f.sort==='demand-desc') gaps.sort((a,b)=>b.demandScore-a.demandScore);
+    else if(f.sort==='margin-desc') gaps.sort((a,b)=>b.arbitrage.margin-a.arbitrage.margin);
+    else if(f.sort==='risk-asc') gaps.sort((a,b)=>a.riskScore-b.riskScore);
+    else if(f.sort==='sellers-asc') gaps.sort((a,b)=>a.sellers-b.sellers);
+    return gaps;
+}
 
-  unmount(ctx){
-    Object.values(this._charts).forEach(c=>{ try{if(c)c.destroy();}catch(e){} });
-    this._charts={}; this._chartsInit=false;
-    if(this._section){ this._section.remove(); this._section=null; }
-  },
+function _getFilteredArbitrage(){
+    let arb=[...DATA.arb]; const f=_filters;
+    if(f.search){const q=f.search.toLowerCase();arb=arb.filter(a=>a.product.toLowerCase().includes(q)||a.category.toLowerCase().includes(q));}
+    if(f.sort==='margin-desc') arb.sort((a,b)=>b.margin-a.margin);
+    else if(f.sort==='demand-desc') arb.sort((a,b)=>{const o={'Very High':3,'High':2,'Medium':1};return(o[b.demand]||0)-(o[a.demand]||0);});
+    return arb;
+}
 
-  // =========================================================================
-  // RENDER ORCHESTRATOR
-  // =========================================================================
-  _render(){
-    const self=this;
-    const r=(n)=>{ try{self[n]();}catch(e){console.error('[MG] '+n+':',e);} };
-    ['renderAIScan','renderDataMeta','renderFilters','renderStats','renderInsights',
-     'renderCharts','renderCategories','renderTabs','renderBattlefield',
-     'renderNicheRadar','renderLifecycle','renderProductHunt','renderActionZone',
-     'renderCalculator'].forEach(r);
-  },
+function _getFilteredEmerging(){
+    let em=[...DATA.emerging]; const f=_filters;
+    if(f.search){const q=f.search.toLowerCase();em=em.filter(e=>e.name.toLowerCase().includes(q)||e.category.toLowerCase().includes(q));}
+    return em;
+}
 
-  _refresh(){
-    this.renderStats();
-    this.renderCharts();
-    this.renderCategories();
-    this.renderInsights();
-    const t=this._section?.querySelector('.mg-tab.active');
-    if(t) this.showTab(t.dataset.tab);
-  },
-
-  // =========================================================================
-  // HERO (Static HTML)
-  // =========================================================================
-  _renderHero(){
+function _renderHero(){
     return `<div class="mg-hero">
       <div class="mg-hero-badge"><span class="mg-hero-badge-dot"></span>Market Intelligence</div>
       <h1 class="mg-hero-title">Find Hidden Opportunities</h1>
@@ -99,13 +57,10 @@ const P = {
         <div class="mg-hero-feat"><div class="mg-hero-feat-icon" style="background:rgba(168,85,247,0.1);color:var(--accent-purple)">&#x1F680;</div><div class="mg-hero-feat-text"><strong>Emerging Niches</strong><span>Early trend detection</span></div></div>
       </div>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // AI SCAN BAR
-  // =========================================================================
-  renderAIScan(){
-    const el=this._section?.querySelector('#mgAIScan');
+function renderAIScan(){
+    const el=_section?.querySelector('#mgAIScan');
     if(!el) return;
     const gaps=DATA.gaps.length;
     const arb=DATA.arb.length;
@@ -115,13 +70,10 @@ const P = {
       <span class="mg-ai-scan-text">AI scanned <strong>12,847 products</strong> across 10 platforms &mdash; <strong>${gaps} gaps</strong>, <strong>${arb} arbitrage</strong>, <strong>${em} emerging</strong> found</span>
       <span class="mg-ai-scan-count">${gaps+arb+em} opportunities</span>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // DATA META
-  // =========================================================================
-  renderDataMeta(){
-    const el=this._section?.querySelector('#mgDataMeta');
+function renderDataMeta(){
+    const el=_section?.querySelector('#mgDataMeta');
     if(!el) return;
     const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
     el.innerHTML=`<div class="mg-data-meta">
@@ -129,19 +81,16 @@ const P = {
       <span class="mg-meta-item">Sources: AliExpress, Amazon, Shopify, eBay, Temu, TikTok, Etsy, CJ, DHgate, Wish</span>
       <span class="mg-meta-item">${DATA.gaps.length+DATA.arb.length+DATA.emerging.length} opportunities found</span>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // FILTERS
-  // =========================================================================
-  renderFilters(){
-    const el=this._section?.querySelector('#mgFilters');
+function renderFilters(){
+    const el=_section?.querySelector('#mgFilters');
     if(!el) return;
     const cats=['all',...new Set(DATA.gaps.map(g=>g.category))];
     el.innerHTML=`<div class="mg-filter-bar">
       <div class="mg-search-wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="mg-search-input" placeholder="Search categories, products, keywords..." value="${this._filters.search}" id="mgSearchInput">
+        <input type="text" class="mg-search-input" placeholder="Search categories, products, keywords..." value="${_filters.search}" id="mgSearchInput">
       </div>
       <div class="mg-filter-controls">
         <select class="mg-filter-select" id="mgCategoryFilter">${cats.map(c=>`<option value="${c}">${c==='all'?'All Categories':c}</option>`).join('')}</select>
@@ -153,151 +102,52 @@ const P = {
       </div>
     </div>`;
     const bind=(id,evt,fn)=>{const e=el.querySelector(id);if(e)e.addEventListener(evt,fn);};
-    bind('#mgSearchInput','input',(e)=>{this._filters.search=e.target.value;this._refresh();});
-    bind('#mgCategoryFilter','change',(e)=>{this._filters.category=e.target.value;this._refresh();});
-    bind('#mgGapFilter','change',(e)=>{this._filters.gapMin=parseInt(e.target.value);this._refresh();});
-    bind('#mgTrendFilter','change',(e)=>{this._filters.trend=e.target.value;this._refresh();});
-    bind('#mgSortFilter','change',(e)=>{this._filters.sort=e.target.value;this._refresh();});
-    bind('#mgExportCSV','click',()=>this.exportCSV());
-    bind('#mgExportPDF','click',()=>this.exportPDF());
-  },
+    const debouncedSearch=debounce(()=>{refresh();},300);
+    bind('#mgSearchInput','input',(e)=>{_filters.search=e.target.value;debouncedSearch();});
+    bind('#mgCategoryFilter','change',(e)=>{_filters.category=e.target.value;refresh();});
+    bind('#mgGapFilter','change',(e)=>{_filters.gapMin=parseInt(e.target.value);refresh();});
+    bind('#mgTrendFilter','change',(e)=>{_filters.trend=e.target.value;refresh();});
+    bind('#mgSortFilter','change',(e)=>{_filters.sort=e.target.value;refresh();});
+    bind('#mgExportCSV','click',()=>exportCSV());
+    bind('#mgExportPDF','click',()=>exportPDF());
+}
 
-  // =========================================================================
-  // STATS ROW
-  // =========================================================================
-  renderStats(){
-    const el=this._section?.querySelector('#mgStats');
-    if(!el) return;
-    const gaps=this._getFilteredGaps();
-    const total=gaps.length;
-    const avgGap=total?Math.round(gaps.reduce((s,g)=>s+g.gap,0)/total):0;
-    const avgMargin=total?Math.round(gaps.reduce((s,g)=>s+g.arbitrage.margin,0)/total):0;
-    const wl=this._watchlist.length;
-    el.innerHTML=`<div class="mg-stats-row">
-      <div class="mg-stat-card"><div class="mg-stat-icon" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">&#x1F3AF;</div><div class="mg-stat-value" style="color:var(--accent-cyan)">${total}</div><div class="mg-stat-label">Market Gaps</div></div>
-      <div class="mg-stat-card"><div class="mg-stat-icon" style="background:var(--accent-green-dim);color:var(--accent-green)">&#x1F4C8;</div><div class="mg-stat-value" style="color:var(--accent-green)">${avgGap}</div><div class="mg-stat-label">Avg Gap Score</div></div>
-      <div class="mg-stat-card"><div class="mg-stat-icon" style="background:var(--accent-orange-dim);color:var(--accent-orange)">&#x1F4B5;</div><div class="mg-stat-value" style="color:var(--accent-orange)">${avgMargin}%</div><div class="mg-stat-label">Avg Margin</div></div>
-      <div class="mg-stat-card"><div class="mg-stat-icon" style="background:var(--accent-purple-dim);color:var(--accent-purple)">&#x1F680;</div><div class="mg-stat-value" style="color:var(--accent-purple)">${wl}</div><div class="mg-stat-label">Watchlist</div></div>
-    </div>`;
-  },
-
-  // =========================================================================
-  // AI INSIGHTS PANEL (Section 9)
-  // =========================================================================
-  renderInsights(){
-    const el=this._section?.querySelector('#mgInsights');
-    if(!el) return;
-    const gaps=DATA.gaps.slice().sort((a,b)=>b.gap-a.gap);
-    const top3=gaps.slice(0,3);
-    const bestArb=DATA.arb.slice().sort((a,b)=>b.margin-a.margin)[0];
-    const fastest=DATA.emerging.slice().sort((a,b)=>parseInt(b.searchGrowth)-parseInt(a.searchGrowth))[0];
-    el.innerHTML=`<div class="mg-insights-section">
-      <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4A1; AI Insights</h3><p class="mg-section-sub">AI-powered analysis of the most profitable opportunities this week</p></div>
-      <div class="mg-insights-grid">
-        <div class="mg-insight-card top-niches">
-          <div class="mg-insight-icon" style="background:rgba(0,229,255,0.12);color:var(--accent-cyan)">&#x1F3AF;</div>
-          <div class="mg-insight-label">Top 3 Profitable Niches</div>
-          <div class="mg-insight-title">Highest gap score opportunities</div>
-          <div class="mg-insight-list">${top3.map((g,i)=>`<div class="mg-insight-item"><span class="mg-insight-item-rank">${i+1}</span><span class="mg-insight-item-name">${g.emoji} ${g.category}</span><span class="mg-insight-item-val" style="color:var(--accent-green)">${g.gap}</span></div>`).join('')}</div>
-        </div>
-        <div class="mg-insight-card best-arb">
-          <div class="mg-insight-icon" style="background:rgba(0,255,136,0.12);color:var(--accent-green)">&#x1F4B0;</div>
-          <div class="mg-insight-label">Best Arbitrage</div>
-          <div class="mg-insight-title">Highest margin opportunity</div>
-          <div class="mg-insight-list">
-            <div class="mg-insight-item"><span class="mg-insight-item-name">${bestArb.product}</span><span class="mg-insight-item-val" style="color:var(--accent-green)">${bestArb.margin}%</span></div>
-            <div class="mg-insight-item" style="font-size:11px;color:var(--text-muted)"><span>Buy $${bestArb.aliPrice.toFixed(2)} &rarr; Sell $${bestArb.amazonPrice.toFixed(2)}</span></div>
-          </div>
-        </div>
-        <div class="mg-insight-card fastest">
-          <div class="mg-insight-icon" style="background:rgba(255,138,0,0.12);color:var(--accent-orange)">&#x1F680;</div>
-          <div class="mg-insight-label">Fastest Rising</div>
-          <div class="mg-insight-title">Biggest search growth this month</div>
-          <div class="mg-insight-list">
-            <div class="mg-insight-item"><span class="mg-insight-item-name">${fastest.name}</span><span class="mg-insight-item-val" style="color:var(--accent-green)">${fastest.searchGrowth}</span></div>
-            <div class="mg-insight-item" style="font-size:11px;color:var(--text-muted)"><span>${fastest.sellerCount} sellers &bull; ${fastest.platforms.join(', ')}</span></div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  },
-
-  // =========================================================================
-  // CHARTS
-  // =========================================================================
-  renderCharts(){
-    const el=this._section?.querySelector('#mgCharts');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-charts-grid">
-      <div class="mg-chart-card"><div class="mg-chart-title">Demand vs Supply &mdash; Gap Analysis</div><canvas id="mgGapChart" height="280"></canvas></div>
-      <div class="mg-chart-card"><div class="mg-chart-title">Margin Distribution by Category</div><canvas id="mgDemandChart" height="280"></canvas></div>
-      <div class="mg-chart-card mg-chart-wide"><div class="mg-chart-title">Seasonal Demand Pattern (12 months)</div><canvas id="mgTrendChart" height="220"></canvas></div>
-    </div>`;
-    if(this._chartsInit){ Object.values(this._charts).forEach(c=>{try{if(c)c.destroy();}catch(e){}}); this._chartsInit=false; }
-    if(typeof Chart==='undefined') return;
-    const gaps=this._getFilteredGaps();
-    if(!gaps.length) return;
-    const gc=el.querySelector('#mgGapChart');
-    if(gc) this._charts.gap=new Chart(gc,{type:'bar',data:{labels:gaps.map(g=>g.category.length>14?g.category.slice(0,14)+'...':g.category),datasets:[{label:'Demand',data:gaps.map(g=>g.demandScore),backgroundColor:'rgba(0,255,136,0.7)',borderRadius:4},{label:'Supply',data:gaps.map(g=>g.supplyScore),backgroundColor:'rgba(255,51,102,0.7)',borderRadius:4},{label:'Gap',data:gaps.map(g=>g.gap),backgroundColor:'rgba(0,229,255,0.7)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8888a4',font:{size:11}}}},scales:{x:{ticks:{color:'#8888a4',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#8888a4',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}});
-    const dc=el.querySelector('#mgDemandChart');
-    if(dc) this._charts.demand=new Chart(dc,{type:'doughnut',data:{labels:gaps.map(g=>g.category.length>16?g.category.slice(0,16)+'...':g.category),datasets:[{data:gaps.map(g=>g.arbitrage.margin),backgroundColor:['#00e5ff','#00ff88','#ff8a00','#a855f7','#2fb7ec','#ff3366','#ffd700','#ff6b35','#40c351','#f472b6'],borderColor:'#0a0a1a',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8888a4',font:{size:10},padding:8}}}}});
-    const tc=el.querySelector('#mgTrendChart');
-    if(tc){const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const top3=gaps.slice(0,3);const colors=['#00e5ff','#00ff88','#ff8a00'];this._charts.trend=new Chart(tc,{type:'line',data:{labels:months,datasets:top3.map((g,i)=>({label:g.category,data:g.seasonality,borderColor:colors[i],backgroundColor:colors[i]+'22',fill:true,tension:0.4,pointRadius:3,pointHoverRadius:6}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8888a4',font:{size:11}}}},scales:{x:{ticks:{color:'#8888a4',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#8888a4',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}});}
-    this._chartsInit=true;
-  },
-
-  // =========================================================================
-  // CATEGORIES
-  // =========================================================================
-  renderCategories(){
-    const el=this._section?.querySelector('#mgCategories');
-    if(!el) return;
-    const catData=DATA.categories.map(c=>{const gaps=DATA.gaps.filter(g=>g.category===c.name);const avgGap=gaps.length?Math.round(gaps.reduce((s,g)=>s+g.gap,0)/gaps.length):0;const avgMargin=gaps.length?Math.round(gaps.reduce((s,g)=>s+g.arbitrage.margin,0)/gaps.length):0;return{...c,gapCount:gaps.length,avgGap,avgMargin};}).filter(c=>c.gapCount>0);
-    el.innerHTML=`<div class="mg-section-header"><h3 class="mg-section-title">Category Breakdown</h3><p class="mg-section-sub">Average gap score and margin by category</p></div>
-    <div class="mg-category-grid">${catData.map(c=>`<div class="mg-category-card" style="--cat-color:${c.color}" onclick="document.querySelector('#mgCategoryFilter').value='${c.name}';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'))">
-      <div class="mg-cat-emoji">${c.emoji}</div><div class="mg-cat-name">${c.name}</div>
-      <div class="mg-cat-stats"><div class="mg-cat-stat"><span class="mg-cat-stat-val" style="color:${c.color}">${c.avgGap}</span><span class="mg-cat-stat-lbl">Avg Gap</span></div><div class="mg-cat-stat"><span class="mg-cat-stat-val" style="color:var(--accent-green)">${c.avgMargin}%</span><span class="mg-cat-stat-lbl">Avg Margin</span></div><div class="mg-cat-stat"><span class="mg-cat-stat-val">${c.gapCount}</span><span class="mg-cat-stat-lbl">Opps</span></div></div>
-    </div>`).join('')}</div>`;
-  },
-
-  // =========================================================================
-  // TABS
-  // =========================================================================
-  renderTabs(){
-    const el=this._section?.querySelector('#mgTabs');
+function renderTabs(){
+    const el=_section?.querySelector('#mgTabs');
     if(!el) return;
     el.innerHTML=`<div class="mg-tabs">
       <button class="mg-tab active" data-tab="gaps">Market Gaps</button>
       <button class="mg-tab" data-tab="arbitrage">Arbitrage</button>
       <button class="mg-tab" data-tab="emerging">Emerging</button>
-      <button class="mg-tab" data-tab="watchlist">Watchlist (${this._watchlist.length})</button>
+      <button class="mg-tab" data-tab="watchlist">Watchlist (${_watchlist.length})</button>
     </div>`;
-    el.querySelectorAll('.mg-tab').forEach(tab=>{tab.addEventListener('click',()=>{el.querySelectorAll('.mg-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');this.showTab(tab.dataset.tab);});});
-    this.showTab('gaps');
-  },
+    el.querySelectorAll('.mg-tab').forEach(tab=>{tab.addEventListener('click',()=>{el.querySelectorAll('.mg-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');showTab(tab.dataset.tab);});});
+    showTab('gaps');
+}
 
-  showTab(tab){
-    const el=this._section?.querySelector('#mgTabContent');
+function showTab(tab){
+    const el=_section?.querySelector('#mgTabContent');
     if(!el) return;
-    if(tab==='gaps') el.innerHTML=this._renderGaps();
-    else if(tab==='arbitrage') el.innerHTML=this._renderArbitrage();
-    else if(tab==='emerging') el.innerHTML=this._renderEmerging();
-    else if(tab==='watchlist') el.innerHTML=this._renderWatchlist();
-    this._bindTabEvents(el);
-  },
+    el.innerHTML='';
+    const renderers={gaps:_renderGaps,arbitrage:_renderArbitrage,emerging:_renderEmerging,watchlist:_renderWatchlist};
+    const fn=renderers[tab];
+    if(fn) el.innerHTML=fn();
+    _bindTabEvents(el);
+}
 
-  _bindTabEvents(el){
+function _bindTabEvents(el){
     if(!el) return;
-    el.querySelectorAll('[data-gap-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.gapId);const action=e.currentTarget.dataset.action;if(action==='detail')this.showGapDetail(id);else if(action==='suppliers')navigateTo('section-supplier-hub');else if(action==='profit')this.openProfitCalc(id);else if(action==='ad')this.openAdStudio(id);else if(action==='save')this.toggleWatchlist(id);});});
-    el.querySelectorAll('[data-arb-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.arbId);const action=e.currentTarget.dataset.action;if(action==='detail')this.showArbDetail(id);});});
-    el.querySelectorAll('[data-em-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.emId);const action=e.currentTarget.dataset.action;if(action==='save')this.toggleEmergingWatchlist(id);});});
-  },
+    el.querySelectorAll('[data-gap-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.gapId);const action=e.currentTarget.dataset.action;if(action==='detail')showGapDetail(id);else if(action==='suppliers')navigateTo('section-supplier-hub');else if(action==='profit')openProfitCalc(id);else if(action==='ad')openAdStudio(id);else if(action==='save')toggleWatchlist(id);});});
+    el.querySelectorAll('[data-arb-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.arbId);const action=e.currentTarget.dataset.action;if(action==='detail')showArbDetail(id);});});
+    el.querySelectorAll('[data-em-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.emId);const action=e.currentTarget.dataset.action;if(action==='save')toggleEmergingWatchlist(id);});});
+    // Keyword chips -> Search
+    el.querySelectorAll('.mg-kw-chip').forEach(chip=>{chip.style.cursor='pointer';chip.addEventListener('click',()=>{const kw=chip.textContent.trim();if(kw){window.HuntDrop.navigateTo('section-search');setTimeout(()=>{const si=document.getElementById('searchPageInput')||document.getElementById('searchInput');if(si){si.value=kw;si.dispatchEvent(new Event('input',{bubbles:true}));}EventBus.emit('search:query',{query:kw,filters:{}});},200);}});});
+    // Audience interest chips -> Search
+    el.querySelectorAll('.mg-aud-chip').forEach(chip=>{chip.style.cursor='pointer';chip.addEventListener('click',()=>{const kw=chip.textContent.trim();if(kw){window.HuntDrop.navigateTo('section-search');setTimeout(()=>{const si=document.getElementById('searchPageInput')||document.getElementById('searchInput');if(si){si.value=kw;si.dispatchEvent(new Event('input',{bubbles:true}));}EventBus.emit('search:query',{query:kw,filters:{}});},200);}});});
+}
 
-  // =========================================================================
-  // GAPS TAB (Section 2 — Gap Scoring Card)
-  // =========================================================================
-  _renderGaps(){
-    const gaps=this._getFilteredGaps();
+function _renderGaps(){
+    const gaps=getFilteredGaps();
     if(!gaps.length) return '<div class="mg-empty">No market gaps match your filters. Try adjusting your search.</div>';
     const tc={rising:'var(--accent-green)',stable:'var(--accent-yellow)',declining:'var(--accent-red)'};
     return `<div class="mg-gaps-list">${gaps.map((g,i)=>`<div class="mg-gap-card" style="animation-delay:${Math.min(i*0.05,0.4)}s">
@@ -329,18 +179,15 @@ const P = {
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="suppliers">Find Suppliers</button>
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="profit">Calculate Profit</button>
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="ad">Create Ad</button>
-          <button class="mg-action-btn mg-action-save ${this._watchlist.includes(g.id)?'saved':''}" data-gap-id="${g.id}" data-action="save">${this._watchlist.includes(g.id)?'&#x2713; Saved':'Save'}</button>
+          <button class="mg-action-btn mg-action-save ${_watchlist.includes(g.id)?'saved':''}" data-gap-id="${g.id}" data-action="save">${_watchlist.includes(g.id)?'&#x2713; Saved':'Save'}</button>
         </div>
         <div class="mg-gap-keywords">${g.keywords.map(k=>`<span class="mg-kw-chip">${esc(k)}</span>`).join('')}</div>
       </div>
     </div>`).join('')}</div>`;
-  },
+}
 
-  // =========================================================================
-  // ARBITRAGE TAB (Section 3 — Arbitrage Finder Card)
-  // =========================================================================
-  _renderArbitrage(){
-    const arb=this._getFilteredArbitrage();
+function _renderArbitrage(){
+    const arb=getFilteredArbitrage();
     if(!arb.length) return '<div class="mg-empty">No arbitrage opportunities match your filters.</div>';
     return `<div class="mg-arb-section"><div class="mg-arb-header"><h3>Cross-Platform Price Gaps</h3><p>Buy low on AliExpress/Temu, sell high on Amazon/Shopify</p></div>
     <div class="mg-arb-grid">${arb.map(a=>`<div class="mg-arb-card"><div class="mg-arb-card-top"><span class="mg-arb-name">${esc(a.product)}</span><span class="mg-arb-demand">${esc(a.demand)} Demand</span></div>
@@ -348,13 +195,10 @@ const P = {
       <div class="mg-arb-profit">+$${(a.amazonPrice-a.aliPrice).toFixed(2)} profit (${a.margin}% margin)</div>
       <div class="mg-arb-actions"><button class="mg-action-btn" data-arb-id="${a.id}" data-action="detail">View Details</button></div>
     </div>`).join('')}</div></div>`;
-  },
+}
 
-  // =========================================================================
-  // EMERGING TAB (Section 4 — Emerging Niches Card)
-  // =========================================================================
-  _renderEmerging(){
-    const em=this._getFilteredEmerging();
+function _renderEmerging(){
+    const em=getFilteredEmerging();
     if(!em.length) return '<div class="mg-empty">No emerging niches match your filters.</div>';
     return `<div class="mg-emerging-section"><div class="mg-emerging-header"><h3>Emerging Niches</h3><p>Products gaining traction across multiple platforms &mdash; early mover window</p></div>
     <div class="mg-emerging-list">${em.map(n=>`<div class="mg-emerging-card">
@@ -365,13 +209,10 @@ const P = {
       <div class="mg-em-opp">${esc(n.opportunity)}</div>
       <div class="mg-em-prediction">&#x1F52E; +${Math.round(parseInt(n.searchGrowth)*0.3)}% in 30d</div>
     </div>`).join('')}</div></div>`;
-  },
+}
 
-  // =========================================================================
-  // WATCHLIST TAB
-  // =========================================================================
-  _renderWatchlist(){
-    const gaps=DATA.gaps.filter(g=>this._watchlist.includes(g.id));
+function _renderWatchlist(){
+    const gaps=DATA.gaps.filter(g=>_watchlist.includes(g.id));
     if(!gaps.length) return '<div class="mg-empty">Your watchlist is empty. Save opportunities from the Market Gaps tab.</div>';
     return `<div class="mg-watchlist-section"><div class="mg-watchlist-header"><h3>Saved Opportunities</h3><p>${gaps.length} items saved</p></div>
     <div class="mg-gaps-list">${gaps.map((g,i)=>`<div class="mg-gap-card"><div class="mg-gap-rank">#${i+1}</div><div class="mg-gap-main">
@@ -379,20 +220,17 @@ const P = {
       <div class="mg-gap-metrics"><div class="mg-gap-m"><span class="mg-gap-m-label">Demand</span><span class="mg-gap-m-val" style="color:var(--accent-green)">${g.demandScore}</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Supply</span><span class="mg-gap-m-val" style="color:var(--accent-red)">${g.supplyScore}</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Margin</span><span class="mg-gap-m-val" style="color:var(--accent-green)">${g.arbitrage.margin}%</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Trend</span><span class="mg-gap-m-val">${g.trend}</span></div></div>
       <div class="mg-gap-actions"><button class="mg-action-btn mg-action-primary" data-gap-id="${g.id}" data-action="detail">View Full Analysis</button><button class="mg-action-btn" data-gap-id="${g.id}" data-action="suppliers">Find Suppliers</button><button class="mg-action-btn mg-action-danger" data-gap-id="${g.id}" data-action="save">Remove</button></div>
     </div></div>`).join('')}</div></div>`;
-  },
+}
 
-  // =========================================================================
-  // COMPETITOR BATTLEFIELD (Section 5)
-  // =========================================================================
-  renderBattlefield(){
-    const el=this._section?.querySelector('#mgBattlefield');
+function renderBattlefield(){
+    const el=_section?.querySelector('#mgBattlefield');
     if(!el) return;
     el.innerHTML=`<div class="mg-battlefield-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x2694;&#xFE0F; Competitor Battlefield</h3><p class="mg-section-sub">Competition intensity mapped across each niche</p></div>
       <div class="mg-bf-grid">${DATA.gaps.map(g=>{
         const satLevel=g.marketSaturation<30?'low':g.marketSaturation<60?'medium':'high';
         const satColor=satLevel==='low'?'var(--accent-green)':satLevel==='medium'?'var(--accent-yellow)':'var(--accent-red)';
-        return`<div class="mg-bf-card">
+        return`<div class="mg-bf-card" style="cursor:pointer" onclick="document.querySelector('#mgCategoryFilter').value='${g.category}';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'));document.getElementById('section-market-gaps').scrollIntoView({behavior:'smooth',block:'start'})">
           <div class="mg-bf-top"><span class="mg-bf-emoji">${g.emoji}</span><span class="mg-bf-name">${g.category}</span><span class="mg-bf-sat ${satLevel}">${satLevel.toUpperCase()}</span></div>
           <div class="mg-bf-metrics">
             <div class="mg-bf-metric"><span class="mg-bf-metric-val">${g.sellers}</span><span class="mg-bf-metric-lbl">Sellers</span></div>
@@ -404,13 +242,10 @@ const P = {
         </div>`;
       }).join('')}</div>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // NICHE RADAR (Section 6)
-  // =========================================================================
-  renderNicheRadar(){
-    const el=this._section?.querySelector('#mgNicheRadar');
+function renderNicheRadar(){
+    const el=_section?.querySelector('#mgNicheRadar');
     if(!el) return;
     el.innerHTML=`<div class="mg-niche-radar-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F50D; Niche Radar</h3><p class="mg-section-sub">Validate niche profitability with conversion, AOV, pain points and audience data</p></div>
@@ -429,13 +264,10 @@ const P = {
         </div>`;
       }).join('')}</div>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // PRODUCT LIFECYCLE (Section 7)
-  // =========================================================================
-  renderLifecycle(){
-    const el=this._section?.querySelector('#mgLifecycle');
+function renderLifecycle(){
+    const el=_section?.querySelector('#mgLifecycle');
     if(!el) return;
     el.innerHTML=`<div class="mg-lifecycle-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4C8; Product Lifecycle</h3><p class="mg-section-sub">Track niche maturity stage and predict time-to-peak</p></div>
@@ -457,21 +289,18 @@ const P = {
         const c=el.querySelector('#mgLC_'+g.id);
         if(!c) return;
         const key='lc_'+g.id;
-        if(this._charts[key]) try{this._charts[key].destroy();}catch(e){}
+        if(_charts[key]) try{_charts[key].destroy();}catch{/* ignored */}
         const colors={Emerging:'#00e5ff',Growing:'#00ff88',Saturated:'#ff3366'};
         const stage=g.marketSaturation<25?'Emerging':g.marketSaturation<55?'Growing':'Saturated';
-        this._charts[key]=new Chart(c,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:g.seasonality,borderColor:colors[stage],backgroundColor:colors[stage]+'22',fill:true,tension:0.4,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+        _charts[key]=new Chart(c,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:g.seasonality,borderColor:colors[stage],backgroundColor:colors[stage]+'22',fill:true,tension:0.4,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
       });
     },100);
-  },
+}
 
-  // =========================================================================
-  // PRODUCT HUNT SCOUT (Section 8)
-  // =========================================================================
-  renderProductHunt(){
-    const el=this._section?.querySelector('#mgProductHunt');
+function renderProductHunt(){
+    const el=_section?.querySelector('#mgProductHunt');
     if(!el) return;
-    const topProducts=DATA.gaps.flatMap(g=>g.topProducts||[{name:g.topProduct,price:g.arbitrage.sell,margin:g.arbitrage.margin,shipTime:'7-15 days',supplier:g.suppliers[0]?.name||'Various'}]).slice(0,10);
+    const _topProducts=DATA.gaps.flatMap(g=>g.topProducts||[{name:g.topProduct,price:g.arbitrage.sell,margin:g.arbitrage.margin,shipTime:'7-15 days',supplier:g.suppliers[0]?.name||'Various'}]).slice(0,10);
     el.innerHTML=`<div class="mg-phunt-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F525; Product Hunt Scout</h3><p class="mg-section-sub">Top products per niche with supplier links, margins and shipping times</p></div>
       <div class="mg-phunt-grid">${DATA.gaps.slice(0,5).map((g,i)=>`<div class="mg-phunt-card" style="animation-delay:${i*0.08}s">
@@ -480,31 +309,25 @@ const P = {
         <div class="mg-phunt-prices"><span class="mg-phunt-price">$${g.arbitrage.sell}</span><span class="mg-phunt-margin">${g.arbitrage.margin}% margin</span></div>
         <div class="mg-phunt-meta">Ship: 7-15 days</div>
         <div class="mg-phunt-meta">${g.suppliers[0]?.name||'Various suppliers'}</div>
-        <a class="mg-phunt-link" href="#">View on AliExpress &rarr;</a>
+        <a class="mg-phunt-link" href="javascript:void(0)" onclick="window.HuntDrop.navigateTo('section-product-hunt')">View on AliExpress &rarr;</a>
       </div>`).join('')}</div>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // ACTION ZONE (Section 10)
-  // =========================================================================
-  renderActionZone(){
-    const el=this._section?.querySelector('#mgActionZone');
+function renderActionZone(){
+    const el=_section?.querySelector('#mgActionZone');
     if(!el) return;
-    const wlActive=this._watchlist.length>0;
+    const wlActive=_watchlist.length>0;
     el.innerHTML=`<div class="mg-action-zone">
       <button class="mg-az-btn analyze" onclick="document.querySelector('#mgSearchInput')?.focus()">&#x1F9E0; Analyze Market</button>
       <button class="mg-az-btn compare" onclick="document.querySelector('#mgCategoryFilter').value='all';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'))">&#x1F4CA; Compare Niches</button>
       <button class="mg-az-btn export" onclick="window.HuntDrop._mgExportPDF&&window.HuntDrop._mgExportPDF()">&#x1F4C4; Export Report</button>
-      <button class="mg-az-btn watchlist ${wlActive?'active':''}" onclick="document.querySelector('[data-tab=watchlist]')?.click()">&#x1F680; Watchlist (${this._watchlist.length})</button>
+      <button class="mg-az-btn watchlist ${wlActive?'active':''}" onclick="document.querySelector('[data-tab=watchlist]')?.click()">&#x1F680; Watchlist (${_watchlist.length})</button>
     </div>`;
-  },
+}
 
-  // =========================================================================
-  // OPPORTUNITY CALCULATOR
-  // =========================================================================
-  renderCalculator(){
-    const el=this._section?.querySelector('#mgCalculator');
+function renderCalculator(){
+    const el=_section?.querySelector('#mgCalculator');
     if(!el) return;
     el.innerHTML=`<div class="mg-calc-section">
       <div class="mg-section-header"><h3 class="mg-section-title">Opportunity Score Calculator</h3><p class="mg-section-sub">Input your parameters to get a personalized recommendation</p></div>
@@ -519,14 +342,14 @@ const P = {
         <div id="mgCalcResult" class="mg-calc-result"></div>
       </div>
     </div>`;
-    el.querySelector('#mgCalcBtn')?.addEventListener('click',()=>this._calculate());
-  },
+    el.querySelector('#mgCalcBtn')?.addEventListener('click',()=>calculate());
+}
 
-  _calculate(){
+function _calculate(){
     const budget=parseInt(document.querySelector('#mgCalcBudget')?.value)||500;
     const exp=document.querySelector('#mgCalcExp')?.value||'beginner';
     const risk=document.querySelector('#mgCalcRisk')?.value||'low';
-    let recommended=DATA.gaps.filter(g=>{
+    const recommended=DATA.gaps.filter(g=>{
       if(risk==='low'&&g.riskScore>30) return false;
       if(risk==='medium'&&g.riskScore>50) return false;
       if(exp==='beginner'&&g.riskScore>40) return false;
@@ -540,12 +363,9 @@ const P = {
       <div class="mg-calc-info"><div class="mg-calc-name">${esc(g.emoji)} ${esc(g.category)}</div><div class="mg-calc-meta">Gap: ${g.gap} | Margin: ${g.arbitrage.margin}% | Risk: ${g.riskScore}/100</div><div class="mg-calc-tip">${esc(g.action)}</div></div>
       <div class="mg-calc-score" style="color:var(--accent-green)">${Math.round((g.gap*0.4+g.arbitrage.margin*0.3+(100-g.riskScore)*0.3))}</div>
     </div>`).join('')}</div>`;
-  },
+}
 
-  // =========================================================================
-  // MODALS
-  // =========================================================================
-  showGapDetail(id){
+function showGapDetail(id){
     const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
     UI.modal(`<div class="mg-detail">
       <div class="mg-detail-hero"><span class="mg-detail-emoji">${esc(g.emoji)}</span><div><h2 class="mg-detail-title">${esc(g.category)}</h2>
@@ -578,9 +398,9 @@ const P = {
         <div class="mg-detail-section mg-detail-wide"><h4>AI Opportunity Analysis</h4><div class="mg-detail-insight">${esc(g.opportunity)}</div></div>
         <div class="mg-detail-section mg-detail-wide"><h4>Recommended Action</h4><div class="mg-detail-action">${esc(g.action)}</div></div>
       </div></div>`);
-  },
+}
 
-  showArbDetail(id){
+function showArbDetail(id){
     const a=DATA.arb.find(x=>x.id===id);if(!a) return;
     const profit=(a.amazonPrice-a.aliPrice).toFixed(2);
     UI.modal(`<div class="mg-detail"><div class="mg-detail-hero"><span class="mg-detail-emoji">&#x1F4B0;</span><div><h2 class="mg-detail-title">${esc(a.product)}</h2>
@@ -592,93 +412,124 @@ const P = {
       <div class="mg-detail-arb-row"><span>Profit per unit</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${profit}</span></div>
       <div class="mg-detail-arb-row"><span>ROI per 100 units</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${(profit*100).toFixed(0)}</span></div>
     </div></div></div>`);
-  },
+}
 
-  // =========================================================================
-  // NAVIGATION HELPERS
-  // =========================================================================
-  openProfitCalc(id){
+function openProfitCalc(id){
     const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
     window.HuntDrop.navigateTo('section-profit-lab');
     UI.toast('Opening Profit Calculator for '+g.category,'info');
-  },
+}
 
-  openAdStudio(id){
+function openAdStudio(id){
     const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
     window.HuntDrop.navigateTo('section-ad-studio');
     UI.toast('Opening Ad Studio for '+g.category,'info');
-  },
+}
 
-  // =========================================================================
-  // WATCHLIST
-  // =========================================================================
-  toggleWatchlist(id){
-    const idx=this._watchlist.indexOf(id);
-    if(idx>-1) this._watchlist.splice(idx,1); else this._watchlist.push(id);
-    localStorage.setItem('mg_watchlist',JSON.stringify(this._watchlist));
-    this.renderStats(); this.renderTabs();
+function toggleWatchlist(id){
+    const idx=_watchlist.indexOf(id);
+    if(idx>-1) _watchlist.splice(idx,1); else _watchlist.push(id);
+    localStorage.setItem('mg_watchlist',JSON.stringify(_watchlist));
+    renderStats(); renderTabs();
     UI.toast(idx>-1?'Removed from watchlist':'Saved to watchlist','success');
-  },
+}
 
-  toggleEmergingWatchlist(id){ UI.toast('Saved emerging niche','success'); },
+function toggleEmergingWatchlist(_id){
 
-  // =========================================================================
-  // EXPORT
-  // =========================================================================
-  exportCSV(){
-    const gaps=this._getFilteredGaps();
+}
+
+function exportCSV(){
+    const gaps=getFilteredGaps();
     const headers=['Category','Gap Score','Demand','Supply','Search Volume','Sellers','Margin','Buy Price','Sell Price','Trend','Risk','CPA'];
     const rows=gaps.map(g=>[g.category,g.gap,g.demandScore,g.supplyScore,g.searchVolume,g.sellers,g.arbitrage.margin,g.arbitrage.buy,g.arbitrage.sell,g.trend,g.riskScore,g.cpaAvg]);
     let csv=headers.join(',')+'\n'; rows.forEach(r=>csv+=r.join(',')+'\n');
     const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download='market-gaps-export.csv';a.click();
     URL.revokeObjectURL(url); UI.toast('CSV exported successfully','success');
-  },
+}
 
-  exportPDF(){
-    const gaps=this._getFilteredGaps();
+function exportPDF(){
+    const gaps=getFilteredGaps();
     let text='MARKET GAP FINDER — Export Report\nGenerated: '+new Date().toLocaleString()+'\n\n';
     gaps.forEach((g,i)=>{text+=`#${i+1} ${g.category}\nGap: ${g.gap} | Demand: ${g.demandScore} | Supply: ${g.supplyScore} | Margin: ${g.arbitrage.margin}%\nBuy: $${g.arbitrage.buy} -> Sell: $${g.arbitrage.sell} | Profit: $${(g.arbitrage.sell-g.arbitrage.buy).toFixed(2)}\nRisk: ${g.riskScore}/100 | Trend: ${g.trend}\n${g.action}\n\n`;});
     const blob=new Blob([text],{type:'text/plain'}); const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download='market-gaps-report.txt';a.click();
     URL.revokeObjectURL(url); UI.toast('Report exported successfully','success');
+}
+
+function _render(){
+    if(typeof DATA==='undefined') return;
+    const self=this;
+    const r=(n)=>{ try{self[n]();}catch(e){console.error('[MG] '+n+':',e);} };
+    ['renderAIScan','renderDataMeta','renderFilters','renderStats','renderInsights',
+     'renderCharts','renderCategories','renderTabs','renderBattlefield',
+     'renderNicheRadar','renderLifecycle','renderProductHunt','renderActionZone',
+     'renderCalculator'].forEach(r);
+}
+
+function _refresh(){
+    renderStats();
+    renderCharts();
+    renderCategories();
+    renderInsights();
+    const t=_section?.querySelector('.mg-tab.active');
+    if(t) showTab(t.dataset.tab);
+}
+
+const P = {
+  id:'market-gap-finder',
+  name:'Market Gaps',
+  version:'3.0.0',
+  description:'Find Hidden Opportunities — gap scoring, arbitrage, emerging niches, competitor battlefield, niche radar, lifecycle tracking, AI insights',
+  dependencies:['search-engine'],
+
+  init(_ctx){ Config.defaults('marketGap',{enabled:true}); },
+
+  mount(_ctx){
+    const container = UI.$('sections-container');
+    if(!container) return;
+    const s = document.createElement('section');
+    s.className = 'section section-market-gap-finder';
+    s.id = 'section-market-gaps';
+    const rTools = (window.HuntDrop && window.HuntDrop.renderRelatedTools) ? window.HuntDrop.renderRelatedTools([
+        {section:'section-product-hunt',name:'Product Hunt Scout',desc:'Discover trending products',icon:'&#x1F525;',color:'#ff8a00'},
+        {section:'section-supplier-intel',name:'Supplier Intelligence',desc:'Verify suppliers',icon:'&#x1F6E1;',color:'#00e5ff'},
+        {section:'section-niche-radar',name:'Niche Radar',desc:'Validate niche profitability',icon:'&#x1F50D;',color:'#a855f7'},
+        {section:'section-lifecycle',name:'Product Lifecycle',desc:'Track niche maturity',icon:'&#x1F4C8;',color:'#00ff88'}
+      ]) : '';
+    s.innerHTML = `<div class="section-inner">
+      ${renderHero()}
+      <div id="mgAIScan"></div>
+      <div id="mgDataMeta"></div>
+      <div id="mgFilters"></div>
+      <div id="mgStats"></div>
+      <div id="mgInsights"></div>
+      <div id="mgCharts"></div>
+      <div id="mgCategories"></div>
+      <div id="mgTabs"></div>
+      <div id="mgTabContent"></div>
+      <div id="mgBattlefield"></div>
+      <div id="mgNicheRadar"></div>
+      <div id="mgLifecycle"></div>
+      <div id="mgProductHunt"></div>
+      <div id="mgActionZone"></div>
+      <div id="mgCalculator"></div>
+      ${rTools}</div>`;
+    container.appendChild(s);
+    _section = s;
+    render();
   },
 
-  // =========================================================================
-  // DATA FILTERING
-  // =========================================================================
-  _getFilteredGaps(){
-    let gaps=[...DATA.gaps]; const f=this._filters;
-    if(f.search){const q=f.search.toLowerCase();gaps=gaps.filter(g=>g.category.toLowerCase().includes(q)||g.topProduct.toLowerCase().includes(q)||g.keywords.some(k=>k.toLowerCase().includes(q)));}
-    if(f.category!=='all') gaps=gaps.filter(g=>g.category===f.category);
-    if(f.gapMin>0) gaps=gaps.filter(g=>g.gap>=f.gapMin);
-    if(f.trend!=='all') gaps=gaps.filter(g=>g.trend===f.trend);
-    if(f.sort==='gap-desc') gaps.sort((a,b)=>b.gap-a.gap);
-    else if(f.sort==='gap-asc') gaps.sort((a,b)=>a.gap-b.gap);
-    else if(f.sort==='demand-desc') gaps.sort((a,b)=>b.demandScore-a.demandScore);
-    else if(f.sort==='margin-desc') gaps.sort((a,b)=>b.arbitrage.margin-a.arbitrage.margin);
-    else if(f.sort==='risk-asc') gaps.sort((a,b)=>a.riskScore-b.riskScore);
-    else if(f.sort==='sellers-asc') gaps.sort((a,b)=>a.sellers-b.sellers);
-    return gaps;
-  },
-
-  _getFilteredArbitrage(){
-    let arb=[...DATA.arb]; const f=this._filters;
-    if(f.search){const q=f.search.toLowerCase();arb=arb.filter(a=>a.product.toLowerCase().includes(q)||a.category.toLowerCase().includes(q));}
-    if(f.sort==='margin-desc') arb.sort((a,b)=>b.margin-a.margin);
-    else if(f.sort==='demand-desc') arb.sort((a,b)=>{const o={'Very High':3,'High':2,'Medium':1};return(o[b.demand]||0)-(o[a.demand]||0);});
-    return arb;
-  },
-
-  _getFilteredEmerging(){
-    let em=[...DATA.emerging]; const f=this._filters;
-    if(f.search){const q=f.search.toLowerCase();em=em.filter(e=>e.name.toLowerCase().includes(q)||e.category.toLowerCase().includes(q));}
-    return em;
+  unmount(_ctx){
+    Object.values(_charts).forEach(c=>{ try{if(c)c.destroy();}catch{/* ignored */} });
+    _charts={}; _chartsInit=false;
+    if(_section){ _section.remove(); _section=null; }
   }
 };
 
+
 // Expose export for Action Zone button
-window.HuntDrop._mgExportPDF = ()=>P.exportPDF();
+window.HuntDrop._mgExportPDF = ()=>exportPDF();
 
 // ============================================================================
 // DATA — 10 Gaps, 10 Arbitrage, 7 Emerging, 10 Categories
@@ -731,6 +582,5 @@ const DATA = {
   ]
 };
 
-Object.keys(P).forEach(k=>{if(typeof P[k]==='function')P[k]=P[k].bind(P);});
 PluginRegistry.register('market-gap-finder', P);
 })();

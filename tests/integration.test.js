@@ -11,7 +11,6 @@ describe('Integration — Full App Boot', () => {
   beforeAll(() => {
     setupDashboardDOM();
     HuntDrop = loadCore();
-    loadScript('mock-api.js');
 
     // Load all plugins in the same order as index.html
     const plugins = [
@@ -50,15 +49,21 @@ describe('Integration — Full App Boot', () => {
       'plugins/niche-radar.js',
     ];
 
+    const loadErrors = [];
     plugins.forEach((p) => {
-      try { loadScript(p); } catch(e) { /* some plugins may fail in test env */ }
+      try { loadScript(p); } catch(e) { loadErrors.push({ plugin: p, error: e.message }); }
     });
+    if (loadErrors.length > 0) {
+      console.warn(`[Integration Test] ${loadErrors.length} plugin(s) failed to load:`, loadErrors);
+    }
 
     // Load app.js and trigger boot sequence
     try {
       loadScript('app.js');
       document.dispatchEvent(new Event('DOMContentLoaded'));
-    } catch(e) { /* app.js may fail in test env */ }
+    } catch(e) {
+      console.warn('[Integration Test] app.js failed to load:', e.message);
+    }
   });
 
   describe('All plugins registered', () => {
@@ -106,7 +111,8 @@ describe('Integration — Full App Boot', () => {
       HuntDrop.EventBus.on('search:results', resultsCb);
 
       // Use a query that matches products in the mock data
-      await HuntDrop.EventBus.emit('search:query', { query: '', filters: {} });
+      await HuntDrop.EventBus.emit('search:query', { query: 'wireless', filters: {} });
+      await flushPromises(50);
 
       expect(resultsCb).toHaveBeenCalled();
       const callArg = resultsCb.mock.calls[0][0];
@@ -121,7 +127,8 @@ describe('Integration — Full App Boot', () => {
       const resultsCb = vi.fn();
       HuntDrop.EventBus.on('search:results', resultsCb);
 
-      await HuntDrop.EventBus.emit('filter:changed', { filters: { sort: 'score' }, query: '' });
+      await HuntDrop.EventBus.emit('filter:changed', { filters: { sort: 'score' }, query: 'wireless' });
+      await flushPromises(50);
 
       expect(resultsCb).toHaveBeenCalled();
     });
@@ -136,6 +143,9 @@ describe('Integration — Full App Boot', () => {
 
       // Use empty query to get all products
       await HuntDrop.EventBus.emit('search:query', { query: '', filters: {} });
+      
+      // Wait for async search and rendering to complete
+      await flushPromises(100);
 
       const grid = document.getElementById('productsGrid');
       expect(grid.children.length).toBeGreaterThan(0);
@@ -229,9 +239,9 @@ describe('Integration — Full App Boot', () => {
       // but they should not throw uncaught errors
       for (const p of plugins) {
         try {
-          await HuntDrop.PluginRegistry.mount(p.id);
+          await PluginRegistry.mount(p.id);
         } catch(e) {
-          // Some plugins may fail to mount in test env
+          console.warn(`[Integration Test] Plugin "${p.id}" failed to mount:`, e.message);
         }
       }
       // All should be initialized

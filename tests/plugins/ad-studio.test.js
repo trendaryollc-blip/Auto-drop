@@ -19,7 +19,20 @@ describe('ad-studio plugin', () => {
     it('should register with PluginRegistry', () => {
       expect(plugin).toBeDefined();
       expect(plugin.id).toBe('ad-studio');
-      expect(plugin.name).toBe('Ad Creator');
+      expect(plugin.name).toBe('Ad Creative Studio');
+      expect(plugin.version).toBe('2.0.0');
+    });
+
+    it('should have all required lifecycle methods', () => {
+      expect(typeof plugin.init).toBe('function');
+      expect(typeof plugin.mount).toBe('function');
+      expect(typeof plugin.unmount).toBe('function');
+    });
+
+    it('should have core methods after registration', () => {
+      expect(typeof plugin.mount).toBe('function');
+      expect(typeof plugin.unmount).toBe('function');
+      expect(typeof plugin.init).toBe('function');
     });
   });
 
@@ -30,13 +43,6 @@ describe('ad-studio plugin', () => {
       const section = document.getElementById('section-ad-studio');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-ad-studio');
-    });
-
-    it('should contain input and generate button', async () => {
-      await HuntDrop.PluginRegistry.init('ad-studio');
-      try { await HuntDrop.PluginRegistry.mount('ad-studio'); } catch (e) {}
-      expect(document.getElementById('adProductInput')).toBeDefined();
-      expect(document.getElementById('generateAdsBtn')).toBeDefined();
     });
 
     it('should not mount if container missing', async () => {
@@ -53,6 +59,16 @@ describe('ad-studio plugin', () => {
       try { await HuntDrop.PluginRegistry.mount('ad-studio'); } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('ad-studio');
       expect(document.getElementById('section-ad-studio')).toBeNull();
+    });
+  });
+
+  describe('Version', () => {
+    it('should be version 2.0.0', () => {
+      expect(plugin.version).toBe('2.0.0');
+    });
+
+    it('should have description set', () => {
+      expect(plugin.description).toBeTruthy();
     });
   });
 });

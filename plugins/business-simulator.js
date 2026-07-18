@@ -5,10 +5,14 @@
 // here's what happens in 30/60/90 days" — revenue, profit, costs, growth.
 // ============================================================================
 (function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+const {PluginRegistry,UI,Config} = window.HuntDrop;
+
+let _section = null;
+let _chart = null;
+let _scenarioChart = null;
 
 function simulate(params){
-  const {budget,productCount,avgCpa,avgOrderValue,avgMargin,dailyAdSpend,growthRate,refundRate} = params;
+  const {budget,_productCount,avgCpa,avgOrderValue,avgMargin,dailyAdSpend,growthRate,refundRate} = params;
   const days = 90;
   const results = {daily:[],scenarios:{best:[],worst:[],likely:[]},milestones:{},productPerformance:[]};
 
@@ -21,7 +25,7 @@ function simulate(params){
   const dailySalesBase = Math.max(1,Math.round(dailyAdSpend / avgCpa));
 
   for(let d=1; d<=days; d++){
-    const weekNum = Math.ceil(d/7);
+    const _weekNum = Math.ceil(d/7);
     const growth = 1 + (growthRate/100) * ((d-1)/30);
     const seasonality = 1 + Math.sin(d * Math.PI / 30) * 0.05;
     const randomFactor = 0.9 + Math.random() * 0.2;
@@ -93,11 +97,13 @@ function pct(n){return n.toFixed(1)+'%';}
 const BusinessSimulatorPlugin = {
   id:'business-simulator', name:'Business Mode Simulator', version:'2.0.0',
   description:'Simulate your entire dropshipping business for 30/60/90 days',
-  _section:null, _chart:null, _scenarioChart:null,
 
-  init(ctx){Config.defaults('businessSim',{enabled:true});},
+  get _section() { return _section; },
+  set _section(v) { _section = v; },
 
-  mount(ctx){
+  init(_ctx){Config.defaults('businessSim',{enabled:true});},
+
+  mount(_ctx){
     const container = UI.$('sections-container');
     if(!container) return;
     const section = document.createElement('section');
@@ -184,22 +190,21 @@ const BusinessSimulatorPlugin = {
         <div id="bsResults" class="bs-results"></div>
       </div>`;
     container.appendChild(section);
-    const self = BusinessSimulatorPlugin;
-    self._section = section;
+    _section = section;
 
     const btn=section.querySelector('#bsSimulateBtn');
-    if(btn) btn.addEventListener('click',()=>self.runSimulation());
+    if(btn) btn.addEventListener('click',()=>runSimulation());
   },
 
-  unmount(ctx){
-    if(BusinessSimulatorPlugin._chart){BusinessSimulatorPlugin._chart.destroy();BusinessSimulatorPlugin._chart=null;}
-    if(BusinessSimulatorPlugin._scenarioChart){BusinessSimulatorPlugin._scenarioChart.destroy();BusinessSimulatorPlugin._scenarioChart=null;}
-    if(BusinessSimulatorPlugin._section){BusinessSimulatorPlugin._section.remove();BusinessSimulatorPlugin._section=null;}
-    this._section=null;
-  },
+  unmount(_ctx){
+    if(_chart){_chart.destroy();_chart=null;}
+    if(_scenarioChart){_scenarioChart.destroy();_scenarioChart=null;}
+    if(_section){_section.remove();_section=null;}
+  }
+};
 
-  getInputs(){
-    const q=id=>this._section.querySelector('#'+id);
+function getInputs(){
+    const q=id=>_section.querySelector('#'+id);
     return {
       budget:parseFloat(q('bsBudget')?.value)||500,
       productCount:parseInt(q('bsProducts')?.value)||5,
@@ -210,13 +215,13 @@ const BusinessSimulatorPlugin = {
       refundRate:parseFloat(q('bsRefunds')?.value)||3,
       dailyAdSpend:parseFloat(q('bsDailyBudget')?.value)||17
     };
-  },
+  }
 
-  runSimulation(){
-    const el=this._section?this._section.querySelector('#bsResults'):null;
+function runSimulation(){
+    const el=_section?_section.querySelector('#bsResults'):null;
     if(!el) return;
 
-    const inputs=this.getInputs();
+    const inputs=getInputs();
     const products=window.HuntDrop.ALL_PRODUCTS||[];
     const selected=products.slice(0,inputs.productCount);
 
@@ -332,7 +337,7 @@ const BusinessSimulatorPlugin = {
         <div class="bs-products-card">
           <h3 class="bs-card-title">Product Performance Breakdown</h3>
           <div class="bs-products-grid">
-            ${selected.map((p,i)=>{
+            ${selected.map((p)=>{
               const prodRev=d90.revenue/selected.length;
               const prodProfit=d90.profit/selected.length;
               const prodSales=d90.sales/selected.length;
@@ -373,9 +378,9 @@ const BusinessSimulatorPlugin = {
               <div class="bs-risk-desc">${results.profitMargin>=20?'Healthy margin provides buffer against cost increases.':results.profitMargin>=10?'Margin is tight. One bad week could erase profits.':'Dangerously low margin. Reduce costs or raise prices immediately.'}</div>
             </div>
             <div class="bs-risk-item">
-              <div class="bs-risk-level ${results.maxDrawdown<budget*0.5?'bs-risk-low':results.maxDrawdown<budget?'bs-risk-med':'bs-risk-high'}">${results.maxDrawdown<budget*0.5?'Low':results.maxDrawdown<budget?'Medium':'High'}</div>
+              <div class="bs-risk-level ${results.maxDrawdown<inputs.budget*0.5?'bs-risk-low':results.maxDrawdown<inputs.budget?'bs-risk-med':'bs-risk-high'}">${results.maxDrawdown<inputs.budget*0.5?'Low':results.maxDrawdown<inputs.budget?'Medium':'High'}</div>
               <div class="bs-risk-title">Drawdown Risk</div>
-              <div class="bs-risk-desc">Max drawdown of ${fmt(results.maxDrawdown)} ${results.maxDrawdown<budget*0.5?'is manageable.':'is significant. Keep reserve capital.'}</div>
+              <div class="bs-risk-desc">Max drawdown of ${fmt(results.maxDrawdown)} ${results.maxDrawdown<inputs.budget*0.5?'is manageable.':'is significant. Keep reserve capital.'}</div>
             </div>
             <div class="bs-risk-item">
               <div class="bs-risk-level ${inputs.avgCpa< inputs.avgOrderValue*0.15?'bs-risk-low':inputs.avgCpa<inputs.avgOrderValue*0.25?'bs-risk-med':'bs-risk-high'}">${inputs.avgCpa<inputs.avgOrderValue*0.15?'Low':inputs.avgCpa<inputs.avgOrderValue*0.25?'Medium':'High'}</div>
@@ -431,16 +436,16 @@ const BusinessSimulatorPlugin = {
         {section:'section-market-gaps',name:'Market Gap Finder',desc:'Find opportunities',icon:'🎯',color:'#a855f7'}
       ])}`;
 
-    setTimeout(()=>this.renderCharts(results),100);
-  },
+    setTimeout(()=>renderCharts(results),100);
+  }
 
-  renderCharts(results){
-    const canvas=this._section?this._section.querySelector('#bsMainChart'):null;
+function renderCharts(results){
+    const canvas=_section?_section.querySelector('#bsMainChart'):null;
     if(!canvas) return;
-    if(this._chart) this._chart.destroy();
+    if(_chart) _chart.destroy();
 
     const labels=results.daily.filter((_,i)=>i%3===0).map(d=>'Day '+d.day);
-    this._chart=new Chart(canvas,{
+    _chart=new Chart(canvas,{
       type:'line',
       data:{labels,datasets:[
         {label:'Revenue',data:results.daily.filter((_,i)=>i%3===0).map(d=>d.revenue),borderColor:'#00ff88',backgroundColor:'rgba(0,255,136,0.06)',borderWidth:2,fill:true,tension:0.4,pointRadius:0},
@@ -450,11 +455,11 @@ const BusinessSimulatorPlugin = {
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111119',borderColor:'#2a2a3d',borderWidth:1,titleFont:{family:'Outfit',size:11},bodyFont:{family:'JetBrains Mono',size:12},padding:10,displayColors:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},maxTicksLimit:10}},y:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'K':v)}}},interaction:{intersect:false,mode:'index'}}
     });
 
-    const scCanvas=this._section?this._section.querySelector('#bsScenarioChart'):null;
+    const scCanvas=_section?_section.querySelector('#bsScenarioChart'):null;
     if(!scCanvas) return;
-    if(this._scenarioChart) this._scenarioChart.destroy();
+    if(_scenarioChart) _scenarioChart.destroy();
     const scLabels=results.scenarios.likely.filter((_,i)=>i%6===0).map(s=>'Day '+s.day);
-    this._scenarioChart=new Chart(scCanvas,{
+    _scenarioChart=new Chart(scCanvas,{
       type:'line',
       data:{labels:scLabels,datasets:[
         {label:'Best',data:results.scenarios.best.filter((_,i)=>i%6===0).map(s=>s.cumRevenue),borderColor:'#00ff88',borderWidth:2,tension:0.4,pointRadius:0,borderDash:[5,3]},
@@ -464,7 +469,6 @@ const BusinessSimulatorPlugin = {
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8888a4',font:{family:'Inter',size:11},usePointStyle:true,padding:16}},tooltip:{backgroundColor:'#111119',borderColor:'#2a2a3d',borderWidth:1}},scales:{x:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},maxTicksLimit:10}},y:{grid:{color:'rgba(255,255,255,0.025)'},ticks:{color:'#555570',font:{family:'JetBrains Mono',size:9},callback:v=>'$'+(v>=1000?(v/1000).toFixed(0)+'K':v)}}},interaction:{intersect:false,mode:'index'}}
     });
   }
-};
 
 PluginRegistry.register('business-simulator',BusinessSimulatorPlugin);
 })();

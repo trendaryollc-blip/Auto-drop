@@ -201,12 +201,179 @@ describe('ai-key-manager plugin', () => {
       expect(status.color).toBeDefined();
     });
 
+    it('should return status object with provider info', async () => {
+      await HuntDrop.PluginRegistry.init('ai-key-manager');
+      const status = km.getStatus();
+      expect(status.provider).toBeDefined();
+      expect(status.providerName).toBeDefined();
+      expect(status.hasKey).toBe(false);
+      expect(status.model).toBeDefined();
+      expect(status.connected).toBe(false);
+      expect(status.color).toBeDefined();
+    });
+
     it('should report connected when key exists', async () => {
       await HuntDrop.PluginRegistry.init('ai-key-manager');
       await km.saveKey('groq', 'gsk-test');
       const status = km.getStatus();
       expect(status.hasKey).toBe(true);
       expect(status.connected).toBe(true);
+    });
+  });
+
+  describe('New free-tier providers', () => {
+    it('should define deepseek provider', () => {
+      expect(km.providers.deepseek).toBeDefined();
+      expect(km.providers.deepseek.name).toBe('DeepSeek');
+      expect(km.providers.deepseek.tier).toBe('free');
+      expect(km.providers.deepseek.models).toContain('deepseek-chat');
+    });
+
+    it('should define mistral provider', () => {
+      expect(km.providers.mistral).toBeDefined();
+      expect(km.providers.mistral.tier).toBe('free');
+      expect(km.providers.mistral.models).toContain('mistral-small-latest');
+    });
+
+    it('should define cohere provider', () => {
+      expect(km.providers.cohere).toBeDefined();
+      expect(km.providers.cohere.tier).toBe('free');
+    });
+
+    it('should define together provider', () => {
+      expect(km.providers.together).toBeDefined();
+      expect(km.providers.together.tier).toBe('free');
+    });
+
+    it('should define huggingface provider', () => {
+      expect(km.providers.huggingface).toBeDefined();
+      expect(km.providers.huggingface.tier).toBe('free');
+    });
+
+    it('should define perplexity provider', () => {
+      expect(km.providers.perplexity).toBeDefined();
+      expect(km.providers.perplexity.tier).toBe('free');
+    });
+
+    it('should define fireworks provider', () => {
+      expect(km.providers.fireworks).toBeDefined();
+      expect(km.providers.fireworks.tier).toBe('free');
+      expect(km.providers.fireworks.models.length).toBeGreaterThan(0);
+    });
+
+    it('should define openrouter provider', () => {
+      expect(km.providers.openrouter).toBeDefined();
+      expect(km.providers.openrouter.tier).toBe('free');
+    });
+
+    it('should define replicate provider', () => {
+      expect(km.providers.replicate).toBeDefined();
+      expect(km.providers.replicate.tier).toBe('free');
+    });
+
+    it('should define octoai provider', () => {
+      expect(km.providers.octoai).toBeDefined();
+      expect(km.providers.octoai.tier).toBe('free');
+    });
+
+    it('should define lepton provider', () => {
+      expect(km.providers.lepton).toBeDefined();
+      expect(km.providers.lepton.tier).toBe('free');
+    });
+
+    it('should return Bearer auth for new OpenAI-compatible providers', () => {
+      ['deepseek', 'together', 'perplexity'].forEach(function(p) {
+        const headers = km.getHeaders(p, 'test-key');
+        expect(headers['Authorization']).toBe('Bearer test-key');
+      });
+    });
+
+    it('should return Bearer auth for mistral and cohere', () => {
+      ['mistral', 'cohere', 'huggingface'].forEach(function(p) {
+        const headers = km.getHeaders(p, 'test-key');
+        expect(headers['Authorization']).toBe('Bearer test-key');
+      });
+    });
+
+    it('should return Bearer auth for new expanded providers', () => {
+      ['fireworks', 'openrouter', 'octoai', 'lepton'].forEach(function(p) {
+        const headers = km.getHeaders(p, 'test-key');
+        expect(headers['Authorization']).toBe('Bearer test-key');
+        expect(headers['Content-Type']).toBe('application/json');
+      });
+    });
+  });
+
+  describe('Per-Feature Key Assignment', () => {
+    beforeEach(async () => {
+      await HuntDrop.PluginRegistry.init('ai-key-manager');
+      await km.saveKey('groq', 'gsk-default');
+      await km.saveKey('deepseek', 'sk-deep');
+      await km.saveKey('google', 'AI-google');
+    });
+
+    it('should define FEATURES with all consumers', () => {
+      expect(km.FEATURES['ai-chat-service']).toBeDefined();
+      expect(km.FEATURES['ad-studio']).toBeDefined();
+      expect(km.FEATURES['ai-business-coach']).toBeDefined();
+      expect(km.FEATURES['cb-intelligence-service']).toBeDefined();
+    });
+
+    it('init() should set default featureAssignments', async () => {
+      const config = HuntDrop.Config.getAll('aiKeys');
+      expect(config.featureAssignments).toBeDefined();
+    });
+
+    it('getFeatureProvider should return global provider when no assignment', () => {
+      expect(km.getFeatureProvider('ad-studio')).toBe('groq');
+    });
+
+    it('setFeatureAssignment should save assignment', () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      expect(km.getFeatureProvider('ad-studio')).toBe('deepseek');
+    });
+
+    it('getFeatureAssignments should return all assignments', () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      km.setFeatureAssignment('ai-chat-service', 'google');
+      const all = km.getFeatureAssignments();
+      expect(all['ad-studio']).toBe('deepseek');
+      expect(all['ai-chat-service']).toBe('google');
+    });
+
+    it('removeFeatureAssignment should clear assignment', () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      km.removeFeatureAssignment('ad-studio');
+      expect(km.getFeatureProvider('ad-studio')).toBe('groq');
+    });
+
+    it('getFeatureKey should return provider and key for assigned feature', async () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      const result = await km.getFeatureKey('ad-studio');
+      expect(result.provider).toBe('deepseek');
+      expect(result.key).toBe('sk-deep');
+    });
+
+    it('getFeatureKey should fall back to global provider when unassigned', async () => {
+      const result = await km.getFeatureKey('nonexistent-feature');
+      expect(result.provider).toBe('groq');
+      expect(result.key).toBe('gsk-default');
+    });
+
+    it('hasFeatureKey should check assigned provider key', () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      expect(km.hasFeatureKey('ad-studio')).toBe(true);
+    });
+
+    it('hasFeatureKey should return false when no key for assigned provider', () => {
+      km.setFeatureAssignment('ad-studio', 'anthropic');
+      expect(km.hasFeatureKey('ad-studio')).toBe(false);
+    });
+
+    it('setFeatureAssignment with empty provider should remove assignment', () => {
+      km.setFeatureAssignment('ad-studio', 'deepseek');
+      km.setFeatureAssignment('ad-studio', null);
+      expect(km.getFeatureProvider('ad-studio')).toBe('groq');
     });
   });
 });

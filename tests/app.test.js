@@ -11,7 +11,6 @@ describe('app.js — Main Orchestrator', () => {
   beforeEach(() => {
     setupDashboardDOM();
     HuntDrop = loadCore();
-    loadScript('mock-api.js');
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
     loadScript('plugins/product-grid.js');

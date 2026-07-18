@@ -36,7 +36,9 @@ describe('market-gap-finder plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('market-gap-finder');
-      try { await HuntDrop.PluginRegistry.mount('market-gap-finder'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('market-gap-finder');
+      } catch (e) {}
       const section = document.getElementById('section-market-gaps');
       expect(section).toBeDefined();
     });
@@ -44,7 +46,9 @@ describe('market-gap-finder plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('market-gap-finder');
-      try { await HuntDrop.PluginRegistry.mount('market-gap-finder'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('market-gap-finder');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -52,7 +56,9 @@ describe('market-gap-finder plugin', () => {
   describe('unmount()', () => {
     it('should clean up section and charts', async () => {
       await HuntDrop.PluginRegistry.init('market-gap-finder');
-      try { await HuntDrop.PluginRegistry.mount('market-gap-finder'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('market-gap-finder');
+      } catch (e) {}
       const section = document.getElementById('section-market-gaps');
       expect(section).toBeDefined();
       await HuntDrop.PluginRegistry.unmount('market-gap-finder');

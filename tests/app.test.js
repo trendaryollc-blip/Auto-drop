@@ -3,7 +3,14 @@
 // ============================================================================
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadCore, loadScript, loadCoreWithPlugins, setupDashboardDOM, createSampleProduct, flushPromises } from './setup.js';
+import {
+  loadCore,
+  loadScript,
+  loadCoreWithPlugins,
+  setupDashboardDOM,
+  createSampleProduct,
+  flushPromises,
+} from './setup.js';
 
 describe('app.js — Main Orchestrator', () => {
   let HuntDrop;
@@ -60,7 +67,7 @@ describe('app.js — Main Orchestrator', () => {
       section2.id = 'section-product-hunt';
       section2.className = 'section';
       document.body.appendChild(section2);
-      
+
       HuntDrop.navigateTo('section-dashboard');
       HuntDrop.navigateTo('section-product-hunt');
       expect(HuntDrop._navHistory.length).toBeGreaterThan(0);
@@ -155,7 +162,7 @@ describe('app.js — Main Orchestrator', () => {
       const inner = document.createElement('div');
       inner.className = 'section-inner';
       section.appendChild(inner);
-      
+
       HuntDrop.showPluginLoading('section-dashboard', 'Loading test...');
       const loader = section.querySelector('.plugin-loading-state');
       expect(loader).toBeDefined();
@@ -279,7 +286,9 @@ describe('app.js — Main Orchestrator', () => {
       await flushPromises(100);
       const recent = JSON.parse(localStorage.getItem('huntdrop_recent_searches') || '[]');
       // Empty query should not create new entries (boot sequence may have added some)
-      const hasEmptyEntries = recent.some(function(r) { return !r.query || r.query.trim() === ''; });
+      const hasEmptyEntries = recent.some(function (r) {
+        return !r.query || r.query.trim() === '';
+      });
       expect(hasEmptyEntries).toBe(false);
     });
   });

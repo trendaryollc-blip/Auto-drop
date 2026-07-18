@@ -1,52 +1,82 @@
 // ============================================================================
 // PLUGIN: Market Gap Finder — Find Hidden Opportunities (Complete Rebuild)
 // ============================================================================
-(function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
-const esc = s => UI.escapeHtml(s);
-function debounce(fn, ms) { let t; return function() { const args = arguments, ctx = this; clearTimeout(t); t = setTimeout(function() { fn.apply(ctx, args); }, ms); }; }
+(function () {
+  const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
+  const esc = (s) => UI.escapeHtml(s);
+  function debounce(fn, ms) {
+    let t;
+    return function () {
+      const args = arguments,
+        ctx = this;
+      clearTimeout(t);
+      t = setTimeout(function () {
+        fn.apply(ctx, args);
+      }, ms);
+    };
+  }
 
-function navigateTo(sectionId){
-  window.HuntDrop.navigateTo(sectionId);
-}
+  function navigateTo(sectionId) {
+    window.HuntDrop.navigateTo(sectionId);
+  }
 
+  let _section = null;
+  const _filters = { search: '', category: 'all', gapMin: 0, trend: 'all', sort: 'gap-desc' };
+  const _watchlist = JSON.parse(localStorage.getItem('mg_watchlist') || '[]');
+  let _charts = {};
+  let _chartsInit = false;
 
-let _section = null;
-let _filters = { search:'', category:'all', gapMin:0, trend:'all', sort:'gap-desc' };
-let _watchlist = JSON.parse(localStorage.getItem('mg_watchlist')||'[]');
-let _charts = {};
-let _chartsInit = false;
-
-function _getFilteredGaps(){
-    let gaps=[...DATA.gaps]; const f=_filters;
-    if(f.search){const q=f.search.toLowerCase();gaps=gaps.filter(g=>g.category.toLowerCase().includes(q)||g.topProduct.toLowerCase().includes(q)||g.keywords.some(k=>k.toLowerCase().includes(q)));}
-    if(f.category!=='all') gaps=gaps.filter(g=>g.category===f.category);
-    if(f.gapMin>0) gaps=gaps.filter(g=>g.gap>=f.gapMin);
-    if(f.trend!=='all') gaps=gaps.filter(g=>g.trend===f.trend);
-    if(f.sort==='gap-desc') gaps.sort((a,b)=>b.gap-a.gap);
-    else if(f.sort==='gap-asc') gaps.sort((a,b)=>a.gap-b.gap);
-    else if(f.sort==='demand-desc') gaps.sort((a,b)=>b.demandScore-a.demandScore);
-    else if(f.sort==='margin-desc') gaps.sort((a,b)=>b.arbitrage.margin-a.arbitrage.margin);
-    else if(f.sort==='risk-asc') gaps.sort((a,b)=>a.riskScore-b.riskScore);
-    else if(f.sort==='sellers-asc') gaps.sort((a,b)=>a.sellers-b.sellers);
+  function _getFilteredGaps() {
+    let gaps = [...DATA.gaps];
+    const f = _filters;
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      gaps = gaps.filter(
+        (g) =>
+          g.category.toLowerCase().includes(q) ||
+          g.topProduct.toLowerCase().includes(q) ||
+          g.keywords.some((k) => k.toLowerCase().includes(q))
+      );
+    }
+    if (f.category !== 'all') gaps = gaps.filter((g) => g.category === f.category);
+    if (f.gapMin > 0) gaps = gaps.filter((g) => g.gap >= f.gapMin);
+    if (f.trend !== 'all') gaps = gaps.filter((g) => g.trend === f.trend);
+    if (f.sort === 'gap-desc') gaps.sort((a, b) => b.gap - a.gap);
+    else if (f.sort === 'gap-asc') gaps.sort((a, b) => a.gap - b.gap);
+    else if (f.sort === 'demand-desc') gaps.sort((a, b) => b.demandScore - a.demandScore);
+    else if (f.sort === 'margin-desc') gaps.sort((a, b) => b.arbitrage.margin - a.arbitrage.margin);
+    else if (f.sort === 'risk-asc') gaps.sort((a, b) => a.riskScore - b.riskScore);
+    else if (f.sort === 'sellers-asc') gaps.sort((a, b) => a.sellers - b.sellers);
     return gaps;
-}
+  }
 
-function _getFilteredArbitrage(){
-    let arb=[...DATA.arb]; const f=_filters;
-    if(f.search){const q=f.search.toLowerCase();arb=arb.filter(a=>a.product.toLowerCase().includes(q)||a.category.toLowerCase().includes(q));}
-    if(f.sort==='margin-desc') arb.sort((a,b)=>b.margin-a.margin);
-    else if(f.sort==='demand-desc') arb.sort((a,b)=>{const o={'Very High':3,'High':2,'Medium':1};return(o[b.demand]||0)-(o[a.demand]||0);});
+  function _getFilteredArbitrage() {
+    let arb = [...DATA.arb];
+    const f = _filters;
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      arb = arb.filter((a) => a.product.toLowerCase().includes(q) || a.category.toLowerCase().includes(q));
+    }
+    if (f.sort === 'margin-desc') arb.sort((a, b) => b.margin - a.margin);
+    else if (f.sort === 'demand-desc')
+      arb.sort((a, b) => {
+        const o = { 'Very High': 3, High: 2, Medium: 1 };
+        return (o[b.demand] || 0) - (o[a.demand] || 0);
+      });
     return arb;
-}
+  }
 
-function _getFilteredEmerging(){
-    let em=[...DATA.emerging]; const f=_filters;
-    if(f.search){const q=f.search.toLowerCase();em=em.filter(e=>e.name.toLowerCase().includes(q)||e.category.toLowerCase().includes(q));}
+  function _getFilteredEmerging() {
+    let em = [...DATA.emerging];
+    const f = _filters;
+    if (f.search) {
+      const q = f.search.toLowerCase();
+      em = em.filter((e) => e.name.toLowerCase().includes(q) || e.category.toLowerCase().includes(q));
+    }
     return em;
-}
+  }
 
-function _renderHero(){
+  function _renderHero() {
     return `<div class="mg-hero">
       <div class="mg-hero-badge"><span class="mg-hero-badge-dot"></span>Market Intelligence</div>
       <h1 class="mg-hero-title">Find Hidden Opportunities</h1>
@@ -57,43 +87,48 @@ function _renderHero(){
         <div class="mg-hero-feat"><div class="mg-hero-feat-icon" style="background:rgba(168,85,247,0.1);color:var(--accent-purple)">&#x1F680;</div><div class="mg-hero-feat-text"><strong>Emerging Niches</strong><span>Early trend detection</span></div></div>
       </div>
     </div>`;
-}
+  }
 
-function renderAIScan(){
-    const el=_section?.querySelector('#mgAIScan');
-    if(!el) return;
-    const gaps=DATA.gaps.length;
-    const arb=DATA.arb.length;
-    const em=DATA.emerging.length;
-    el.innerHTML=`<div class="mg-ai-scan">
+  function renderAIScan() {
+    const el = _section?.querySelector('#mgAIScan');
+    if (!el) return;
+    const gaps = DATA.gaps.length;
+    const arb = DATA.arb.length;
+    const em = DATA.emerging.length;
+    el.innerHTML = `<div class="mg-ai-scan">
       <span class="mg-ai-scan-icon">&#x1F9E0;</span>
       <span class="mg-ai-scan-text">AI scanned <strong>12,847 products</strong> across 10 platforms &mdash; <strong>${gaps} gaps</strong>, <strong>${arb} arbitrage</strong>, <strong>${em} emerging</strong> found</span>
-      <span class="mg-ai-scan-count">${gaps+arb+em} opportunities</span>
+      <span class="mg-ai-scan-count">${gaps + arb + em} opportunities</span>
     </div>`;
-}
+  }
 
-function renderDataMeta(){
-    const el=_section?.querySelector('#mgDataMeta');
-    if(!el) return;
-    const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    el.innerHTML=`<div class="mg-data-meta">
+  function renderDataMeta() {
+    const el = _section?.querySelector('#mgDataMeta');
+    if (!el) return;
+    const now = new Date().toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    el.innerHTML = `<div class="mg-data-meta">
       <span class="mg-meta-item">Last updated: ${now}</span>
       <span class="mg-meta-item">Sources: AliExpress, Amazon, Shopify, eBay, Temu, TikTok, Etsy, CJ, DHgate, Wish</span>
-      <span class="mg-meta-item">${DATA.gaps.length+DATA.arb.length+DATA.emerging.length} opportunities found</span>
+      <span class="mg-meta-item">${DATA.gaps.length + DATA.arb.length + DATA.emerging.length} opportunities found</span>
     </div>`;
-}
+  }
 
-function renderFilters(){
-    const el=_section?.querySelector('#mgFilters');
-    if(!el) return;
-    const cats=['all',...new Set(DATA.gaps.map(g=>g.category))];
-    el.innerHTML=`<div class="mg-filter-bar">
+  function renderFilters() {
+    const el = _section?.querySelector('#mgFilters');
+    if (!el) return;
+    const cats = ['all', ...new Set(DATA.gaps.map((g) => g.category))];
+    el.innerHTML = `<div class="mg-filter-bar">
       <div class="mg-search-wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" class="mg-search-input" placeholder="Search categories, products, keywords..." value="${_filters.search}" id="mgSearchInput">
       </div>
       <div class="mg-filter-controls">
-        <select class="mg-filter-select" id="mgCategoryFilter">${cats.map(c=>`<option value="${c}">${c==='all'?'All Categories':c}</option>`).join('')}</select>
+        <select class="mg-filter-select" id="mgCategoryFilter">${cats.map((c) => `<option value="${c}">${c === 'all' ? 'All Categories' : c}</option>`).join('')}</select>
         <select class="mg-filter-select" id="mgGapFilter"><option value="0">Any Gap Score</option><option value="40">40+ Gap</option><option value="45">45+ Gap</option><option value="50">50+ Gap</option><option value="55">55+ Gap</option></select>
         <select class="mg-filter-select" id="mgTrendFilter"><option value="all">All Trends</option><option value="rising">Rising</option><option value="stable">Stable</option><option value="declining">Declining</option></select>
         <select class="mg-filter-select" id="mgSortFilter"><option value="gap-desc">Gap: High-Low</option><option value="gap-asc">Gap: Low-High</option><option value="demand-desc">Highest Demand</option><option value="margin-desc">Highest Margin</option><option value="risk-asc">Lowest Risk</option><option value="sellers-asc">Fewest Sellers</option></select>
@@ -101,57 +136,145 @@ function renderFilters(){
         <button class="mg-export-btn" id="mgExportPDF" title="Export PDF">&#x1F4C4; PDF</button>
       </div>
     </div>`;
-    const bind=(id,evt,fn)=>{const e=el.querySelector(id);if(e)e.addEventListener(evt,fn);};
-    const debouncedSearch=debounce(()=>{refresh();},300);
-    bind('#mgSearchInput','input',(e)=>{_filters.search=e.target.value;debouncedSearch();});
-    bind('#mgCategoryFilter','change',(e)=>{_filters.category=e.target.value;refresh();});
-    bind('#mgGapFilter','change',(e)=>{_filters.gapMin=parseInt(e.target.value);refresh();});
-    bind('#mgTrendFilter','change',(e)=>{_filters.trend=e.target.value;refresh();});
-    bind('#mgSortFilter','change',(e)=>{_filters.sort=e.target.value;refresh();});
-    bind('#mgExportCSV','click',()=>exportCSV());
-    bind('#mgExportPDF','click',()=>exportPDF());
-}
+    const bind = (id, evt, fn) => {
+      const e = el.querySelector(id);
+      if (e) e.addEventListener(evt, fn);
+    };
+    const debouncedSearch = debounce(() => {
+      refresh();
+    }, 300);
+    bind('#mgSearchInput', 'input', (e) => {
+      _filters.search = e.target.value;
+      debouncedSearch();
+    });
+    bind('#mgCategoryFilter', 'change', (e) => {
+      _filters.category = e.target.value;
+      refresh();
+    });
+    bind('#mgGapFilter', 'change', (e) => {
+      _filters.gapMin = parseInt(e.target.value);
+      refresh();
+    });
+    bind('#mgTrendFilter', 'change', (e) => {
+      _filters.trend = e.target.value;
+      refresh();
+    });
+    bind('#mgSortFilter', 'change', (e) => {
+      _filters.sort = e.target.value;
+      refresh();
+    });
+    bind('#mgExportCSV', 'click', () => exportCSV());
+    bind('#mgExportPDF', 'click', () => exportPDF());
+  }
 
-function renderTabs(){
-    const el=_section?.querySelector('#mgTabs');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-tabs">
+  function renderTabs() {
+    const el = _section?.querySelector('#mgTabs');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-tabs">
       <button class="mg-tab active" data-tab="gaps">Market Gaps</button>
       <button class="mg-tab" data-tab="arbitrage">Arbitrage</button>
       <button class="mg-tab" data-tab="emerging">Emerging</button>
       <button class="mg-tab" data-tab="watchlist">Watchlist (${_watchlist.length})</button>
     </div>`;
-    el.querySelectorAll('.mg-tab').forEach(tab=>{tab.addEventListener('click',()=>{el.querySelectorAll('.mg-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');showTab(tab.dataset.tab);});});
+    el.querySelectorAll('.mg-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        el.querySelectorAll('.mg-tab').forEach((t) => t.classList.remove('active'));
+        tab.classList.add('active');
+        showTab(tab.dataset.tab);
+      });
+    });
     showTab('gaps');
-}
+  }
 
-function showTab(tab){
-    const el=_section?.querySelector('#mgTabContent');
-    if(!el) return;
-    el.innerHTML='';
-    const renderers={gaps:_renderGaps,arbitrage:_renderArbitrage,emerging:_renderEmerging,watchlist:_renderWatchlist};
-    const fn=renderers[tab];
-    if(fn) el.innerHTML=fn();
+  function showTab(tab) {
+    const el = _section?.querySelector('#mgTabContent');
+    if (!el) return;
+    el.innerHTML = '';
+    const renderers = {
+      gaps: _renderGaps,
+      arbitrage: _renderArbitrage,
+      emerging: _renderEmerging,
+      watchlist: _renderWatchlist,
+    };
+    const fn = renderers[tab];
+    if (fn) el.innerHTML = fn();
     _bindTabEvents(el);
-}
+  }
 
-function _bindTabEvents(el){
-    if(!el) return;
-    el.querySelectorAll('[data-gap-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.gapId);const action=e.currentTarget.dataset.action;if(action==='detail')showGapDetail(id);else if(action==='suppliers')navigateTo('section-supplier-hub');else if(action==='profit')openProfitCalc(id);else if(action==='ad')openAdStudio(id);else if(action==='save')toggleWatchlist(id);});});
-    el.querySelectorAll('[data-arb-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.arbId);const action=e.currentTarget.dataset.action;if(action==='detail')showArbDetail(id);});});
-    el.querySelectorAll('[data-em-id]').forEach(btn=>{btn.addEventListener('click',(e)=>{const id=parseInt(e.currentTarget.dataset.emId);const action=e.currentTarget.dataset.action;if(action==='save')toggleEmergingWatchlist(id);});});
+  function _bindTabEvents(el) {
+    if (!el) return;
+    el.querySelectorAll('[data-gap-id]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(e.currentTarget.dataset.gapId);
+        const action = e.currentTarget.dataset.action;
+        if (action === 'detail') showGapDetail(id);
+        else if (action === 'suppliers') navigateTo('section-supplier-hub');
+        else if (action === 'profit') openProfitCalc(id);
+        else if (action === 'ad') openAdStudio(id);
+        else if (action === 'save') toggleWatchlist(id);
+      });
+    });
+    el.querySelectorAll('[data-arb-id]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(e.currentTarget.dataset.arbId);
+        const action = e.currentTarget.dataset.action;
+        if (action === 'detail') showArbDetail(id);
+      });
+    });
+    el.querySelectorAll('[data-em-id]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(e.currentTarget.dataset.emId);
+        const action = e.currentTarget.dataset.action;
+        if (action === 'save') toggleEmergingWatchlist(id);
+      });
+    });
     // Keyword chips -> Search
-    el.querySelectorAll('.mg-kw-chip').forEach(chip=>{chip.style.cursor='pointer';chip.addEventListener('click',()=>{const kw=chip.textContent.trim();if(kw){window.HuntDrop.navigateTo('section-search');setTimeout(()=>{const si=document.getElementById('searchPageInput')||document.getElementById('searchInput');if(si){si.value=kw;si.dispatchEvent(new Event('input',{bubbles:true}));}EventBus.emit('search:query',{query:kw,filters:{}});},200);}});});
+    el.querySelectorAll('.mg-kw-chip').forEach((chip) => {
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', () => {
+        const kw = chip.textContent.trim();
+        if (kw) {
+          window.HuntDrop.navigateTo('section-search');
+          setTimeout(() => {
+            const si = document.getElementById('searchPageInput') || document.getElementById('searchInput');
+            if (si) {
+              si.value = kw;
+              si.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            EventBus.emit('search:query', { query: kw, filters: {} });
+          }, 200);
+        }
+      });
+    });
     // Audience interest chips -> Search
-    el.querySelectorAll('.mg-aud-chip').forEach(chip=>{chip.style.cursor='pointer';chip.addEventListener('click',()=>{const kw=chip.textContent.trim();if(kw){window.HuntDrop.navigateTo('section-search');setTimeout(()=>{const si=document.getElementById('searchPageInput')||document.getElementById('searchInput');if(si){si.value=kw;si.dispatchEvent(new Event('input',{bubbles:true}));}EventBus.emit('search:query',{query:kw,filters:{}});},200);}});});
-}
+    el.querySelectorAll('.mg-aud-chip').forEach((chip) => {
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', () => {
+        const kw = chip.textContent.trim();
+        if (kw) {
+          window.HuntDrop.navigateTo('section-search');
+          setTimeout(() => {
+            const si = document.getElementById('searchPageInput') || document.getElementById('searchInput');
+            if (si) {
+              si.value = kw;
+              si.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            EventBus.emit('search:query', { query: kw, filters: {} });
+          }, 200);
+        }
+      });
+    });
+  }
 
-function _renderGaps(){
-    const gaps=getFilteredGaps();
-    if(!gaps.length) return '<div class="mg-empty">No market gaps match your filters. Try adjusting your search.</div>';
-    const tc={rising:'var(--accent-green)',stable:'var(--accent-yellow)',declining:'var(--accent-red)'};
-    return `<div class="mg-gaps-list">${gaps.map((g,i)=>`<div class="mg-gap-card" style="animation-delay:${Math.min(i*0.05,0.4)}s">
-      <div class="mg-gap-rank">#${i+1}</div>
+  function _renderGaps() {
+    const gaps = getFilteredGaps();
+    if (!gaps.length)
+      return '<div class="mg-empty">No market gaps match your filters. Try adjusting your search.</div>';
+    const tc = { rising: 'var(--accent-green)', stable: 'var(--accent-yellow)', declining: 'var(--accent-red)' };
+    return `<div class="mg-gaps-list">${gaps
+      .map(
+        (g, i) => `<div class="mg-gap-card" style="animation-delay:${Math.min(i * 0.05, 0.4)}s">
+      <div class="mg-gap-rank">#${i + 1}</div>
       <div class="mg-gap-main">
         <div class="mg-gap-top"><span class="mg-gap-emoji">${esc(g.emoji)}</span><div><div class="mg-gap-cat">${esc(g.category)}</div><div class="mg-gap-product">Top: ${esc(g.topProduct)}</div></div><div class="mg-gap-score-pill"><span class="mg-gap-score-num">${g.gap}</span><span class="mg-gap-score-lbl">GAP</span></div></div>
         <div class="mg-gap-bars">
@@ -163,14 +286,14 @@ function _renderGaps(){
           <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Active sellers across all platforms">Sellers</span><span class="mg-gap-m-val">${g.sellers}</span></div>
           <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Average product price range">Price</span><span class="mg-gap-m-val">${g.priceRange}</span></div>
           <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Trend direction over last 30 days">Trend</span><span class="mg-gap-m-val" style="color:${tc[g.trend]}">${g.trend}</span></div>
-          <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Risk Score = competition + saturation + ad cost (lower is better)">Risk</span><span class="mg-gap-m-val" style="color:${g.riskScore<25?'var(--accent-green)':g.riskScore<40?'var(--accent-yellow)':'var(--accent-red)'}">${g.riskScore}/100</span></div>
+          <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Risk Score = competition + saturation + ad cost (lower is better)">Risk</span><span class="mg-gap-m-val" style="color:${g.riskScore < 25 ? 'var(--accent-green)' : g.riskScore < 40 ? 'var(--accent-yellow)' : 'var(--accent-red)'}">${g.riskScore}/100</span></div>
           <div class="mg-gap-m"><span class="mg-gap-m-label mg-tip" data-tip="Cost Per Acquisition average">CPA</span><span class="mg-gap-m-val">$${g.cpaAvg}</span></div>
         </div>
         <div class="mg-gap-arb">
           <div class="mg-gap-arb-buy"><span class="mg-gap-arb-plat">${g.platforms[0]}</span><span class="mg-gap-arb-price buy">$${g.arbitrage.buy}</span></div>
           <span class="mg-gap-arb-arrow">&rarr;</span>
           <div class="mg-gap-arb-sell"><span class="mg-gap-arb-plat">${g.platforms[1]}</span><span class="mg-gap-arb-price sell">$${g.arbitrage.sell}</span></div>
-          <div class="mg-gap-arb-profit"><div class="mg-gap-arb-profit-val">+$${(g.arbitrage.sell-g.arbitrage.buy).toFixed(2)}</div><div class="mg-gap-arb-profit-pct">${g.arbitrage.margin}% margin</div></div>
+          <div class="mg-gap-arb-profit"><div class="mg-gap-arb-profit-val">+$${(g.arbitrage.sell - g.arbitrage.buy).toFixed(2)}</div><div class="mg-gap-arb-profit-pct">${g.arbitrage.margin}% margin</div></div>
         </div>
         <div class="mg-gap-opp">${esc(g.opportunity)}</div>
         <div class="mg-gap-action-text">${esc(g.action)}</div>
@@ -179,157 +302,230 @@ function _renderGaps(){
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="suppliers">Find Suppliers</button>
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="profit">Calculate Profit</button>
           <button class="mg-action-btn" data-gap-id="${g.id}" data-action="ad">Create Ad</button>
-          <button class="mg-action-btn mg-action-save ${_watchlist.includes(g.id)?'saved':''}" data-gap-id="${g.id}" data-action="save">${_watchlist.includes(g.id)?'&#x2713; Saved':'Save'}</button>
+          <button class="mg-action-btn mg-action-save ${_watchlist.includes(g.id) ? 'saved' : ''}" data-gap-id="${g.id}" data-action="save">${_watchlist.includes(g.id) ? '&#x2713; Saved' : 'Save'}</button>
         </div>
-        <div class="mg-gap-keywords">${g.keywords.map(k=>`<span class="mg-kw-chip">${esc(k)}</span>`).join('')}</div>
+        <div class="mg-gap-keywords">${g.keywords.map((k) => `<span class="mg-kw-chip">${esc(k)}</span>`).join('')}</div>
       </div>
-    </div>`).join('')}</div>`;
-}
+    </div>`
+      )
+      .join('')}</div>`;
+  }
 
-function _renderArbitrage(){
-    const arb=getFilteredArbitrage();
-    if(!arb.length) return '<div class="mg-empty">No arbitrage opportunities match your filters.</div>';
+  function _renderArbitrage() {
+    const arb = getFilteredArbitrage();
+    if (!arb.length) return '<div class="mg-empty">No arbitrage opportunities match your filters.</div>';
     return `<div class="mg-arb-section"><div class="mg-arb-header"><h3>Cross-Platform Price Gaps</h3><p>Buy low on AliExpress/Temu, sell high on Amazon/Shopify</p></div>
-    <div class="mg-arb-grid">${arb.map(a=>`<div class="mg-arb-card"><div class="mg-arb-card-top"><span class="mg-arb-name">${esc(a.product)}</span><span class="mg-arb-demand">${esc(a.demand)} Demand</span></div>
+    <div class="mg-arb-grid">${arb
+      .map(
+        (
+          a
+        ) => `<div class="mg-arb-card"><div class="mg-arb-card-top"><span class="mg-arb-name">${esc(a.product)}</span><span class="mg-arb-demand">${esc(a.demand)} Demand</span></div>
       <div class="mg-arb-prices"><div class="mg-arb-side"><div class="mg-arb-side-label">Buy From</div><div class="mg-arb-platform">${a.platforms[1]}</div><div class="mg-arb-price buy">$${a.aliPrice.toFixed(2)}</div></div><div class="mg-arb-arrow">&rarr;</div><div class="mg-arb-side"><div class="mg-arb-side-label">Sell On</div><div class="mg-arb-platform">${a.platforms[0]}</div><div class="mg-arb-price sell">$${a.amazonPrice.toFixed(2)}</div></div></div>
-      <div class="mg-arb-profit">+$${(a.amazonPrice-a.aliPrice).toFixed(2)} profit (${a.margin}% margin)</div>
+      <div class="mg-arb-profit">+$${(a.amazonPrice - a.aliPrice).toFixed(2)} profit (${a.margin}% margin)</div>
       <div class="mg-arb-actions"><button class="mg-action-btn" data-arb-id="${a.id}" data-action="detail">View Details</button></div>
-    </div>`).join('')}</div></div>`;
-}
+    </div>`
+      )
+      .join('')}</div></div>`;
+  }
 
-function _renderEmerging(){
-    const em=getFilteredEmerging();
-    if(!em.length) return '<div class="mg-empty">No emerging niches match your filters.</div>';
+  function _renderEmerging() {
+    const em = getFilteredEmerging();
+    if (!em.length) return '<div class="mg-empty">No emerging niches match your filters.</div>';
     return `<div class="mg-emerging-section"><div class="mg-emerging-header"><h3>Emerging Niches</h3><p>Products gaining traction across multiple platforms &mdash; early mover window</p></div>
-    <div class="mg-emerging-list">${em.map(n=>`<div class="mg-emerging-card">
+    <div class="mg-emerging-list">${em
+      .map(
+        (n) => `<div class="mg-emerging-card">
       <div class="mg-em-name">${esc(n.name)}</div>
       <div class="mg-em-growth" style="color:var(--accent-green)">${esc(n.searchGrowth)}</div>
-      <div class="mg-em-plats">${n.platforms.map(p=>`<span class="mg-em-plat">${esc(p)}</span>`).join('')}</div>
+      <div class="mg-em-plats">${n.platforms.map((p) => `<span class="mg-em-plat">${esc(p)}</span>`).join('')}</div>
       <div class="mg-em-sellers">${n.sellerCount} sellers</div>
       <div class="mg-em-opp">${esc(n.opportunity)}</div>
-      <div class="mg-em-prediction">&#x1F52E; +${Math.round(parseInt(n.searchGrowth)*0.3)}% in 30d</div>
-    </div>`).join('')}</div></div>`;
-}
+      <div class="mg-em-prediction">&#x1F52E; +${Math.round(parseInt(n.searchGrowth) * 0.3)}% in 30d</div>
+    </div>`
+      )
+      .join('')}</div></div>`;
+  }
 
-function _renderWatchlist(){
-    const gaps=DATA.gaps.filter(g=>_watchlist.includes(g.id));
-    if(!gaps.length) return '<div class="mg-empty">Your watchlist is empty. Save opportunities from the Market Gaps tab.</div>';
+  function _renderWatchlist() {
+    const gaps = DATA.gaps.filter((g) => _watchlist.includes(g.id));
+    if (!gaps.length)
+      return '<div class="mg-empty">Your watchlist is empty. Save opportunities from the Market Gaps tab.</div>';
     return `<div class="mg-watchlist-section"><div class="mg-watchlist-header"><h3>Saved Opportunities</h3><p>${gaps.length} items saved</p></div>
-    <div class="mg-gaps-list">${gaps.map((g,i)=>`<div class="mg-gap-card"><div class="mg-gap-rank">#${i+1}</div><div class="mg-gap-main">
+    <div class="mg-gaps-list">${gaps
+      .map(
+        (g, i) => `<div class="mg-gap-card"><div class="mg-gap-rank">#${i + 1}</div><div class="mg-gap-main">
       <div class="mg-gap-top"><span class="mg-gap-emoji">${esc(g.emoji)}</span><div><div class="mg-gap-cat">${esc(g.category)}</div><div class="mg-gap-product">Top: ${esc(g.topProduct)}</div></div><div class="mg-gap-score-pill"><span class="mg-gap-score-num">${g.gap}</span><span class="mg-gap-score-lbl">GAP</span></div></div>
       <div class="mg-gap-metrics"><div class="mg-gap-m"><span class="mg-gap-m-label">Demand</span><span class="mg-gap-m-val" style="color:var(--accent-green)">${g.demandScore}</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Supply</span><span class="mg-gap-m-val" style="color:var(--accent-red)">${g.supplyScore}</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Margin</span><span class="mg-gap-m-val" style="color:var(--accent-green)">${g.arbitrage.margin}%</span></div><div class="mg-gap-m"><span class="mg-gap-m-label">Trend</span><span class="mg-gap-m-val">${g.trend}</span></div></div>
       <div class="mg-gap-actions"><button class="mg-action-btn mg-action-primary" data-gap-id="${g.id}" data-action="detail">View Full Analysis</button><button class="mg-action-btn" data-gap-id="${g.id}" data-action="suppliers">Find Suppliers</button><button class="mg-action-btn mg-action-danger" data-gap-id="${g.id}" data-action="save">Remove</button></div>
-    </div></div>`).join('')}</div></div>`;
-}
+    </div></div>`
+      )
+      .join('')}</div></div>`;
+  }
 
-function renderBattlefield(){
-    const el=_section?.querySelector('#mgBattlefield');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-battlefield-section">
+  function renderBattlefield() {
+    const el = _section?.querySelector('#mgBattlefield');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-battlefield-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x2694;&#xFE0F; Competitor Battlefield</h3><p class="mg-section-sub">Competition intensity mapped across each niche</p></div>
-      <div class="mg-bf-grid">${DATA.gaps.map(g=>{
-        const satLevel=g.marketSaturation<30?'low':g.marketSaturation<60?'medium':'high';
-        const satColor=satLevel==='low'?'var(--accent-green)':satLevel==='medium'?'var(--accent-yellow)':'var(--accent-red)';
-        return`<div class="mg-bf-card" style="cursor:pointer" onclick="document.querySelector('#mgCategoryFilter').value='${g.category}';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'));document.getElementById('section-market-gaps').scrollIntoView({behavior:'smooth',block:'start'})">
+      <div class="mg-bf-grid">${DATA.gaps
+        .map((g) => {
+          const satLevel = g.marketSaturation < 30 ? 'low' : g.marketSaturation < 60 ? 'medium' : 'high';
+          const satColor =
+            satLevel === 'low'
+              ? 'var(--accent-green)'
+              : satLevel === 'medium'
+                ? 'var(--accent-yellow)'
+                : 'var(--accent-red)';
+          return `<div class="mg-bf-card" style="cursor:pointer" onclick="document.querySelector('#mgCategoryFilter').value='${g.category}';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'));document.getElementById('section-market-gaps').scrollIntoView({behavior:'smooth',block:'start'})">
           <div class="mg-bf-top"><span class="mg-bf-emoji">${g.emoji}</span><span class="mg-bf-name">${g.category}</span><span class="mg-bf-sat ${satLevel}">${satLevel.toUpperCase()}</span></div>
           <div class="mg-bf-metrics">
             <div class="mg-bf-metric"><span class="mg-bf-metric-val">${g.sellers}</span><span class="mg-bf-metric-lbl">Sellers</span></div>
-            <div class="mg-bf-metric"><span class="mg-bf-metric-val">${g.rating||'4.2'}</span><span class="mg-bf-metric-lbl">Avg Rating</span></div>
+            <div class="mg-bf-metric"><span class="mg-bf-metric-val">${g.rating || '4.2'}</span><span class="mg-bf-metric-lbl">Avg Rating</span></div>
             <div class="mg-bf-metric"><span class="mg-bf-metric-val">$${g.adSpendAvg}</span><span class="mg-bf-metric-lbl">Ad Spend</span></div>
             <div class="mg-bf-metric"><span class="mg-bf-metric-val" style="color:${satColor}">${g.marketSaturation}%</span><span class="mg-bf-metric-lbl">Saturation</span></div>
           </div>
           <div class="mg-sat-gauge"><div class="mg-sat-fill" style="width:${g.marketSaturation}%;background:${satColor}"></div></div>
         </div>`;
-      }).join('')}</div>
+        })
+        .join('')}</div>
     </div>`;
-}
+  }
 
-function renderNicheRadar(){
-    const el=_section?.querySelector('#mgNicheRadar');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-niche-radar-section">
+  function renderNicheRadar() {
+    const el = _section?.querySelector('#mgNicheRadar');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-niche-radar-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F50D; Niche Radar</h3><p class="mg-section-sub">Validate niche profitability with conversion, AOV, pain points and audience data</p></div>
-      <div class="mg-nr-grid">${DATA.gaps.map(g=>{
-        const convRate=(2+Math.random()*5).toFixed(1);
-        const aov=Math.round((g.arbitrage.sell*0.7+g.arbitrage.sell*1.3)/2);
-        return`<div class="mg-nr-card">
+      <div class="mg-nr-grid">${DATA.gaps
+        .map((g) => {
+          const convRate = (2 + Math.random() * 5).toFixed(1);
+          const aov = Math.round((g.arbitrage.sell * 0.7 + g.arbitrage.sell * 1.3) / 2);
+          return `<div class="mg-nr-card">
           <div class="mg-nr-top"><span class="mg-nr-emoji">${g.emoji}</span><span class="mg-nr-name">${g.category}</span><span class="mg-nr-score">${g.gap}</span></div>
           <div class="mg-nr-metrics">
             <div class="mg-nr-metric"><span class="mg-nr-metric-val" style="color:var(--accent-green)">${convRate}%</span><span class="mg-nr-metric-lbl">Conversion Rate</span></div>
             <div class="mg-nr-metric"><span class="mg-nr-metric-val">$${aov}</span><span class="mg-nr-metric-lbl">Avg Order Value</span></div>
           </div>
-          <div class="mg-nr-pains"><div class="mg-nr-pains-title">Customer Pain Points</div><div class="mg-pain-points">${(g.painPoints||['Limited options','High prices','Poor quality']).map(p=>`<span class="mg-pain-chip">&#x26A0; ${p}</span>`).join('')}</div></div>
+          <div class="mg-nr-pains"><div class="mg-nr-pains-title">Customer Pain Points</div><div class="mg-pain-points">${(g.painPoints || ['Limited options', 'High prices', 'Poor quality']).map((p) => `<span class="mg-pain-chip">&#x26A0; ${p}</span>`).join('')}</div></div>
           <div class="mg-nr-pains-title">Target Audience</div>
-          <div class="mg-nr-audience">${g.audience.interests.map(i=>`<span class="mg-aud-chip">${i}</span>`).join('')}</div>
+          <div class="mg-nr-audience">${g.audience.interests.map((i) => `<span class="mg-aud-chip">${i}</span>`).join('')}</div>
         </div>`;
-      }).join('')}</div>
+        })
+        .join('')}</div>
     </div>`;
-}
+  }
 
-function renderLifecycle(){
-    const el=_section?.querySelector('#mgLifecycle');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-lifecycle-section">
+  function renderLifecycle() {
+    const el = _section?.querySelector('#mgLifecycle');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-lifecycle-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4C8; Product Lifecycle</h3><p class="mg-section-sub">Track niche maturity stage and predict time-to-peak</p></div>
-      <div class="mg-lc-grid">${DATA.gaps.map(g=>{
-        const stage=g.marketSaturation<25?'Emerging':g.marketSaturation<55?'Growing':'Saturated';
-        const stageClass=stage.toLowerCase();
-        const peakMonths=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        const peakMonth=peakMonths[Math.floor(Math.random()*6)+6];
-        return`<div class="mg-lc-card">
+      <div class="mg-lc-grid">${DATA.gaps
+        .map((g) => {
+          const stage = g.marketSaturation < 25 ? 'Emerging' : g.marketSaturation < 55 ? 'Growing' : 'Saturated';
+          const stageClass = stage.toLowerCase();
+          const peakMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const peakMonth = peakMonths[Math.floor(Math.random() * 6) + 6];
+          return `<div class="mg-lc-card">
           <div class="mg-lc-top"><span class="mg-lc-emoji">${g.emoji}</span><span class="mg-lc-name">${g.category}</span><span class="mg-lifecycle-badge ${stageClass}"><span class="mg-lifecycle-badge-dot"></span>${stage}</span></div>
           <div class="mg-lc-chart"><canvas id="mgLC_${g.id}" height="80"></canvas></div>
-          <div class="mg-lc-meta"><span>Time-to-peak: <span class="mg-lc-peak">${Math.floor(Math.random()*4)+2} months</span></span><span>Peak: ${peakMonth}</span></div>
+          <div class="mg-lc-meta"><span>Time-to-peak: <span class="mg-lc-peak">${Math.floor(Math.random() * 4) + 2} months</span></span><span>Peak: ${peakMonth}</span></div>
         </div>`;
-      }).join('')}</div>
+        })
+        .join('')}</div>
     </div>`;
-    if(typeof Chart==='undefined') return;
-    setTimeout(()=>{
-      DATA.gaps.forEach(g=>{
-        const c=el.querySelector('#mgLC_'+g.id);
-        if(!c) return;
-        const key='lc_'+g.id;
-        if(_charts[key]) try{_charts[key].destroy();}catch{/* ignored */}
-        const colors={Emerging:'#00e5ff',Growing:'#00ff88',Saturated:'#ff3366'};
-        const stage=g.marketSaturation<25?'Emerging':g.marketSaturation<55?'Growing':'Saturated';
-        _charts[key]=new Chart(c,{type:'line',data:{labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],datasets:[{data:g.seasonality,borderColor:colors[stage],backgroundColor:colors[stage]+'22',fill:true,tension:0.4,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
+    if (typeof Chart === 'undefined') return;
+    setTimeout(() => {
+      DATA.gaps.forEach((g) => {
+        const c = el.querySelector('#mgLC_' + g.id);
+        if (!c) return;
+        const key = 'lc_' + g.id;
+        if (_charts[key])
+          try {
+            _charts[key].destroy();
+          } catch {
+            /* ignored */
+          }
+        const colors = { Emerging: '#00e5ff', Growing: '#00ff88', Saturated: '#ff3366' };
+        const stage = g.marketSaturation < 25 ? 'Emerging' : g.marketSaturation < 55 ? 'Growing' : 'Saturated';
+        _charts[key] = new Chart(c, {
+          type: 'line',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [
+              {
+                data: g.seasonality,
+                borderColor: colors[stage],
+                backgroundColor: colors[stage] + '22',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } },
+          },
+        });
       });
-    },100);
-}
+    }, 100);
+  }
 
-function renderProductHunt(){
-    const el=_section?.querySelector('#mgProductHunt');
-    if(!el) return;
-    const _topProducts=DATA.gaps.flatMap(g=>g.topProducts||[{name:g.topProduct,price:g.arbitrage.sell,margin:g.arbitrage.margin,shipTime:'7-15 days',supplier:g.suppliers[0]?.name||'Various'}]).slice(0,10);
-    el.innerHTML=`<div class="mg-phunt-section">
+  function renderProductHunt() {
+    const el = _section?.querySelector('#mgProductHunt');
+    if (!el) return;
+    const _topProducts = DATA.gaps
+      .flatMap(
+        (g) =>
+          g.topProducts || [
+            {
+              name: g.topProduct,
+              price: g.arbitrage.sell,
+              margin: g.arbitrage.margin,
+              shipTime: '7-15 days',
+              supplier: g.suppliers[0]?.name || 'Various',
+            },
+          ]
+      )
+      .slice(0, 10);
+    el.innerHTML = `<div class="mg-phunt-section">
       <div class="mg-section-header"><h3 class="mg-section-title">&#x1F525; Product Hunt Scout</h3><p class="mg-section-sub">Top products per niche with supplier links, margins and shipping times</p></div>
-      <div class="mg-phunt-grid">${DATA.gaps.slice(0,5).map((g,i)=>`<div class="mg-phunt-card" style="animation-delay:${i*0.08}s">
-        <div class="mg-phunt-rank">#${i+1} in ${g.category}</div>
+      <div class="mg-phunt-grid">${DATA.gaps
+        .slice(0, 5)
+        .map(
+          (g, i) => `<div class="mg-phunt-card" style="animation-delay:${i * 0.08}s">
+        <div class="mg-phunt-rank">#${i + 1} in ${g.category}</div>
         <div class="mg-phunt-name">${g.topProduct}</div>
         <div class="mg-phunt-prices"><span class="mg-phunt-price">$${g.arbitrage.sell}</span><span class="mg-phunt-margin">${g.arbitrage.margin}% margin</span></div>
         <div class="mg-phunt-meta">Ship: 7-15 days</div>
-        <div class="mg-phunt-meta">${g.suppliers[0]?.name||'Various suppliers'}</div>
+        <div class="mg-phunt-meta">${g.suppliers[0]?.name || 'Various suppliers'}</div>
         <a class="mg-phunt-link" href="javascript:void(0)" onclick="window.HuntDrop.navigateTo('section-product-hunt')">View on AliExpress &rarr;</a>
-      </div>`).join('')}</div>
+      </div>`
+        )
+        .join('')}</div>
     </div>`;
-}
+  }
 
-function renderActionZone(){
-    const el=_section?.querySelector('#mgActionZone');
-    if(!el) return;
-    const wlActive=_watchlist.length>0;
-    el.innerHTML=`<div class="mg-action-zone">
+  function renderActionZone() {
+    const el = _section?.querySelector('#mgActionZone');
+    if (!el) return;
+    const wlActive = _watchlist.length > 0;
+    el.innerHTML = `<div class="mg-action-zone">
       <button class="mg-az-btn analyze" onclick="document.querySelector('#mgSearchInput')?.focus()">&#x1F9E0; Analyze Market</button>
       <button class="mg-az-btn compare" onclick="document.querySelector('#mgCategoryFilter').value='all';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'))">&#x1F4CA; Compare Niches</button>
       <button class="mg-az-btn export" onclick="window.HuntDrop._mgExportPDF&&window.HuntDrop._mgExportPDF()">&#x1F4C4; Export Report</button>
-      <button class="mg-az-btn watchlist ${wlActive?'active':''}" onclick="document.querySelector('[data-tab=watchlist]')?.click()">&#x1F680; Watchlist (${_watchlist.length})</button>
+      <button class="mg-az-btn watchlist ${wlActive ? 'active' : ''}" onclick="document.querySelector('[data-tab=watchlist]')?.click()">&#x1F680; Watchlist (${_watchlist.length})</button>
     </div>`;
-}
+  }
 
-function renderCalculator(){
-    const el=_section?.querySelector('#mgCalculator');
-    if(!el) return;
-    el.innerHTML=`<div class="mg-calc-section">
+  function renderCalculator() {
+    const el = _section?.querySelector('#mgCalculator');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-calc-section">
       <div class="mg-section-header"><h3 class="mg-section-title">Opportunity Score Calculator</h3><p class="mg-section-sub">Input your parameters to get a personalized recommendation</p></div>
       <div class="mg-calc-card">
         <div class="mg-calc-inputs">
@@ -342,31 +538,43 @@ function renderCalculator(){
         <div id="mgCalcResult" class="mg-calc-result"></div>
       </div>
     </div>`;
-    el.querySelector('#mgCalcBtn')?.addEventListener('click',()=>calculate());
-}
+    el.querySelector('#mgCalcBtn')?.addEventListener('click', () => calculate());
+  }
 
-function _calculate(){
-    const budget=parseInt(document.querySelector('#mgCalcBudget')?.value)||500;
-    const exp=document.querySelector('#mgCalcExp')?.value||'beginner';
-    const risk=document.querySelector('#mgCalcRisk')?.value||'low';
-    const recommended=DATA.gaps.filter(g=>{
-      if(risk==='low'&&g.riskScore>30) return false;
-      if(risk==='medium'&&g.riskScore>50) return false;
-      if(exp==='beginner'&&g.riskScore>40) return false;
-      return budget>=g.arbitrage.buy*50;
-    }).sort((a,b)=>b.gap-a.gap).slice(0,3);
-    const res=document.querySelector('#mgCalcResult');
-    if(!res) return;
-    if(!recommended.length){res.innerHTML='<div class="mg-calc-empty">No opportunities match your criteria. Try increasing budget or risk tolerance.</div>';return;}
-    res.innerHTML=`<div class="mg-calc-results"><h4>Top Recommendations For You</h4>${recommended.map((g,i)=>`<div class="mg-calc-rec">
-      <div class="mg-calc-rank">${i+1}</div>
+  function _calculate() {
+    const budget = parseInt(document.querySelector('#mgCalcBudget')?.value) || 500;
+    const exp = document.querySelector('#mgCalcExp')?.value || 'beginner';
+    const risk = document.querySelector('#mgCalcRisk')?.value || 'low';
+    const recommended = DATA.gaps
+      .filter((g) => {
+        if (risk === 'low' && g.riskScore > 30) return false;
+        if (risk === 'medium' && g.riskScore > 50) return false;
+        if (exp === 'beginner' && g.riskScore > 40) return false;
+        return budget >= g.arbitrage.buy * 50;
+      })
+      .sort((a, b) => b.gap - a.gap)
+      .slice(0, 3);
+    const res = document.querySelector('#mgCalcResult');
+    if (!res) return;
+    if (!recommended.length) {
+      res.innerHTML =
+        '<div class="mg-calc-empty">No opportunities match your criteria. Try increasing budget or risk tolerance.</div>';
+      return;
+    }
+    res.innerHTML = `<div class="mg-calc-results"><h4>Top Recommendations For You</h4>${recommended
+      .map(
+        (g, i) => `<div class="mg-calc-rec">
+      <div class="mg-calc-rank">${i + 1}</div>
       <div class="mg-calc-info"><div class="mg-calc-name">${esc(g.emoji)} ${esc(g.category)}</div><div class="mg-calc-meta">Gap: ${g.gap} | Margin: ${g.arbitrage.margin}% | Risk: ${g.riskScore}/100</div><div class="mg-calc-tip">${esc(g.action)}</div></div>
-      <div class="mg-calc-score" style="color:var(--accent-green)">${Math.round((g.gap*0.4+g.arbitrage.margin*0.3+(100-g.riskScore)*0.3))}</div>
-    </div>`).join('')}</div>`;
-}
+      <div class="mg-calc-score" style="color:var(--accent-green)">${Math.round(g.gap * 0.4 + g.arbitrage.margin * 0.3 + (100 - g.riskScore) * 0.3)}</div>
+    </div>`
+      )
+      .join('')}</div>`;
+  }
 
-function showGapDetail(id){
-    const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
+  function showGapDetail(id) {
+    const g = DATA.gaps.find((x) => x.id === id);
+    if (!g) return;
     UI.modal(`<div class="mg-detail">
       <div class="mg-detail-hero"><span class="mg-detail-emoji">${esc(g.emoji)}</span><div><h2 class="mg-detail-title">${esc(g.category)}</h2>
       <div class="mg-detail-tags"><span class="mg-detail-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">Gap Score: ${g.gap}</span><span class="mg-detail-tag" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">${g.trend.toUpperCase()}</span><span class="mg-detail-tag" style="background:rgba(255,51,102,0.12);color:var(--accent-red)">Risk: ${g.riskScore}/100</span></div></div></div>
@@ -385,7 +593,7 @@ function showGapDetail(id){
           <div class="mg-detail-arb-row"><span>Buy from ${g.platforms[0]}</span><span style="color:var(--accent-red);font-family:var(--font-mono);font-weight:700">$${g.arbitrage.buy}</span></div>
           <div class="mg-detail-arb-row"><span>Sell on ${g.platforms[1]}</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${g.arbitrage.sell}</span></div>
           <div class="mg-detail-arb-divider"></div>
-          <div class="mg-detail-arb-row"><span>Profit per unit</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${(g.arbitrage.sell-g.arbitrage.buy).toFixed(2)}</span></div>
+          <div class="mg-detail-arb-row"><span>Profit per unit</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${(g.arbitrage.sell - g.arbitrage.buy).toFixed(2)}</span></div>
         </div></div>
         <div class="mg-detail-section"><h4>Target Audience</h4><div class="mg-detail-audience">
           <div class="mg-detail-aud-row"><span>Age Range</span><span>${g.audience.age}</span></div>
@@ -393,16 +601,17 @@ function showGapDetail(id){
           <div class="mg-detail-aud-row"><span>Interests</span><span>${esc(g.audience.interests.join(', '))}</span></div>
           <div class="mg-detail-aud-row"><span>Countries</span><span>${esc(g.audience.countries.join(', '))}</span></div>
         </div></div>
-        <div class="mg-detail-section"><h4>Keywords</h4><div class="mg-detail-keywords">${g.keywords.map(k=>`<span class="mg-kw-chip">${esc(k)}</span>`).join('')}</div></div>
-        <div class="mg-detail-section"><h4>Top Suppliers</h4><div class="mg-detail-suppliers">${g.suppliers.map(s=>`<div class="mg-detail-supplier"><div class="mg-detail-sup-name">${esc(s.name)} ${s.verified?'(Verified)':''}</div><div class="mg-detail-sup-meta">${s.location} - ${s.orders.toLocaleString()} orders - Rating: ${s.rating} - Response: ${s.responseTime}</div></div>`).join('')}</div></div>
+        <div class="mg-detail-section"><h4>Keywords</h4><div class="mg-detail-keywords">${g.keywords.map((k) => `<span class="mg-kw-chip">${esc(k)}</span>`).join('')}</div></div>
+        <div class="mg-detail-section"><h4>Top Suppliers</h4><div class="mg-detail-suppliers">${g.suppliers.map((s) => `<div class="mg-detail-supplier"><div class="mg-detail-sup-name">${esc(s.name)} ${s.verified ? '(Verified)' : ''}</div><div class="mg-detail-sup-meta">${s.location} - ${s.orders.toLocaleString()} orders - Rating: ${s.rating} - Response: ${s.responseTime}</div></div>`).join('')}</div></div>
         <div class="mg-detail-section mg-detail-wide"><h4>AI Opportunity Analysis</h4><div class="mg-detail-insight">${esc(g.opportunity)}</div></div>
         <div class="mg-detail-section mg-detail-wide"><h4>Recommended Action</h4><div class="mg-detail-action">${esc(g.action)}</div></div>
       </div></div>`);
-}
+  }
 
-function showArbDetail(id){
-    const a=DATA.arb.find(x=>x.id===id);if(!a) return;
-    const profit=(a.amazonPrice-a.aliPrice).toFixed(2);
+  function showArbDetail(id) {
+    const a = DATA.arb.find((x) => x.id === id);
+    if (!a) return;
+    const profit = (a.amazonPrice - a.aliPrice).toFixed(2);
     UI.modal(`<div class="mg-detail"><div class="mg-detail-hero"><span class="mg-detail-emoji">&#x1F4B0;</span><div><h2 class="mg-detail-title">${esc(a.product)}</h2>
     <div class="mg-detail-tags"><span class="mg-detail-tag" style="background:var(--accent-green-dim);color:var(--accent-green)">${a.margin}% Margin</span><span class="mg-detail-tag" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">${a.demand} Demand</span></div></div></div>
     <div class="mg-detail-section"><h4>Price Breakdown</h4><div class="mg-detail-arb">
@@ -410,94 +619,183 @@ function showArbDetail(id){
       <div class="mg-detail-arb-row"><span>Sell on ${a.platforms[0]}</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${a.amazonPrice.toFixed(2)}</span></div>
       <div class="mg-detail-arb-divider"></div>
       <div class="mg-detail-arb-row"><span>Profit per unit</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${profit}</span></div>
-      <div class="mg-detail-arb-row"><span>ROI per 100 units</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${(profit*100).toFixed(0)}</span></div>
+      <div class="mg-detail-arb-row"><span>ROI per 100 units</span><span style="color:var(--accent-green);font-family:var(--font-mono);font-weight:700">$${(profit * 100).toFixed(0)}</span></div>
     </div></div></div>`);
-}
+  }
 
-function openProfitCalc(id){
-    const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
+  function openProfitCalc(id) {
+    const g = DATA.gaps.find((x) => x.id === id);
+    if (!g) return;
     window.HuntDrop.navigateTo('section-profit-lab');
-    UI.toast('Opening Profit Calculator for '+g.category,'info');
-}
+    UI.toast('Opening Profit Calculator for ' + g.category, 'info');
+  }
 
-function openAdStudio(id){
-    const g=DATA.gaps.find(x=>x.id===id);if(!g) return;
+  function openAdStudio(id) {
+    const g = DATA.gaps.find((x) => x.id === id);
+    if (!g) return;
     window.HuntDrop.navigateTo('section-ad-studio');
-    UI.toast('Opening Ad Studio for '+g.category,'info');
-}
+    UI.toast('Opening Ad Studio for ' + g.category, 'info');
+  }
 
-function toggleWatchlist(id){
-    const idx=_watchlist.indexOf(id);
-    if(idx>-1) _watchlist.splice(idx,1); else _watchlist.push(id);
-    localStorage.setItem('mg_watchlist',JSON.stringify(_watchlist));
-    renderStats(); renderTabs();
-    UI.toast(idx>-1?'Removed from watchlist':'Saved to watchlist','success');
-}
+  function toggleWatchlist(id) {
+    const idx = _watchlist.indexOf(id);
+    if (idx > -1) _watchlist.splice(idx, 1);
+    else _watchlist.push(id);
+    localStorage.setItem('mg_watchlist', JSON.stringify(_watchlist));
+    renderStats();
+    renderTabs();
+    UI.toast(idx > -1 ? 'Removed from watchlist' : 'Saved to watchlist', 'success');
+  }
 
-function toggleEmergingWatchlist(_id){
+  function toggleEmergingWatchlist(_id) {}
 
-}
+  function exportCSV() {
+    const gaps = getFilteredGaps();
+    const headers = [
+      'Category',
+      'Gap Score',
+      'Demand',
+      'Supply',
+      'Search Volume',
+      'Sellers',
+      'Margin',
+      'Buy Price',
+      'Sell Price',
+      'Trend',
+      'Risk',
+      'CPA',
+    ];
+    const rows = gaps.map((g) => [
+      g.category,
+      g.gap,
+      g.demandScore,
+      g.supplyScore,
+      g.searchVolume,
+      g.sellers,
+      g.arbitrage.margin,
+      g.arbitrage.buy,
+      g.arbitrage.sell,
+      g.trend,
+      g.riskScore,
+      g.cpaAvg,
+    ]);
+    let csv = headers.join(',') + '\n';
+    rows.forEach((r) => (csv += r.join(',') + '\n'));
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'market-gaps-export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    UI.toast('CSV exported successfully', 'success');
+  }
 
-function exportCSV(){
-    const gaps=getFilteredGaps();
-    const headers=['Category','Gap Score','Demand','Supply','Search Volume','Sellers','Margin','Buy Price','Sell Price','Trend','Risk','CPA'];
-    const rows=gaps.map(g=>[g.category,g.gap,g.demandScore,g.supplyScore,g.searchVolume,g.sellers,g.arbitrage.margin,g.arbitrage.buy,g.arbitrage.sell,g.trend,g.riskScore,g.cpaAvg]);
-    let csv=headers.join(',')+'\n'; rows.forEach(r=>csv+=r.join(',')+'\n');
-    const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='market-gaps-export.csv';a.click();
-    URL.revokeObjectURL(url); UI.toast('CSV exported successfully','success');
-}
+  function exportPDF() {
+    const gaps = getFilteredGaps();
+    let text = 'MARKET GAP FINDER — Export Report\nGenerated: ' + new Date().toLocaleString() + '\n\n';
+    gaps.forEach((g, i) => {
+      text += `#${i + 1} ${g.category}\nGap: ${g.gap} | Demand: ${g.demandScore} | Supply: ${g.supplyScore} | Margin: ${g.arbitrage.margin}%\nBuy: $${g.arbitrage.buy} -> Sell: $${g.arbitrage.sell} | Profit: $${(g.arbitrage.sell - g.arbitrage.buy).toFixed(2)}\nRisk: ${g.riskScore}/100 | Trend: ${g.trend}\n${g.action}\n\n`;
+    });
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'market-gaps-report.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    UI.toast('Report exported successfully', 'success');
+  }
 
-function exportPDF(){
-    const gaps=getFilteredGaps();
-    let text='MARKET GAP FINDER — Export Report\nGenerated: '+new Date().toLocaleString()+'\n\n';
-    gaps.forEach((g,i)=>{text+=`#${i+1} ${g.category}\nGap: ${g.gap} | Demand: ${g.demandScore} | Supply: ${g.supplyScore} | Margin: ${g.arbitrage.margin}%\nBuy: $${g.arbitrage.buy} -> Sell: $${g.arbitrage.sell} | Profit: $${(g.arbitrage.sell-g.arbitrage.buy).toFixed(2)}\nRisk: ${g.riskScore}/100 | Trend: ${g.trend}\n${g.action}\n\n`;});
-    const blob=new Blob([text],{type:'text/plain'}); const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='market-gaps-report.txt';a.click();
-    URL.revokeObjectURL(url); UI.toast('Report exported successfully','success');
-}
+  function _render() {
+    if (typeof DATA === 'undefined') return;
+    const self = this;
+    const r = (n) => {
+      try {
+        self[n]();
+      } catch (e) {
+        console.error('[MG] ' + n + ':', e);
+      }
+    };
+    [
+      'renderAIScan',
+      'renderDataMeta',
+      'renderFilters',
+      'renderStats',
+      'renderInsights',
+      'renderCharts',
+      'renderCategories',
+      'renderTabs',
+      'renderBattlefield',
+      'renderNicheRadar',
+      'renderLifecycle',
+      'renderProductHunt',
+      'renderActionZone',
+      'renderCalculator',
+    ].forEach(r);
+  }
 
-function _render(){
-    if(typeof DATA==='undefined') return;
-    const self=this;
-    const r=(n)=>{ try{self[n]();}catch(e){console.error('[MG] '+n+':',e);} };
-    ['renderAIScan','renderDataMeta','renderFilters','renderStats','renderInsights',
-     'renderCharts','renderCategories','renderTabs','renderBattlefield',
-     'renderNicheRadar','renderLifecycle','renderProductHunt','renderActionZone',
-     'renderCalculator'].forEach(r);
-}
-
-function _refresh(){
+  function _refresh() {
     renderStats();
     renderCharts();
     renderCategories();
     renderInsights();
-    const t=_section?.querySelector('.mg-tab.active');
-    if(t) showTab(t.dataset.tab);
-}
+    const t = _section?.querySelector('.mg-tab.active');
+    if (t) showTab(t.dataset.tab);
+  }
 
-const P = {
-  id:'market-gap-finder',
-  name:'Market Gaps',
-  version:'3.0.0',
-  description:'Find Hidden Opportunities — gap scoring, arbitrage, emerging niches, competitor battlefield, niche radar, lifecycle tracking, AI insights',
-  dependencies:['search-engine'],
+  const P = {
+    id: 'market-gap-finder',
+    name: 'Market Gaps',
+    version: '3.0.0',
+    description:
+      'Find Hidden Opportunities — gap scoring, arbitrage, emerging niches, competitor battlefield, niche radar, lifecycle tracking, AI insights',
+    dependencies: ['search-engine'],
 
-  init(_ctx){ Config.defaults('marketGap',{enabled:true}); },
+    init(_ctx) {
+      Config.defaults('marketGap', { enabled: true });
+    },
 
-  mount(_ctx){
-    const container = UI.$('sections-container');
-    if(!container) return;
-    const s = document.createElement('section');
-    s.className = 'section section-market-gap-finder';
-    s.id = 'section-market-gaps';
-    const rTools = (window.HuntDrop && window.HuntDrop.renderRelatedTools) ? window.HuntDrop.renderRelatedTools([
-        {section:'section-product-hunt',name:'Product Hunt Scout',desc:'Discover trending products',icon:'&#x1F525;',color:'#ff8a00'},
-        {section:'section-supplier-intel',name:'Supplier Intelligence',desc:'Verify suppliers',icon:'&#x1F6E1;',color:'#00e5ff'},
-        {section:'section-niche-radar',name:'Niche Radar',desc:'Validate niche profitability',icon:'&#x1F50D;',color:'#a855f7'},
-        {section:'section-lifecycle',name:'Product Lifecycle',desc:'Track niche maturity',icon:'&#x1F4C8;',color:'#00ff88'}
-      ]) : '';
-    s.innerHTML = `<div class="section-inner">
+    mount(_ctx) {
+      const container = UI.$('sections-container');
+      if (!container) return;
+      const s = document.createElement('section');
+      s.className = 'section section-market-gap-finder';
+      s.id = 'section-market-gaps';
+      const rTools =
+        window.HuntDrop && window.HuntDrop.renderRelatedTools
+          ? window.HuntDrop.renderRelatedTools([
+              {
+                section: 'section-product-hunt',
+                name: 'Product Hunt Scout',
+                desc: 'Discover trending products',
+                icon: '&#x1F525;',
+                color: '#ff8a00',
+              },
+              {
+                section: 'section-supplier-intel',
+                name: 'Supplier Intelligence',
+                desc: 'Verify suppliers',
+                icon: '&#x1F6E1;',
+                color: '#00e5ff',
+              },
+              {
+                section: 'section-niche-radar',
+                name: 'Niche Radar',
+                desc: 'Validate niche profitability',
+                icon: '&#x1F50D;',
+                color: '#a855f7',
+              },
+              {
+                section: 'section-lifecycle',
+                name: 'Product Lifecycle',
+                desc: 'Track niche maturity',
+                icon: '&#x1F4C8;',
+                color: '#00ff88',
+              },
+            ])
+          : '';
+      s.innerHTML = `<div class="section-inner">
       ${renderHero()}
       <div id="mgAIScan"></div>
       <div id="mgDataMeta"></div>
@@ -515,72 +813,908 @@ const P = {
       <div id="mgActionZone"></div>
       <div id="mgCalculator"></div>
       ${rTools}</div>`;
-    container.appendChild(s);
-    _section = s;
-    render();
-  },
+      container.appendChild(s);
+      _section = s;
+      render();
+    },
 
-  unmount(_ctx){
-    Object.values(_charts).forEach(c=>{ try{if(c)c.destroy();}catch{/* ignored */} });
-    _charts={}; _chartsInit=false;
-    if(_section){ _section.remove(); _section=null; }
-  }
-};
+    unmount(_ctx) {
+      Object.values(_charts).forEach((c) => {
+        try {
+          if (c) c.destroy();
+        } catch {
+          /* ignored */
+        }
+      });
+      _charts = {};
+      _chartsInit = false;
+      if (_section) {
+        _section.remove();
+        _section = null;
+      }
+    },
+  };
 
+  // Expose export for Action Zone button
+  window.HuntDrop._mgExportPDF = () => exportPDF();
 
-// Expose export for Action Zone button
-window.HuntDrop._mgExportPDF = ()=>exportPDF();
+  // ============================================================================
+  // DATA — 10 Gaps, 10 Arbitrage, 7 Emerging, 10 Categories
+  // ============================================================================
+  const DATA = {
+    gaps: [
+      {
+        id: 1,
+        category: 'Smart Sleep Tech',
+        emoji: '\u{1F634}',
+        demandScore: 92,
+        supplyScore: 34,
+        gap: 58,
+        searchVolume: '142K/mo',
+        sellers: 12,
+        topProduct: 'Smart Sleep Tracker Ring',
+        priceRange: '$29-89',
+        rating: 4.2,
+        marketSaturation: 18,
+        painPoints: ['Expensive alternatives', 'No app integration', 'Inaccurate tracking'],
+        arbitrage: { buy: 12.5, sell: 67.99, margin: 82 },
+        platforms: ['AliExpress', 'Amazon'],
+        trend: 'rising',
+        seasonality: [40, 35, 30, 25, 20, 18, 22, 28, 45, 60, 75, 85],
+        opportunity:
+          'Extremely high. Only 12 sellers across all platforms. Average rating 4.2 but only 200 reviews — massive room for a better product.',
+        action: 'Source a sleep tracking ring with app integration. Price at $59.99. Target insomniacs and biohackers.',
+        riskScore: 18,
+        adSpendAvg: 320,
+        cpaAvg: 8.5,
+        audience: {
+          age: '25-45',
+          gender: '60% Male',
+          interests: ['Biohacking', 'Sleep Health', 'Wearables'],
+          countries: ['USA', 'UK', 'Canada', 'Australia'],
+        },
+        keywords: ['sleep tracker', 'smart ring', 'sleep monitor', 'sleep quality', 'insomnia help'],
+        suppliers: [
+          {
+            name: 'Shenzhen SleepTech Co.',
+            location: 'Shenzhen, China',
+            rating: 4.8,
+            orders: 12400,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Guangzhou Health Devices',
+            location: 'Guangzhou, China',
+            rating: 4.5,
+            orders: 8200,
+            responseTime: '< 8h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Smart Sleep Tracker Ring',
+            price: 67.99,
+            margin: 82,
+            shipTime: '7-12 days',
+            supplier: 'Shenzhen SleepTech Co.',
+          },
+          {
+            name: 'Sleep Quality Monitor Band',
+            price: 49.99,
+            margin: 78,
+            shipTime: '10-15 days',
+            supplier: 'Guangzhou Health Devices',
+          },
+        ],
+      },
+      {
+        id: 2,
+        category: 'Portable UV Sanitizers',
+        emoji: '\u{1F9A0}',
+        demandScore: 78,
+        supplyScore: 28,
+        gap: 50,
+        searchVolume: '89K/mo',
+        sellers: 8,
+        topProduct: 'UV-C Sterilizer Wand',
+        priceRange: '$15-45',
+        rating: 4.1,
+        marketSaturation: 22,
+        painPoints: ['Cheap quality builds', 'No FDA registration', 'Weak UV output'],
+        arbitrage: { buy: 6.8, sell: 34.99, margin: 81 },
+        platforms: ['AliExpress', 'CJ Dropshipping'],
+        trend: 'rising',
+        seasonality: [65, 60, 55, 50, 40, 35, 38, 42, 55, 68, 72, 70],
+        opportunity:
+          'Post-pandemic awareness keeps demand steady. Most sellers offer cheap wands — opportunity for a premium, verified version.',
+        action:
+          'Source FDA-registered UV sanitizer. Bundle with travel case. Price at $39.99. Target parents and travelers.',
+        riskScore: 32,
+        adSpendAvg: 280,
+        cpaAvg: 6.2,
+        audience: {
+          age: '28-55',
+          gender: '55% Female',
+          interests: ['Health', 'Travel', 'Parenting'],
+          countries: ['USA', 'Germany', 'Japan', 'UK'],
+        },
+        keywords: ['uv sanitizer', 'uv wand', 'sterilizer', 'germ killer', 'disinfection'],
+        suppliers: [
+          {
+            name: 'Jiangsu UV Tech',
+            location: 'Nanjing, China',
+            rating: 4.6,
+            orders: 9800,
+            responseTime: '< 6h',
+            verified: true,
+          },
+          {
+            name: 'Dongguan CleanTech',
+            location: 'Dongguan, China',
+            rating: 4.3,
+            orders: 5600,
+            responseTime: '< 12h',
+            verified: false,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'UV-C Sterilizer Wand',
+            price: 34.99,
+            margin: 81,
+            shipTime: '8-14 days',
+            supplier: 'Jiangsu UV Tech',
+          },
+          {
+            name: 'Portable UV Sanitizer Box',
+            price: 29.99,
+            margin: 76,
+            shipTime: '10-18 days',
+            supplier: 'Dongguan CleanTech',
+          },
+        ],
+      },
+      {
+        id: 3,
+        category: 'Ergonomic Pet Products',
+        emoji: '\u{1F415}',
+        demandScore: 85,
+        supplyScore: 38,
+        gap: 47,
+        searchVolume: '110K/mo',
+        sellers: 15,
+        topProduct: 'Adjustable Pet Stair Ramp',
+        priceRange: '$25-75',
+        rating: 4.3,
+        marketSaturation: 28,
+        painPoints: ['Flimsy construction', 'Limited weight capacity', 'One-size-fits-all'],
+        arbitrage: { buy: 11.2, sell: 49.99, margin: 78 },
+        platforms: ['Amazon', 'Shopify'],
+        trend: 'rising',
+        seasonality: [55, 50, 48, 52, 58, 62, 65, 68, 72, 78, 82, 80],
+        opportunity:
+          'Pet spending is recession-proof. Existing products are generic — opportunity for branded, vet-endorsed ergonomic line.',
+        action:
+          'Create a pet wellness brand. Start with ramp, expand to orthopedic beds. Price at $44.99. Target aging pet owners.',
+        riskScore: 25,
+        adSpendAvg: 420,
+        cpaAvg: 7.8,
+        audience: {
+          age: '30-60',
+          gender: '65% Female',
+          interests: ['Pet Care', 'Dog Health', 'Senior Pets'],
+          countries: ['USA', 'UK', 'Australia', 'Canada'],
+        },
+        keywords: ['pet ramp', 'dog stairs', 'pet step', 'elderly dog', 'pet mobility'],
+        suppliers: [
+          {
+            name: 'Ningbo Pet Supplies',
+            location: 'Ningbo, China',
+            rating: 4.7,
+            orders: 15600,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Foshan Pet Products',
+            location: 'Foshan, China',
+            rating: 4.4,
+            orders: 7800,
+            responseTime: '< 8h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Adjustable Pet Stair Ramp',
+            price: 49.99,
+            margin: 78,
+            shipTime: '7-12 days',
+            supplier: 'Ningbo Pet Supplies',
+          },
+          {
+            name: 'Orthopedic Pet Bed',
+            price: 59.99,
+            margin: 72,
+            shipTime: '10-15 days',
+            supplier: 'Foshan Pet Products',
+          },
+        ],
+      },
+      {
+        id: 4,
+        category: 'Smart Plant Care',
+        emoji: '\u{1F331}',
+        demandScore: 71,
+        supplyScore: 22,
+        gap: 49,
+        searchVolume: '67K/mo',
+        sellers: 6,
+        topProduct: 'Smart Soil Moisture Meter',
+        priceRange: '$12-35',
+        rating: 4.4,
+        marketSaturation: 15,
+        painPoints: ['Basic analog devices', 'No app connectivity', 'Inaccurate readings'],
+        arbitrage: { buy: 4.5, sell: 24.99, margin: 82 },
+        platforms: ['AliExpress', 'Etsy'],
+        trend: 'rising',
+        seasonality: [30, 28, 35, 55, 72, 85, 88, 82, 68, 45, 32, 28],
+        opportunity:
+          'Indoor plant trend is booming. Only 6 dedicated sellers. Most products are basic — opportunity for smart/app-connected version.',
+        action:
+          'Source Bluetooth soil sensor. Bundle with plant care app subscription. Price at $29.99. Target millennial plant parents.',
+        riskScore: 15,
+        adSpendAvg: 180,
+        cpaAvg: 4.5,
+        audience: {
+          age: '22-38',
+          gender: '60% Female',
+          interests: ['Indoor Plants', 'Gardening', 'Home Decor'],
+          countries: ['USA', 'UK', 'Netherlands', 'Germany'],
+        },
+        keywords: ['plant sensor', 'soil meter', 'moisture meter', 'smart garden', 'plant care'],
+        suppliers: [
+          {
+            name: 'Xiamen Smart Devices',
+            location: 'Xiamen, China',
+            rating: 4.9,
+            orders: 6200,
+            responseTime: '< 3h',
+            verified: true,
+          },
+          {
+            name: 'Yiwu Garden Tech',
+            location: 'Yiwu, China',
+            rating: 4.2,
+            orders: 3400,
+            responseTime: '< 12h',
+            verified: false,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Smart Soil Moisture Meter',
+            price: 24.99,
+            margin: 82,
+            shipTime: '6-10 days',
+            supplier: 'Xiamen Smart Devices',
+          },
+          {
+            name: 'Bluetooth Plant Monitor',
+            price: 19.99,
+            margin: 78,
+            shipTime: '8-14 days',
+            supplier: 'Yiwu Garden Tech',
+          },
+        ],
+      },
+      {
+        id: 5,
+        category: 'Desk Organization Tech',
+        emoji: '\u{1F5A5}\u{FE0F}',
+        demandScore: 88,
+        supplyScore: 42,
+        gap: 46,
+        searchVolume: '95K/mo',
+        sellers: 18,
+        topProduct: 'Magnetic Cable Management System',
+        priceRange: '$18-55',
+        rating: 4.0,
+        marketSaturation: 35,
+        painPoints: ['Messy desk setups', 'Cable clutter', 'No unified system'],
+        arbitrage: { buy: 7.9, sell: 39.99, margin: 80 },
+        platforms: ['Amazon', 'Shopify'],
+        trend: 'stable',
+        seasonality: [60, 55, 52, 58, 65, 70, 68, 72, 78, 85, 80, 75],
+        opportunity:
+          'WFH trend permanent. Existing products are scattered — opportunity for a complete desk ecosystem brand.',
+        action: 'Bundle cable management + desk pad + monitor riser. Price at $49.99 set. Target remote workers.',
+        riskScore: 42,
+        adSpendAvg: 550,
+        cpaAvg: 9.2,
+        audience: {
+          age: '25-45',
+          gender: '58% Male',
+          interests: ['Remote Work', 'Tech Setup', 'Productivity'],
+          countries: ['USA', 'UK', 'Germany', 'Canada'],
+        },
+        keywords: ['desk organizer', 'cable management', 'desk setup', 'WFH accessories', 'desk pad'],
+        suppliers: [
+          {
+            name: 'Shenzhen Desk Tech',
+            location: 'Shenzhen, China',
+            rating: 4.6,
+            orders: 22000,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Zhongshan Office Supplies',
+            location: 'Zhongshan, China',
+            rating: 4.3,
+            orders: 11000,
+            responseTime: '< 8h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Magnetic Cable Management System',
+            price: 39.99,
+            margin: 80,
+            shipTime: '7-12 days',
+            supplier: 'Shenzhen Desk Tech',
+          },
+          {
+            name: 'Ergonomic Monitor Riser',
+            price: 44.99,
+            margin: 74,
+            shipTime: '10-15 days',
+            supplier: 'Zhongshan Office Supplies',
+          },
+        ],
+      },
+      {
+        id: 6,
+        category: 'Travel Tech Accessories',
+        emoji: '\u{2708}\u{FE0F}',
+        demandScore: 82,
+        supplyScore: 35,
+        gap: 47,
+        searchVolume: '105K/mo',
+        sellers: 14,
+        topProduct: 'Universal Travel Adapter with USB-C',
+        priceRange: '$15-40',
+        rating: 4.1,
+        marketSaturation: 26,
+        painPoints: ['Bulky adapters', 'Slow charging', 'No universal fit'],
+        arbitrage: { buy: 5.6, sell: 29.99, margin: 81 },
+        platforms: ['AliExpress', 'Amazon', 'Temu'],
+        trend: 'rising',
+        seasonality: [45, 42, 48, 55, 65, 80, 95, 90, 72, 58, 50, 48],
+        opportunity:
+          'Travel rebound driving demand. Most adapters are basic — opportunity for premium with fast charging and country-specific smart detection.',
+        action:
+          'Source smart travel adapter with GaN tech. Price at $34.99. Target frequent travelers and digital nomads.',
+        riskScore: 30,
+        adSpendAvg: 350,
+        cpaAvg: 5.8,
+        audience: {
+          age: '25-50',
+          gender: '55% Male',
+          interests: ['Travel', 'Digital Nomad', 'Tech Gadgets'],
+          countries: ['USA', 'UK', 'Germany', 'Japan'],
+        },
+        keywords: ['travel adapter', 'usb-c adapter', 'universal adapter', 'GaN charger', 'travel charger'],
+        suppliers: [
+          {
+            name: 'Shenzhen GaN Tech',
+            location: 'Shenzhen, China',
+            rating: 4.7,
+            orders: 18500,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Dongguan Power Solutions',
+            location: 'Dongguan, China',
+            rating: 4.4,
+            orders: 9200,
+            responseTime: '< 8h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Universal Travel Adapter with USB-C',
+            price: 29.99,
+            margin: 81,
+            shipTime: '6-10 days',
+            supplier: 'Shenzhen GaN Tech',
+          },
+          {
+            name: 'GaN Fast Charger 65W',
+            price: 34.99,
+            margin: 76,
+            shipTime: '8-12 days',
+            supplier: 'Dongguan Power Solutions',
+          },
+        ],
+      },
+      {
+        id: 7,
+        category: 'Mental Health Gadgets',
+        emoji: '\u{1F9E0}',
+        demandScore: 76,
+        supplyScore: 19,
+        gap: 57,
+        searchVolume: '58K/mo',
+        sellers: 5,
+        topProduct: 'Stress Relief Fidget Device',
+        priceRange: '$10-30',
+        rating: 4.5,
+        marketSaturation: 12,
+        painPoints: ['Stigma around mental health', 'Expensive therapy apps', 'No portable solutions'],
+        arbitrage: { buy: 3.2, sell: 19.99, margin: 84 },
+        platforms: ['AliExpress', 'Etsy'],
+        trend: 'rising',
+        seasonality: [70, 65, 55, 50, 45, 42, 48, 52, 60, 72, 78, 80],
+        opportunity:
+          'Mental health awareness at all-time high. Only 5 sellers. Massive underserved market with premium pricing potential.',
+        action:
+          'Source premium fidget/stress device. Create "Mindful Tech" brand. Price at $24.99. Target anxiety sufferers and office workers.',
+        riskScore: 12,
+        adSpendAvg: 220,
+        cpaAvg: 5.2,
+        audience: {
+          age: '20-45',
+          gender: '50% Male',
+          interests: ['Mental Health', 'Mindfulness', 'Office Gadgets'],
+          countries: ['USA', 'UK', 'Canada', 'Australia'],
+        },
+        keywords: ['fidget device', 'stress relief', 'anxiety tool', 'calm gadget', 'focus tool'],
+        suppliers: [
+          {
+            name: 'Shenzhen MindTech',
+            location: 'Shenzhen, China',
+            rating: 4.8,
+            orders: 5200,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Yiwu Wellness Products',
+            location: 'Yiwu, China',
+            rating: 4.3,
+            orders: 2800,
+            responseTime: '< 12h',
+            verified: false,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Stress Relief Fidget Device',
+            price: 19.99,
+            margin: 84,
+            shipTime: '5-10 days',
+            supplier: 'Shenzhen MindTech',
+          },
+          {
+            name: 'Calm Focus Cube',
+            price: 14.99,
+            margin: 80,
+            shipTime: '8-14 days',
+            supplier: 'Yiwu Wellness Products',
+          },
+        ],
+      },
+      {
+        id: 8,
+        category: 'Home Fermentation',
+        emoji: '\u{1F37A}',
+        demandScore: 68,
+        supplyScore: 24,
+        gap: 44,
+        searchVolume: '45K/mo',
+        sellers: 7,
+        topProduct: 'Smart Kombucha Fermenter',
+        priceRange: '$35-120',
+        rating: 4.3,
+        marketSaturation: 20,
+        painPoints: ['Complex process', 'No temperature control', 'Messy equipment'],
+        arbitrage: { buy: 18.5, sell: 89.99, margin: 79 },
+        platforms: ['Amazon', 'Shopify'],
+        trend: 'rising',
+        seasonality: [45, 42, 38, 40, 55, 68, 75, 72, 65, 55, 48, 50],
+        opportunity:
+          'Health food trend driving DIY fermentation. Existing products are basic jars — opportunity for smart, temperature-controlled version.',
+        action: 'Source smart fermenter with temperature control. Price at $79.99. Target health-conscious home chefs.',
+        riskScore: 22,
+        adSpendAvg: 380,
+        cpaAvg: 11.5,
+        audience: {
+          age: '28-55',
+          gender: '45% Male',
+          interests: ['Fermentation', 'Health Food', 'DIY', 'Home Brewing'],
+          countries: ['USA', 'Germany', 'UK', 'Australia'],
+        },
+        keywords: ['kombucha fermenter', 'fermentation kit', 'smart fermenter', 'home brewing', 'kombucha maker'],
+        suppliers: [
+          {
+            name: 'Shandong Brewing Tech',
+            location: 'Qingdao, China',
+            rating: 4.5,
+            orders: 4800,
+            responseTime: '< 6h',
+            verified: true,
+          },
+          {
+            name: 'Shanghai Kitchen Innovations',
+            location: 'Shanghai, China',
+            rating: 4.7,
+            orders: 3200,
+            responseTime: '< 4h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Smart Kombucha Fermenter',
+            price: 89.99,
+            margin: 79,
+            shipTime: '10-18 days',
+            supplier: 'Shandong Brewing Tech',
+          },
+          {
+            name: 'Digital Fermentation Kit',
+            price: 59.99,
+            margin: 74,
+            shipTime: '12-20 days',
+            supplier: 'Shanghai Kitchen Innovations',
+          },
+        ],
+      },
+      {
+        id: 9,
+        category: 'Kids Coding Toys',
+        emoji: '\u{1F3AE}',
+        demandScore: 81,
+        supplyScore: 31,
+        gap: 50,
+        searchVolume: '78K/mo',
+        sellers: 11,
+        topProduct: 'Programmable Robot Kit',
+        priceRange: '$25-80',
+        rating: 4.4,
+        marketSaturation: 24,
+        painPoints: ['Too basic or too expensive', 'No app integration', 'Boring after initial play'],
+        arbitrage: { buy: 12.0, sell: 54.99, margin: 78 },
+        platforms: ['Amazon', 'AliExpress'],
+        trend: 'rising',
+        seasonality: [55, 50, 48, 52, 58, 65, 70, 72, 78, 85, 90, 88],
+        opportunity:
+          'STEM education demand exploding. Existing toys are too basic or too expensive. Sweet spot for mid-range, app-connected robot.',
+        action:
+          'Source programmable robot kit with app. Price at $49.99. Target parents of 6-12 year olds. Bundle with coding course.',
+        riskScore: 28,
+        adSpendAvg: 480,
+        cpaAvg: 8.8,
+        audience: {
+          age: '28-45',
+          gender: '40% Male',
+          interests: ['STEM Education', 'Kids Learning', 'Coding for Kids'],
+          countries: ['USA', 'UK', 'Canada', 'Germany'],
+        },
+        keywords: ['coding toy', 'robot kit', 'STEM toy', 'programmable robot', 'kids coding'],
+        suppliers: [
+          {
+            name: 'Shenzhen EdTech Solutions',
+            location: 'Shenzhen, China',
+            rating: 4.8,
+            orders: 14200,
+            responseTime: '< 4h',
+            verified: true,
+          },
+          {
+            name: 'Dongguan Toy Innovation',
+            location: 'Dongguan, China',
+            rating: 4.5,
+            orders: 8600,
+            responseTime: '< 8h',
+            verified: true,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Programmable Robot Kit',
+            price: 54.99,
+            margin: 78,
+            shipTime: '8-14 days',
+            supplier: 'Shenzhen EdTech Solutions',
+          },
+          {
+            name: 'LED Coding Board',
+            price: 34.99,
+            margin: 74,
+            shipTime: '10-16 days',
+            supplier: 'Dongguan Toy Innovation',
+          },
+        ],
+      },
+      {
+        id: 10,
+        category: 'Sustainable Fashion Tech',
+        emoji: '\u{267B}\u{FE0F}',
+        demandScore: 74,
+        supplyScore: 21,
+        gap: 53,
+        searchVolume: '62K/mo',
+        sellers: 6,
+        topProduct: 'Solar-Powered Phone Charger Bag',
+        priceRange: '$20-60',
+        rating: 4.2,
+        marketSaturation: 16,
+        painPoints: ['Impractical designs', 'Low solar efficiency', 'Expensive eco options'],
+        arbitrage: { buy: 8.9, sell: 44.99, margin: 80 },
+        platforms: ['Etsy', 'Shopify'],
+        trend: 'rising',
+        seasonality: [50, 48, 52, 58, 65, 70, 72, 68, 62, 55, 52, 55],
+        opportunity:
+          'Eco-conscious consumers willing to pay premium. Only 6 sellers. Huge gap between demand and available products.',
+        action:
+          'Source solar charger integrated into bag/backpack. Price at $39.99. Target eco-conscious millennials and Gen Z.',
+        riskScore: 18,
+        adSpendAvg: 280,
+        cpaAvg: 6.5,
+        audience: {
+          age: '20-38',
+          gender: '50% Male',
+          interests: ['Sustainability', 'Eco Fashion', 'Solar Energy'],
+          countries: ['USA', 'UK', 'Germany', 'Sweden'],
+        },
+        keywords: ['solar charger bag', 'eco bag', 'sustainable fashion', 'solar backpack', 'green tech'],
+        suppliers: [
+          {
+            name: 'Fujian Solar Products',
+            location: 'Xiamen, China',
+            rating: 4.6,
+            orders: 7400,
+            responseTime: '< 6h',
+            verified: true,
+          },
+          {
+            name: 'Quanzhou Eco Goods',
+            location: 'Quanzhou, China',
+            rating: 4.2,
+            orders: 3800,
+            responseTime: '< 12h',
+            verified: false,
+          },
+        ],
+        topProducts: [
+          {
+            name: 'Solar-Powered Phone Charger Bag',
+            price: 44.99,
+            margin: 80,
+            shipTime: '8-14 days',
+            supplier: 'Fujian Solar Products',
+          },
+          {
+            name: 'Eco-Friendly Solar Backpack',
+            price: 54.99,
+            margin: 76,
+            shipTime: '10-18 days',
+            supplier: 'Quanzhou Eco Goods',
+          },
+        ],
+      },
+    ],
+    arb: [
+      {
+        id: 1,
+        product: 'Galaxy Night Light',
+        amazonPrice: 45.99,
+        aliPrice: 8.2,
+        margin: 82,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'High',
+        category: 'Home Decor',
+        trend: 'rising',
+      },
+      {
+        id: 2,
+        product: 'Posture Corrector Pro',
+        amazonPrice: 29.99,
+        aliPrice: 5.4,
+        margin: 82,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'Very High',
+        category: 'Health',
+        trend: 'stable',
+      },
+      {
+        id: 3,
+        product: 'Smart Pet Feeder',
+        amazonPrice: 69.99,
+        aliPrice: 18.5,
+        margin: 74,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'High',
+        category: 'Pet Tech',
+        trend: 'rising',
+      },
+      {
+        id: 4,
+        product: 'LED Galaxy Projector',
+        amazonPrice: 49.99,
+        aliPrice: 12.8,
+        margin: 74,
+        platforms: ['Amazon', 'DHgate'],
+        demand: 'Very High',
+        category: 'Home Decor',
+        trend: 'rising',
+      },
+      {
+        id: 5,
+        product: 'Heated Eyelash Curler',
+        amazonPrice: 24.99,
+        aliPrice: 3.9,
+        margin: 84,
+        platforms: ['Amazon', 'Temu'],
+        demand: 'Medium',
+        category: 'Beauty',
+        trend: 'stable',
+      },
+      {
+        id: 6,
+        product: 'Portable Blender Cup',
+        amazonPrice: 34.99,
+        aliPrice: 7.5,
+        margin: 79,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'High',
+        category: 'Kitchen',
+        trend: 'rising',
+      },
+      {
+        id: 7,
+        product: 'Car Vacuum Cleaner',
+        amazonPrice: 39.99,
+        aliPrice: 9.2,
+        margin: 77,
+        platforms: ['Amazon', 'Temu'],
+        demand: 'Medium',
+        category: 'Auto',
+        trend: 'stable',
+      },
+      {
+        id: 8,
+        product: 'Smart Scale Body',
+        amazonPrice: 32.99,
+        aliPrice: 8.8,
+        margin: 73,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'High',
+        category: 'Health',
+        trend: 'rising',
+      },
+      {
+        id: 9,
+        product: 'Wireless Earbuds Pro',
+        amazonPrice: 39.99,
+        aliPrice: 6.5,
+        margin: 84,
+        platforms: ['Amazon', 'AliExpress'],
+        demand: 'Very High',
+        category: 'Audio',
+        trend: 'stable',
+      },
+      {
+        id: 10,
+        product: 'Mini Portable Projector',
+        amazonPrice: 89.99,
+        aliPrice: 22.0,
+        margin: 76,
+        platforms: ['Amazon', 'DHgate'],
+        demand: 'High',
+        category: 'Electronics',
+        trend: 'rising',
+      },
+    ],
+    emerging: [
+      {
+        id: 1,
+        name: 'AI Pet Cameras',
+        platforms: ['Amazon', 'TikTok Shop'],
+        searchGrowth: '+187%',
+        sellerCount: 4,
+        opportunity: 'Massive. Pet tech is booming but very few sellers with smart cameras.',
+        trend: 'rising',
+        category: 'Pet Tech',
+        riskScore: 22,
+      },
+      {
+        id: 2,
+        name: 'Posture Desk Games',
+        platforms: ['Shopify', 'Amazon'],
+        searchGrowth: '+95%',
+        sellerCount: 3,
+        opportunity: 'Gamification of health. Novelty factor drives viral potential.',
+        trend: 'rising',
+        category: 'Health',
+        riskScore: 28,
+      },
+      {
+        id: 3,
+        name: 'Smart Water Bottles',
+        platforms: ['Amazon', 'Etsy'],
+        searchGrowth: '+64%',
+        sellerCount: 9,
+        opportunity: 'Hydration tracking trend. Opportunity for UV purification + app combo.',
+        trend: 'rising',
+        category: 'Health',
+        riskScore: 35,
+      },
+      {
+        id: 4,
+        name: 'Magnetic Phone Mounts',
+        platforms: ['Amazon', 'Temu'],
+        searchGrowth: '+42%',
+        sellerCount: 22,
+        opportunity: 'Saturated but evolving. New MagSafe-compatible designs have lower competition.',
+        trend: 'stable',
+        category: 'Phone Accessories',
+        riskScore: 45,
+      },
+      {
+        id: 5,
+        name: 'Mini Projectors',
+        platforms: ['Amazon', 'AliExpress'],
+        searchGrowth: '+78%',
+        sellerCount: 15,
+        opportunity: 'Home theater trend. Portable mini projectors have huge demand growth.',
+        trend: 'rising',
+        category: 'Electronics',
+        riskScore: 32,
+      },
+      {
+        id: 6,
+        name: 'Smart Garden Systems',
+        platforms: ['Amazon', 'Shopify'],
+        searchGrowth: '+112%',
+        sellerCount: 6,
+        opportunity: 'Indoor gardening + automation. Premium pricing potential.',
+        trend: 'rising',
+        category: 'Smart Home',
+        riskScore: 25,
+      },
+      {
+        id: 7,
+        name: 'VR Fitness Accessories',
+        platforms: ['Amazon', 'TikTok Shop'],
+        searchGrowth: '+203%',
+        sellerCount: 3,
+        opportunity: 'Meta Quest driving VR adoption. Very few dedicated fitness accessories.',
+        trend: 'rising',
+        category: 'Fitness',
+        riskScore: 20,
+      },
+    ],
+    categories: [
+      { name: 'Smart Sleep Tech', emoji: '\u{1F634}', color: '#00e5ff' },
+      { name: 'Portable UV Sanitizers', emoji: '\u{1F9A0}', color: '#00ff88' },
+      { name: 'Ergonomic Pet Products', emoji: '\u{1F415}', color: '#ff8a00' },
+      { name: 'Smart Plant Care', emoji: '\u{1F331}', color: '#40c351' },
+      { name: 'Desk Organization Tech', emoji: '\u{1F5A5}\u{FE0F}', color: '#a855f7' },
+      { name: 'Travel Tech Accessories', emoji: '\u{2708}\u{FE0F}', color: '#2fb7ec' },
+      { name: 'Mental Health Gadgets', emoji: '\u{1F9E0}', color: '#ff3366' },
+      { name: 'Home Fermentation', emoji: '\u{1F37A}', color: '#ffd700' },
+      { name: 'Kids Coding Toys', emoji: '\u{1F3AE}', color: '#ff6b35' },
+      { name: 'Sustainable Fashion Tech', emoji: '\u{267B}\u{FE0F}', color: '#00ff88' },
+    ],
+  };
 
-// ============================================================================
-// DATA — 10 Gaps, 10 Arbitrage, 7 Emerging, 10 Categories
-// ============================================================================
-const DATA = {
-  gaps: [
-    { id:1, category:'Smart Sleep Tech', emoji:'\u{1F634}', demandScore:92, supplyScore:34, gap:58, searchVolume:'142K/mo', sellers:12, topProduct:'Smart Sleep Tracker Ring', priceRange:'$29-89', rating:4.2, marketSaturation:18, painPoints:['Expensive alternatives','No app integration','Inaccurate tracking'], arbitrage:{buy:12.50,sell:67.99,margin:82}, platforms:['AliExpress','Amazon'], trend:'rising', seasonality:[40,35,30,25,20,18,22,28,45,60,75,85], opportunity:'Extremely high. Only 12 sellers across all platforms. Average rating 4.2 but only 200 reviews — massive room for a better product.', action:'Source a sleep tracking ring with app integration. Price at $59.99. Target insomniacs and biohackers.', riskScore:18, adSpendAvg:320, cpaAvg:8.50, audience:{age:'25-45',gender:'60% Male',interests:['Biohacking','Sleep Health','Wearables'],countries:['USA','UK','Canada','Australia']}, keywords:['sleep tracker','smart ring','sleep monitor','sleep quality','insomnia help'], suppliers:[{name:'Shenzhen SleepTech Co.',location:'Shenzhen, China',rating:4.8,orders:12400,responseTime:'< 4h',verified:true},{name:'Guangzhou Health Devices',location:'Guangzhou, China',rating:4.5,orders:8200,responseTime:'< 8h',verified:true}], topProducts:[{name:'Smart Sleep Tracker Ring',price:67.99,margin:82,shipTime:'7-12 days',supplier:'Shenzhen SleepTech Co.'},{name:'Sleep Quality Monitor Band',price:49.99,margin:78,shipTime:'10-15 days',supplier:'Guangzhou Health Devices'}] },
-    { id:2, category:'Portable UV Sanitizers', emoji:'\u{1F9A0}', demandScore:78, supplyScore:28, gap:50, searchVolume:'89K/mo', sellers:8, topProduct:'UV-C Sterilizer Wand', priceRange:'$15-45', rating:4.1, marketSaturation:22, painPoints:['Cheap quality builds','No FDA registration','Weak UV output'], arbitrage:{buy:6.80,sell:34.99,margin:81}, platforms:['AliExpress','CJ Dropshipping'], trend:'rising', seasonality:[65,60,55,50,40,35,38,42,55,68,72,70], opportunity:'Post-pandemic awareness keeps demand steady. Most sellers offer cheap wands — opportunity for a premium, verified version.', action:'Source FDA-registered UV sanitizer. Bundle with travel case. Price at $39.99. Target parents and travelers.', riskScore:32, adSpendAvg:280, cpaAvg:6.20, audience:{age:'28-55',gender:'55% Female',interests:['Health','Travel','Parenting'],countries:['USA','Germany','Japan','UK']}, keywords:['uv sanitizer','uv wand','sterilizer','germ killer','disinfection'], suppliers:[{name:'Jiangsu UV Tech',location:'Nanjing, China',rating:4.6,orders:9800,responseTime:'< 6h',verified:true},{name:'Dongguan CleanTech',location:'Dongguan, China',rating:4.3,orders:5600,responseTime:'< 12h',verified:false}], topProducts:[{name:'UV-C Sterilizer Wand',price:34.99,margin:81,shipTime:'8-14 days',supplier:'Jiangsu UV Tech'},{name:'Portable UV Sanitizer Box',price:29.99,margin:76,shipTime:'10-18 days',supplier:'Dongguan CleanTech'}] },
-    { id:3, category:'Ergonomic Pet Products', emoji:'\u{1F415}', demandScore:85, supplyScore:38, gap:47, searchVolume:'110K/mo', sellers:15, topProduct:'Adjustable Pet Stair Ramp', priceRange:'$25-75', rating:4.3, marketSaturation:28, painPoints:['Flimsy construction','Limited weight capacity','One-size-fits-all'], arbitrage:{buy:11.20,sell:49.99,margin:78}, platforms:['Amazon','Shopify'], trend:'rising', seasonality:[55,50,48,52,58,62,65,68,72,78,82,80], opportunity:'Pet spending is recession-proof. Existing products are generic — opportunity for branded, vet-endorsed ergonomic line.', action:'Create a pet wellness brand. Start with ramp, expand to orthopedic beds. Price at $44.99. Target aging pet owners.', riskScore:25, adSpendAvg:420, cpaAvg:7.80, audience:{age:'30-60',gender:'65% Female',interests:['Pet Care','Dog Health','Senior Pets'],countries:['USA','UK','Australia','Canada']}, keywords:['pet ramp','dog stairs','pet step','elderly dog','pet mobility'], suppliers:[{name:'Ningbo Pet Supplies',location:'Ningbo, China',rating:4.7,orders:15600,responseTime:'< 4h',verified:true},{name:'Foshan Pet Products',location:'Foshan, China',rating:4.4,orders:7800,responseTime:'< 8h',verified:true}], topProducts:[{name:'Adjustable Pet Stair Ramp',price:49.99,margin:78,shipTime:'7-12 days',supplier:'Ningbo Pet Supplies'},{name:'Orthopedic Pet Bed',price:59.99,margin:72,shipTime:'10-15 days',supplier:'Foshan Pet Products'}] },
-    { id:4, category:'Smart Plant Care', emoji:'\u{1F331}', demandScore:71, supplyScore:22, gap:49, searchVolume:'67K/mo', sellers:6, topProduct:'Smart Soil Moisture Meter', priceRange:'$12-35', rating:4.4, marketSaturation:15, painPoints:['Basic analog devices','No app connectivity','Inaccurate readings'], arbitrage:{buy:4.50,sell:24.99,margin:82}, platforms:['AliExpress','Etsy'], trend:'rising', seasonality:[30,28,35,55,72,85,88,82,68,45,32,28], opportunity:'Indoor plant trend is booming. Only 6 dedicated sellers. Most products are basic — opportunity for smart/app-connected version.', action:'Source Bluetooth soil sensor. Bundle with plant care app subscription. Price at $29.99. Target millennial plant parents.', riskScore:15, adSpendAvg:180, cpaAvg:4.50, audience:{age:'22-38',gender:'60% Female',interests:['Indoor Plants','Gardening','Home Decor'],countries:['USA','UK','Netherlands','Germany']}, keywords:['plant sensor','soil meter','moisture meter','smart garden','plant care'], suppliers:[{name:'Xiamen Smart Devices',location:'Xiamen, China',rating:4.9,orders:6200,responseTime:'< 3h',verified:true},{name:'Yiwu Garden Tech',location:'Yiwu, China',rating:4.2,orders:3400,responseTime:'< 12h',verified:false}], topProducts:[{name:'Smart Soil Moisture Meter',price:24.99,margin:82,shipTime:'6-10 days',supplier:'Xiamen Smart Devices'},{name:'Bluetooth Plant Monitor',price:19.99,margin:78,shipTime:'8-14 days',supplier:'Yiwu Garden Tech'}] },
-    { id:5, category:'Desk Organization Tech', emoji:'\u{1F5A5}\u{FE0F}', demandScore:88, supplyScore:42, gap:46, searchVolume:'95K/mo', sellers:18, topProduct:'Magnetic Cable Management System', priceRange:'$18-55', rating:4.0, marketSaturation:35, painPoints:['Messy desk setups','Cable clutter','No unified system'], arbitrage:{buy:7.90,sell:39.99,margin:80}, platforms:['Amazon','Shopify'], trend:'stable', seasonality:[60,55,52,58,65,70,68,72,78,85,80,75], opportunity:'WFH trend permanent. Existing products are scattered — opportunity for a complete desk ecosystem brand.', action:'Bundle cable management + desk pad + monitor riser. Price at $49.99 set. Target remote workers.', riskScore:42, adSpendAvg:550, cpaAvg:9.20, audience:{age:'25-45',gender:'58% Male',interests:['Remote Work','Tech Setup','Productivity'],countries:['USA','UK','Germany','Canada']}, keywords:['desk organizer','cable management','desk setup','WFH accessories','desk pad'], suppliers:[{name:'Shenzhen Desk Tech',location:'Shenzhen, China',rating:4.6,orders:22000,responseTime:'< 4h',verified:true},{name:'Zhongshan Office Supplies',location:'Zhongshan, China',rating:4.3,orders:11000,responseTime:'< 8h',verified:true}], topProducts:[{name:'Magnetic Cable Management System',price:39.99,margin:80,shipTime:'7-12 days',supplier:'Shenzhen Desk Tech'},{name:'Ergonomic Monitor Riser',price:44.99,margin:74,shipTime:'10-15 days',supplier:'Zhongshan Office Supplies'}] },
-    { id:6, category:'Travel Tech Accessories', emoji:'\u{2708}\u{FE0F}', demandScore:82, supplyScore:35, gap:47, searchVolume:'105K/mo', sellers:14, topProduct:'Universal Travel Adapter with USB-C', priceRange:'$15-40', rating:4.1, marketSaturation:26, painPoints:['Bulky adapters','Slow charging','No universal fit'], arbitrage:{buy:5.60,sell:29.99,margin:81}, platforms:['AliExpress','Amazon','Temu'], trend:'rising', seasonality:[45,42,48,55,65,80,95,90,72,58,50,48], opportunity:'Travel rebound driving demand. Most adapters are basic — opportunity for premium with fast charging and country-specific smart detection.', action:'Source smart travel adapter with GaN tech. Price at $34.99. Target frequent travelers and digital nomads.', riskScore:30, adSpendAvg:350, cpaAvg:5.80, audience:{age:'25-50',gender:'55% Male',interests:['Travel','Digital Nomad','Tech Gadgets'],countries:['USA','UK','Germany','Japan']}, keywords:['travel adapter','usb-c adapter','universal adapter','GaN charger','travel charger'], suppliers:[{name:'Shenzhen GaN Tech',location:'Shenzhen, China',rating:4.7,orders:18500,responseTime:'< 4h',verified:true},{name:'Dongguan Power Solutions',location:'Dongguan, China',rating:4.4,orders:9200,responseTime:'< 8h',verified:true}], topProducts:[{name:'Universal Travel Adapter with USB-C',price:29.99,margin:81,shipTime:'6-10 days',supplier:'Shenzhen GaN Tech'},{name:'GaN Fast Charger 65W',price:34.99,margin:76,shipTime:'8-12 days',supplier:'Dongguan Power Solutions'}] },
-    { id:7, category:'Mental Health Gadgets', emoji:'\u{1F9E0}', demandScore:76, supplyScore:19, gap:57, searchVolume:'58K/mo', sellers:5, topProduct:'Stress Relief Fidget Device', priceRange:'$10-30', rating:4.5, marketSaturation:12, painPoints:['Stigma around mental health','Expensive therapy apps','No portable solutions'], arbitrage:{buy:3.20,sell:19.99,margin:84}, platforms:['AliExpress','Etsy'], trend:'rising', seasonality:[70,65,55,50,45,42,48,52,60,72,78,80], opportunity:'Mental health awareness at all-time high. Only 5 sellers. Massive underserved market with premium pricing potential.', action:'Source premium fidget/stress device. Create "Mindful Tech" brand. Price at $24.99. Target anxiety sufferers and office workers.', riskScore:12, adSpendAvg:220, cpaAvg:5.20, audience:{age:'20-45',gender:'50% Male',interests:['Mental Health','Mindfulness','Office Gadgets'],countries:['USA','UK','Canada','Australia']}, keywords:['fidget device','stress relief','anxiety tool','calm gadget','focus tool'], suppliers:[{name:'Shenzhen MindTech',location:'Shenzhen, China',rating:4.8,orders:5200,responseTime:'< 4h',verified:true},{name:'Yiwu Wellness Products',location:'Yiwu, China',rating:4.3,orders:2800,responseTime:'< 12h',verified:false}], topProducts:[{name:'Stress Relief Fidget Device',price:19.99,margin:84,shipTime:'5-10 days',supplier:'Shenzhen MindTech'},{name:'Calm Focus Cube',price:14.99,margin:80,shipTime:'8-14 days',supplier:'Yiwu Wellness Products'}] },
-    { id:8, category:'Home Fermentation', emoji:'\u{1F37A}', demandScore:68, supplyScore:24, gap:44, searchVolume:'45K/mo', sellers:7, topProduct:'Smart Kombucha Fermenter', priceRange:'$35-120', rating:4.3, marketSaturation:20, painPoints:['Complex process','No temperature control','Messy equipment'], arbitrage:{buy:18.50,sell:89.99,margin:79}, platforms:['Amazon','Shopify'], trend:'rising', seasonality:[45,42,38,40,55,68,75,72,65,55,48,50], opportunity:'Health food trend driving DIY fermentation. Existing products are basic jars — opportunity for smart, temperature-controlled version.', action:'Source smart fermenter with temperature control. Price at $79.99. Target health-conscious home chefs.', riskScore:22, adSpendAvg:380, cpaAvg:11.50, audience:{age:'28-55',gender:'45% Male',interests:['Fermentation','Health Food','DIY','Home Brewing'],countries:['USA','Germany','UK','Australia']}, keywords:['kombucha fermenter','fermentation kit','smart fermenter','home brewing','kombucha maker'], suppliers:[{name:'Shandong Brewing Tech',location:'Qingdao, China',rating:4.5,orders:4800,responseTime:'< 6h',verified:true},{name:'Shanghai Kitchen Innovations',location:'Shanghai, China',rating:4.7,orders:3200,responseTime:'< 4h',verified:true}], topProducts:[{name:'Smart Kombucha Fermenter',price:89.99,margin:79,shipTime:'10-18 days',supplier:'Shandong Brewing Tech'},{name:'Digital Fermentation Kit',price:59.99,margin:74,shipTime:'12-20 days',supplier:'Shanghai Kitchen Innovations'}] },
-    { id:9, category:'Kids Coding Toys', emoji:'\u{1F3AE}', demandScore:81, supplyScore:31, gap:50, searchVolume:'78K/mo', sellers:11, topProduct:'Programmable Robot Kit', priceRange:'$25-80', rating:4.4, marketSaturation:24, painPoints:['Too basic or too expensive','No app integration','Boring after initial play'], arbitrage:{buy:12.00,sell:54.99,margin:78}, platforms:['Amazon','AliExpress'], trend:'rising', seasonality:[55,50,48,52,58,65,70,72,78,85,90,88], opportunity:'STEM education demand exploding. Existing toys are too basic or too expensive. Sweet spot for mid-range, app-connected robot.', action:'Source programmable robot kit with app. Price at $49.99. Target parents of 6-12 year olds. Bundle with coding course.', riskScore:28, adSpendAvg:480, cpaAvg:8.80, audience:{age:'28-45',gender:'40% Male',interests:['STEM Education','Kids Learning','Coding for Kids'],countries:['USA','UK','Canada','Germany']}, keywords:['coding toy','robot kit','STEM toy','programmable robot','kids coding'], suppliers:[{name:'Shenzhen EdTech Solutions',location:'Shenzhen, China',rating:4.8,orders:14200,responseTime:'< 4h',verified:true},{name:'Dongguan Toy Innovation',location:'Dongguan, China',rating:4.5,orders:8600,responseTime:'< 8h',verified:true}], topProducts:[{name:'Programmable Robot Kit',price:54.99,margin:78,shipTime:'8-14 days',supplier:'Shenzhen EdTech Solutions'},{name:'LED Coding Board',price:34.99,margin:74,shipTime:'10-16 days',supplier:'Dongguan Toy Innovation'}] },
-    { id:10, category:'Sustainable Fashion Tech', emoji:'\u{267B}\u{FE0F}', demandScore:74, supplyScore:21, gap:53, searchVolume:'62K/mo', sellers:6, topProduct:'Solar-Powered Phone Charger Bag', priceRange:'$20-60', rating:4.2, marketSaturation:16, painPoints:['Impractical designs','Low solar efficiency','Expensive eco options'], arbitrage:{buy:8.90,sell:44.99,margin:80}, platforms:['Etsy','Shopify'], trend:'rising', seasonality:[50,48,52,58,65,70,72,68,62,55,52,55], opportunity:'Eco-conscious consumers willing to pay premium. Only 6 sellers. Huge gap between demand and available products.', action:'Source solar charger integrated into bag/backpack. Price at $39.99. Target eco-conscious millennials and Gen Z.', riskScore:18, adSpendAvg:280, cpaAvg:6.50, audience:{age:'20-38',gender:'50% Male',interests:['Sustainability','Eco Fashion','Solar Energy'],countries:['USA','UK','Germany','Sweden']}, keywords:['solar charger bag','eco bag','sustainable fashion','solar backpack','green tech'], suppliers:[{name:'Fujian Solar Products',location:'Xiamen, China',rating:4.6,orders:7400,responseTime:'< 6h',verified:true},{name:'Quanzhou Eco Goods',location:'Quanzhou, China',rating:4.2,orders:3800,responseTime:'< 12h',verified:false}], topProducts:[{name:'Solar-Powered Phone Charger Bag',price:44.99,margin:80,shipTime:'8-14 days',supplier:'Fujian Solar Products'},{name:'Eco-Friendly Solar Backpack',price:54.99,margin:76,shipTime:'10-18 days',supplier:'Quanzhou Eco Goods'}] }
-  ],
-  arb: [
-    { id:1, product:'Galaxy Night Light', amazonPrice:45.99, aliPrice:8.20, margin:82, platforms:['Amazon','AliExpress'], demand:'High', category:'Home Decor', trend:'rising' },
-    { id:2, product:'Posture Corrector Pro', amazonPrice:29.99, aliPrice:5.40, margin:82, platforms:['Amazon','AliExpress'], demand:'Very High', category:'Health', trend:'stable' },
-    { id:3, product:'Smart Pet Feeder', amazonPrice:69.99, aliPrice:18.50, margin:74, platforms:['Amazon','AliExpress'], demand:'High', category:'Pet Tech', trend:'rising' },
-    { id:4, product:'LED Galaxy Projector', amazonPrice:49.99, aliPrice:12.80, margin:74, platforms:['Amazon','DHgate'], demand:'Very High', category:'Home Decor', trend:'rising' },
-    { id:5, product:'Heated Eyelash Curler', amazonPrice:24.99, aliPrice:3.90, margin:84, platforms:['Amazon','Temu'], demand:'Medium', category:'Beauty', trend:'stable' },
-    { id:6, product:'Portable Blender Cup', amazonPrice:34.99, aliPrice:7.50, margin:79, platforms:['Amazon','AliExpress'], demand:'High', category:'Kitchen', trend:'rising' },
-    { id:7, product:'Car Vacuum Cleaner', amazonPrice:39.99, aliPrice:9.20, margin:77, platforms:['Amazon','Temu'], demand:'Medium', category:'Auto', trend:'stable' },
-    { id:8, product:'Smart Scale Body', amazonPrice:32.99, aliPrice:8.80, margin:73, platforms:['Amazon','AliExpress'], demand:'High', category:'Health', trend:'rising' },
-    { id:9, product:'Wireless Earbuds Pro', amazonPrice:39.99, aliPrice:6.50, margin:84, platforms:['Amazon','AliExpress'], demand:'Very High', category:'Audio', trend:'stable' },
-    { id:10, product:'Mini Portable Projector', amazonPrice:89.99, aliPrice:22.00, margin:76, platforms:['Amazon','DHgate'], demand:'High', category:'Electronics', trend:'rising' }
-  ],
-  emerging: [
-    { id:1, name:'AI Pet Cameras', platforms:['Amazon','TikTok Shop'], searchGrowth:'+187%', sellerCount:4, opportunity:'Massive. Pet tech is booming but very few sellers with smart cameras.', trend:'rising', category:'Pet Tech', riskScore:22 },
-    { id:2, name:'Posture Desk Games', platforms:['Shopify','Amazon'], searchGrowth:'+95%', sellerCount:3, opportunity:'Gamification of health. Novelty factor drives viral potential.', trend:'rising', category:'Health', riskScore:28 },
-    { id:3, name:'Smart Water Bottles', platforms:['Amazon','Etsy'], searchGrowth:'+64%', sellerCount:9, opportunity:'Hydration tracking trend. Opportunity for UV purification + app combo.', trend:'rising', category:'Health', riskScore:35 },
-    { id:4, name:'Magnetic Phone Mounts', platforms:['Amazon','Temu'], searchGrowth:'+42%', sellerCount:22, opportunity:'Saturated but evolving. New MagSafe-compatible designs have lower competition.', trend:'stable', category:'Phone Accessories', riskScore:45 },
-    { id:5, name:'Mini Projectors', platforms:['Amazon','AliExpress'], searchGrowth:'+78%', sellerCount:15, opportunity:'Home theater trend. Portable mini projectors have huge demand growth.', trend:'rising', category:'Electronics', riskScore:32 },
-    { id:6, name:'Smart Garden Systems', platforms:['Amazon','Shopify'], searchGrowth:'+112%', sellerCount:6, opportunity:'Indoor gardening + automation. Premium pricing potential.', trend:'rising', category:'Smart Home', riskScore:25 },
-    { id:7, name:'VR Fitness Accessories', platforms:['Amazon','TikTok Shop'], searchGrowth:'+203%', sellerCount:3, opportunity:'Meta Quest driving VR adoption. Very few dedicated fitness accessories.', trend:'rising', category:'Fitness', riskScore:20 }
-  ],
-  categories: [
-    { name:'Smart Sleep Tech', emoji:'\u{1F634}', color:'#00e5ff' },
-    { name:'Portable UV Sanitizers', emoji:'\u{1F9A0}', color:'#00ff88' },
-    { name:'Ergonomic Pet Products', emoji:'\u{1F415}', color:'#ff8a00' },
-    { name:'Smart Plant Care', emoji:'\u{1F331}', color:'#40c351' },
-    { name:'Desk Organization Tech', emoji:'\u{1F5A5}\u{FE0F}', color:'#a855f7' },
-    { name:'Travel Tech Accessories', emoji:'\u{2708}\u{FE0F}', color:'#2fb7ec' },
-    { name:'Mental Health Gadgets', emoji:'\u{1F9E0}', color:'#ff3366' },
-    { name:'Home Fermentation', emoji:'\u{1F37A}', color:'#ffd700' },
-    { name:'Kids Coding Toys', emoji:'\u{1F3AE}', color:'#ff6b35' },
-    { name:'Sustainable Fashion Tech', emoji:'\u{267B}\u{FE0F}', color:'#00ff88' }
-  ]
-};
-
-PluginRegistry.register('market-gap-finder', P);
+  PluginRegistry.register('market-gap-finder', P);
 })();

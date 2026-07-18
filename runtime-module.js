@@ -14,7 +14,7 @@ const MODULE_PUBLIC_API = Object.freeze([
   'DataLayer',
   'UI',
   'FeatureFlags',
-  'Router'
+  'Router',
 ]);
 
 function createRuntimeModuleApi(runtime = globalThis.window?.HuntDrop) {
@@ -22,10 +22,11 @@ function createRuntimeModuleApi(runtime = globalThis.window?.HuntDrop) {
     runtime = {};
   }
 
-  const snapshot = () => MODULE_PUBLIC_API.reduce((acc, key) => {
-    acc[key] = runtime[key];
-    return acc;
-  }, {});
+  const snapshot = () =>
+    MODULE_PUBLIC_API.reduce((acc, key) => {
+      acc[key] = runtime[key];
+      return acc;
+    }, {});
 
   const api = {
     version: '1.0.0',
@@ -40,7 +41,7 @@ function createRuntimeModuleApi(runtime = globalThis.window?.HuntDrop) {
     },
     isReady() {
       return Boolean(runtime?.EventBus && runtime?.PluginRegistry && runtime?.Config);
-    }
+    },
   };
 
   runtime.__moduleApi = api;

@@ -10,10 +10,7 @@ describe('ai-context-builder plugin', () => {
   let ctx;
 
   beforeEach(() => {
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-context-builder.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-context-builder.js']));
     ctx = HuntDrop.AIContextBuilder;
   });
 
@@ -129,34 +126,26 @@ describe('ai-context-builder plugin', () => {
     });
 
     it('should detect issues in product data', () => {
-      HuntDrop.ALL_PRODUCTS = [
-        { ...createSampleProduct(), price: 0, suppliers: [], margin: -10 },
-      ];
+      HuntDrop.ALL_PRODUCTS = [{ ...createSampleProduct(), price: 0, suppliers: [], margin: -10 }];
       const health = ctx.getSystemHealth();
       expect(health.issues.length).toBeGreaterThan(0);
       expect(health.healthy).toBe(false);
     });
 
     it('should detect warnings for suspicious margins', () => {
-      HuntDrop.ALL_PRODUCTS = [
-        { ...createSampleProduct(), margin: 90 },
-      ];
+      HuntDrop.ALL_PRODUCTS = [{ ...createSampleProduct(), margin: 90 }];
       const health = ctx.getSystemHealth();
       expect(health.warnings.length).toBeGreaterThan(0);
     });
 
     it('should detect warnings for high risk scores', () => {
-      HuntDrop.ALL_PRODUCTS = [
-        { ...createSampleProduct(), riskScore: 80 },
-      ];
+      HuntDrop.ALL_PRODUCTS = [{ ...createSampleProduct(), riskScore: 80 }];
       const health = ctx.getSystemHealth();
       expect(health.warnings.length).toBeGreaterThan(0);
     });
 
     it('should calculate score based on issues and warnings', () => {
-      HuntDrop.ALL_PRODUCTS = [
-        { ...createSampleProduct(), price: 0, suppliers: [], margin: -5, riskScore: 80 },
-      ];
+      HuntDrop.ALL_PRODUCTS = [{ ...createSampleProduct(), price: 0, suppliers: [], margin: -5, riskScore: 80 }];
       const health = ctx.getSystemHealth();
       expect(health.score).toBeLessThan(100);
     });

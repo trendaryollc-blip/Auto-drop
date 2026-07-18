@@ -11,10 +11,7 @@ describe('profit-calculator plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/profit-calculator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/profit-calculator.js']));
     HuntDrop.renderRelatedTools = HuntDrop.renderRelatedTools || vi.fn(() => '<div>Related Tools</div>');
     calc = HuntDrop.ProfitCalc;
   });
@@ -174,10 +171,13 @@ describe('profit-calculator plugin', () => {
 
     it('should load state from localStorage', () => {
       expect(calc._section).not.toBeNull();
-      localStorage.setItem('huntdrop_profitcalc', JSON.stringify({
-        pcSellPrice: '55.55',
-        pcProductCost: '10.00',
-      }));
+      localStorage.setItem(
+        'huntdrop_profitcalc',
+        JSON.stringify({
+          pcSellPrice: '55.55',
+          pcProductCost: '10.00',
+        })
+      );
       calc.loadState();
       const sp = document.getElementById('pcSellPrice');
       expect(sp).not.toBeNull();

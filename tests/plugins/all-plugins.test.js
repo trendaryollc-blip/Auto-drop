@@ -20,7 +20,7 @@ function testPluginLifecycle(pluginPath, pluginId, sectionId, extraDeps = []) {
       const deps = ['plugins/data-adapters.js', 'plugins/search-engine.js', ...extraDeps];
       try {
         ({ HuntDrop } = loadCoreWithPlugins(deps.concat([pluginPath])));
-      } catch(e) {
+      } catch (e) {
         HuntDrop = window.HuntDrop;
       }
       plugin = HuntDrop ? HuntDrop.PluginRegistry.get(pluginId) : undefined;
@@ -43,7 +43,9 @@ function testPluginLifecycle(pluginPath, pluginId, sectionId, extraDeps = []) {
       await HuntDrop.PluginRegistry.init(pluginId);
       try {
         await HuntDrop.PluginRegistry.mount(pluginId);
-      } catch(e) { /* some plugins may fail to mount */ }
+      } catch (e) {
+        /* some plugins may fail to mount */
+      }
       if (sectionId) {
         const section = document.getElementById(sectionId);
         if (section) expect(section).toBeDefined();
@@ -57,7 +59,9 @@ function testPluginLifecycle(pluginPath, pluginId, sectionId, extraDeps = []) {
       await HuntDrop.PluginRegistry.init(pluginId);
       try {
         await HuntDrop.PluginRegistry.mount(pluginId);
-      } catch(e) { /* expected to fail gracefully */ }
+      } catch (e) {
+        /* expected to fail gracefully */
+      }
       expect(true).toBe(true);
     });
 
@@ -66,7 +70,9 @@ function testPluginLifecycle(pluginPath, pluginId, sectionId, extraDeps = []) {
       await HuntDrop.PluginRegistry.init(pluginId);
       try {
         await HuntDrop.PluginRegistry.mount(pluginId);
-      } catch(e) { /* may fail */ }
+      } catch (e) {
+        /* may fail */
+      }
       await HuntDrop.PluginRegistry.unmount(pluginId);
       expect(HuntDrop.PluginRegistry.get(pluginId)._mounted).toBe(false);
     });
@@ -76,7 +82,9 @@ function testPluginLifecycle(pluginPath, pluginId, sectionId, extraDeps = []) {
       await HuntDrop.PluginRegistry.init(pluginId);
       try {
         await HuntDrop.PluginRegistry.mount(pluginId);
-      } catch(e) { /* may fail */ }
+      } catch (e) {
+        /* may fail */
+      }
       await HuntDrop.PluginRegistry.unmount(pluginId);
       await HuntDrop.PluginRegistry.init(pluginId);
       expect(HuntDrop.PluginRegistry.get(pluginId)._initialized).toBe(true);
@@ -100,7 +108,12 @@ testPluginLifecycle('plugins/product-lifecycle.js', 'product-lifecycle', 'sectio
 // Intelligence (4)
 testPluginLifecycle('plugins/ai-analyst.js', 'ai-analyst', 'section-ai-analyst');
 testPluginLifecycle('plugins/spy-center.js', 'spy-center', 'section-spy-center');
-testPluginLifecycle('plugins/competitor-battlefield.js', 'competitor-battlefield', 'section-battlefield', ['plugins/cb-intelligence-service.js', 'plugins/ai-key-manager.js', 'plugins/ai-web-search.js', 'plugins/ai-chat-service.js']);
+testPluginLifecycle('plugins/competitor-battlefield.js', 'competitor-battlefield', 'section-battlefield', [
+  'plugins/cb-intelligence-service.js',
+  'plugins/ai-key-manager.js',
+  'plugins/ai-web-search.js',
+  'plugins/ai-chat-service.js',
+]);
 testPluginLifecycle('plugins/customer-persona.js', 'customer-persona', 'section-personas');
 
 // Financial (5)
@@ -125,7 +138,14 @@ testPluginLifecycle('plugins/store-health.js', 'store-health', 'section-health')
 testPluginLifecycle('plugins/bundle-intelligence.js', 'bundle-intelligence', 'section-bundles');
 
 // Strategy (2)
-testPluginLifecycle('plugins/ai-business-coach.js', 'ai-business-coach', 'section-coach', ['plugins/ai-key-manager.js', 'plugins/ai-chat-service.js', 'plugins/ai-web-search.js', 'plugins/ai-context-builder.js', 'plugins/ai-system-health.js', 'plugins/ai-risk-analyzer.js']);
+testPluginLifecycle('plugins/ai-business-coach.js', 'ai-business-coach', 'section-coach', [
+  'plugins/ai-key-manager.js',
+  'plugins/ai-chat-service.js',
+  'plugins/ai-web-search.js',
+  'plugins/ai-context-builder.js',
+  'plugins/ai-system-health.js',
+  'plugins/ai-risk-analyzer.js',
+]);
 testPluginLifecycle('plugins/ai-settings.js', 'ai-settings', 'section-ai-settings', ['plugins/ai-key-manager.js']);
 
 // AI Infrastructure (8)
@@ -135,7 +155,11 @@ testPluginLifecycle('plugins/ai-context-builder.js', 'ai-context-builder', null)
 testPluginLifecycle('plugins/ai-system-health.js', 'ai-system-health', null);
 testPluginLifecycle('plugins/ai-risk-analyzer.js', 'ai-risk-analyzer', null);
 testPluginLifecycle('plugins/ai-chat-service.js', 'ai-chat-service', null, ['plugins/ai-key-manager.js']);
-testPluginLifecycle('plugins/cb-intelligence-service.js', 'cb-intelligence-service', null, ['plugins/ai-key-manager.js', 'plugins/ai-web-search.js', 'plugins/ai-chat-service.js']);
+testPluginLifecycle('plugins/cb-intelligence-service.js', 'cb-intelligence-service', null, [
+  'plugins/ai-key-manager.js',
+  'plugins/ai-web-search.js',
+  'plugins/ai-chat-service.js',
+]);
 testPluginLifecycle('plugins/product-detail.js', 'product-detail', null);
 
 // ===== NON-DOM PLUGIN SPECIFIC TESTS =====
@@ -145,10 +169,7 @@ describe('ai-web-search plugin — specific API tests', () => {
   let plugin;
 
   beforeEach(() => {
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/ai-key-manager.js',
-      'plugins/ai-web-search.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/ai-key-manager.js', 'plugins/ai-web-search.js']));
     plugin = HuntDrop.AIWebSearch;
   });
 
@@ -178,10 +199,7 @@ describe('ai-system-health plugin — specific API tests', () => {
   let plugin;
 
   beforeEach(() => {
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-system-health.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-system-health.js']));
     plugin = HuntDrop.AISystemHealth;
   });
 
@@ -208,10 +226,7 @@ describe('ai-risk-analyzer plugin — specific API tests', () => {
   let plugin;
 
   beforeEach(() => {
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-risk-analyzer.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-risk-analyzer.js']));
     plugin = HuntDrop.AIRiskAnalyzer;
   });
 
@@ -316,10 +331,7 @@ describe('product-hunt plugin — specific API tests', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/product-hunt.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/product-hunt.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('product-hunt');
   });
@@ -328,8 +340,6 @@ describe('product-hunt plugin — specific API tests', () => {
     expect(plugin).toBeDefined();
     expect(plugin.id).toBe('product-hunt');
   });
-
-
 
   it('should mount and create section', async () => {
     await HuntDrop.PluginRegistry.init('product-hunt');
@@ -352,11 +362,8 @@ describe('ai-settings plugin — specific API tests', () => {
   beforeEach(() => {
     setupDashboardDOM();
     try {
-      ({ HuntDrop } = loadCoreWithPlugins([
-        'plugins/ai-key-manager.js',
-        'plugins/ai-settings.js',
-      ]));
-    } catch(e) {
+      ({ HuntDrop } = loadCoreWithPlugins(['plugins/ai-key-manager.js', 'plugins/ai-settings.js']));
+    } catch (e) {
       HuntDrop = window.HuntDrop;
     }
     if (HuntDrop && HuntDrop.renderRelatedTools) {
@@ -382,17 +389,42 @@ describe('All plugins cross-reference', () => {
   it('should have 34 plugin JS files registered', () => {
     const all = loadCore();
     const expected = [
-      'data-adapters.js', 'search-engine.js', 'product-grid.js', 'product-hunt.js',
-      'ai-analyst.js', 'profit-calculator.js', 'ad-studio.js', 'ai-key-manager.js',
-      'ai-web-search.js', 'ai-context-builder.js', 'ai-system-health.js', 'ai-risk-analyzer.js',
-      'ai-chat-service.js', 'ai-business-coach.js', 'ai-settings.js', 'profit-time-machine.js',
-      'store-generator.js', 'cb-intelligence-service.js', 'competitor-battlefield.js',
-      'customer-persona.js', 'bundle-intelligence.js', 'price-elasticity.js', 'product-lifecycle.js',
-      'ad-budget-allocator.js', 'store-health.js', 'content-calendar.js', 'supplier-intelligence.js',
-      'objection-handler.js', 'market-gap-finder.js', 'business-simulator.js', 'spy-center.js',
-      'supplier-hub.js', 'niche-radar.js', 'product-detail.js',
+      'data-adapters.js',
+      'search-engine.js',
+      'product-grid.js',
+      'product-hunt.js',
+      'ai-analyst.js',
+      'profit-calculator.js',
+      'ad-studio.js',
+      'ai-key-manager.js',
+      'ai-web-search.js',
+      'ai-context-builder.js',
+      'ai-system-health.js',
+      'ai-risk-analyzer.js',
+      'ai-chat-service.js',
+      'ai-business-coach.js',
+      'ai-settings.js',
+      'profit-time-machine.js',
+      'store-generator.js',
+      'cb-intelligence-service.js',
+      'competitor-battlefield.js',
+      'customer-persona.js',
+      'bundle-intelligence.js',
+      'price-elasticity.js',
+      'product-lifecycle.js',
+      'ad-budget-allocator.js',
+      'store-health.js',
+      'content-calendar.js',
+      'supplier-intelligence.js',
+      'objection-handler.js',
+      'market-gap-finder.js',
+      'business-simulator.js',
+      'spy-center.js',
+      'supplier-hub.js',
+      'niche-radar.js',
+      'product-detail.js',
     ];
-    expected.forEach(p => {
+    expected.forEach((p) => {
       loadScript('plugins/' + p);
     });
     const registered = all.PluginRegistry.getAll();

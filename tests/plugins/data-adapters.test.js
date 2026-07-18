@@ -14,7 +14,18 @@ describe('data-adapters plugin', () => {
 
   describe('Adapter Registration', () => {
     it('should register adapters for all 10 platforms', () => {
-      const platforms = ['aliexpress','amazon','shopify','ebay','temu','tiktok','etsy','cjdropshipping','dhgate','wish'];
+      const platforms = [
+        'aliexpress',
+        'amazon',
+        'shopify',
+        'ebay',
+        'temu',
+        'tiktok',
+        'etsy',
+        'cjdropshipping',
+        'dhgate',
+        'wish',
+      ];
       platforms.forEach((p) => {
         expect(HuntDrop.DataLayer.getAdapter(p)).toBeDefined();
       });
@@ -25,9 +36,11 @@ describe('data-adapters plugin', () => {
       const cb = vi.fn();
       core.EventBus.on('adapters:registered', cb);
       loadScript('plugins/data-adapters.js');
-      expect(cb).toHaveBeenCalledWith(expect.objectContaining({
-        platforms: expect.arrayContaining(['aliexpress', 'amazon']),
-      }));
+      expect(cb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          platforms: expect.arrayContaining(['aliexpress', 'amazon']),
+        })
+      );
     });
   });
 
@@ -177,7 +190,7 @@ describe('data-adapters plugin', () => {
     it('should return platform products for empty query with no filters', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
       const results = await adapter.search('', {});
-      const amazonProducts = HuntDrop.ALL_PRODUCTS.filter(p => p.platform === 'amazon');
+      const amazonProducts = HuntDrop.ALL_PRODUCTS.filter((p) => p.platform === 'amazon');
       expect(results.length).toBe(amazonProducts.length);
     });
   });

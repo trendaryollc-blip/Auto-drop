@@ -11,10 +11,7 @@ describe('cash-flow plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/cash-flow.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/cash-flow.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('cash-flow');
   });
@@ -111,7 +108,7 @@ describe('cash-flow plugin', () => {
       await HuntDrop.PluginRegistry.init('cash-flow');
       await HuntDrop.PluginRegistry.mount('cash-flow');
       const inputs = ['cfCash', 'cfAds', 'cfAOV', 'cfOrders', 'cfProdCost', 'cfShipCost', 'cfFixed', 'cfReinvest'];
-      inputs.forEach(id => {
+      inputs.forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.value = '100';
       });

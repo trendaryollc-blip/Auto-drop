@@ -7,10 +7,7 @@ describe('ad-studio plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ad-studio.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ad-studio.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
     plugin = HuntDrop.PluginRegistry.get('ad-studio');
   });
@@ -39,7 +36,9 @@ describe('ad-studio plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('ad-studio');
-      try { await HuntDrop.PluginRegistry.mount('ad-studio'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-studio');
+      } catch (e) {}
       const section = document.getElementById('section-ad-studio');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-ad-studio');
@@ -48,7 +47,9 @@ describe('ad-studio plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('ad-studio');
-      try { await HuntDrop.PluginRegistry.mount('ad-studio'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-studio');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -56,7 +57,9 @@ describe('ad-studio plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('ad-studio');
-      try { await HuntDrop.PluginRegistry.mount('ad-studio'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-studio');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('ad-studio');
       expect(document.getElementById('section-ad-studio')).toBeNull();
     });

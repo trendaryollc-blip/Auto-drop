@@ -19,14 +19,14 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
       if (results.length > 0) {
         const exactPrice = results[0].price;
         const filtered = await adapter.search('', { priceMax: exactPrice });
-        expect(filtered.some(p => p.price === exactPrice)).toBe(true);
+        expect(filtered.some((p) => p.price === exactPrice)).toBe(true);
       }
     });
 
     it('should exclude products above priceMax', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
       const results = await adapter.search('', { priceMax: 5 });
-      results.forEach(p => {
+      results.forEach((p) => {
         expect(p.price).toBeLessThanOrEqual(5);
       });
     });
@@ -53,14 +53,14 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
       if (all.length > 0) {
         const exactScore = all[0].score;
         const filtered = await adapter.search('', { minScore: exactScore });
-        expect(filtered.some(p => p.score === exactScore)).toBe(true);
+        expect(filtered.some((p) => p.score === exactScore)).toBe(true);
       }
     });
 
     it('should handle minScore of 100', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
       const results = await adapter.search('', { minScore: 100 });
-      results.forEach(p => {
+      results.forEach((p) => {
         expect(p.score).toBeGreaterThanOrEqual(100);
       });
     });
@@ -77,7 +77,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
     it('should filter by exact competition level', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
       const results = await adapter.search('', { competition: 'low' });
-      results.forEach(p => {
+      results.forEach((p) => {
         expect(p.competition).toBe('low');
       });
     });
@@ -94,7 +94,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
     it('should filter by minimum margin', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
       const results = await adapter.search('', { margin: '60' });
-      results.forEach(p => {
+      results.forEach((p) => {
         expect(p.margin).toBeGreaterThanOrEqual(60);
       });
     });
@@ -155,7 +155,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
       for (const p of platforms) {
         const adapter = HuntDrop.DataLayer.getAdapter(p);
         const results = await adapter.search('', {});
-        results.forEach(r => {
+        results.forEach((r) => {
           expect(r.platform).toBe(p);
         });
       }
@@ -163,7 +163,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
 
     it('searchAll with platform filter should only return that platform', async () => {
       const results = await HuntDrop.DataLayer.searchAll('', { platform: 'aliexpress' });
-      results.forEach(r => {
+      results.forEach((r) => {
         expect(r.platform).toBe('aliexpress');
       });
     });
@@ -201,7 +201,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
         const trends = await adapter.getTrends(all[0].id);
         expect(Array.isArray(trends)).toBe(true);
         expect(trends.length).toBe(12);
-        trends.forEach(t => expect(typeof t).toBe('number'));
+        trends.forEach((t) => expect(typeof t).toBe('number'));
       }
     });
   });
@@ -209,13 +209,13 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
   describe('DataLayer.searchAll — aggregation', () => {
     it('should return results from all platforms with no filter', async () => {
       const results = await HuntDrop.DataLayer.searchAll('', {});
-      const platforms = new Set(results.map(r => r.platform));
+      const platforms = new Set(results.map((r) => r.platform));
       expect(platforms.size).toBeGreaterThan(1);
     });
 
     it('each result should have _sourcePlatform', async () => {
       const results = await HuntDrop.DataLayer.searchAll('', {});
-      results.forEach(r => {
+      results.forEach((r) => {
         expect(r._sourcePlatform).toBeDefined();
       });
     });
@@ -257,7 +257,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
 
   describe('ALL_PRODUCTS data integrity', () => {
     it('should have products with valid numeric fields', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(typeof p.id).toBe('number');
         expect(typeof p.price).toBe('number');
         expect(typeof p.margin).toBe('number');
@@ -269,7 +269,7 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
     });
 
     it('should have all required string fields', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(typeof p.title).toBe('string');
         expect(typeof p.platform).toBe('string');
         expect(typeof p.image).toBe('string');
@@ -279,27 +279,27 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
     });
 
     it('should have suppliers array with at least one supplier per product', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(Array.isArray(p.suppliers)).toBe(true);
         expect(p.suppliers.length).toBeGreaterThan(0);
       });
     });
 
     it('should have platformPrices with at least 3 platforms', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(Object.keys(p.platformPrices).length).toBeGreaterThanOrEqual(3);
       });
     });
 
     it('should have trendData and seasonality as arrays of 12', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(p.trendData.length).toBe(12);
         expect(p.seasonality.length).toBe(12);
       });
     });
 
     it('should have keywords as non-empty arrays', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(Array.isArray(p.keywords)).toBe(true);
         expect(p.keywords.length).toBeGreaterThan(0);
       });
@@ -307,19 +307,19 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
 
     it('should have valid competition values', () => {
       const valid = ['low', 'medium', 'high'];
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(valid).toContain(p.competition);
       });
     });
 
     it('should have prices greater than 0', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(p.price).toBeGreaterThan(0);
       });
     });
 
     it('should have margins between 0 and 100', () => {
-      HuntDrop.ALL_PRODUCTS.forEach(p => {
+      HuntDrop.ALL_PRODUCTS.forEach((p) => {
         expect(p.margin).toBeGreaterThanOrEqual(0);
         expect(p.margin).toBeLessThanOrEqual(100);
       });

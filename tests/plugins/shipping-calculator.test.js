@@ -11,10 +11,7 @@ describe('shipping-calculator plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/shipping-calculator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/shipping-calculator.js']));
     plugin = HuntDrop.PluginRegistry.get('shipping-calculator');
   });
 

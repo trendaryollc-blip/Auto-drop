@@ -7,10 +7,7 @@ describe('store-health plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/store-health.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/store-health.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
     plugin = HuntDrop.PluginRegistry.get('store-health');
   });
@@ -37,7 +34,9 @@ describe('store-health plugin', () => {
       await HuntDrop.PluginRegistry.init('store-health');
       try {
         await HuntDrop.PluginRegistry.mount('store-health');
-      } catch(e) { /* mount may throw due to missing methods on wrapper */ }
+      } catch (e) {
+        /* mount may throw due to missing methods on wrapper */
+      }
       const section = document.getElementById('section-health');
       // Section may or may not exist depending on where mount throws
     });

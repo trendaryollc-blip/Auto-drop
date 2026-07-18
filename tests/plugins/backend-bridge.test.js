@@ -17,10 +17,7 @@ describe('backend-bridge plugin', () => {
       status: 503,
       json: () => Promise.resolve({ error: 'not available' }),
     });
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/backend-bridge.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/backend-bridge.js']));
     plugin = HuntDrop.PluginRegistry.get('backend-bridge');
   });
 

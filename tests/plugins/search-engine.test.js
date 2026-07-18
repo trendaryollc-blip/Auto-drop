@@ -112,10 +112,12 @@ describe('search-engine plugin', () => {
 
       await HuntDrop.EventBus.emit('search:query', { query: 'test', filters: {} });
 
-      expect(resultsCb).toHaveBeenCalledWith(expect.objectContaining({
-        query: 'test',
-        total: 1,
-      }));
+      expect(resultsCb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: 'test',
+          total: 1,
+        })
+      );
     });
 
     it('should handle filter:changed event and emit search:results', async () => {

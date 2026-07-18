@@ -36,7 +36,9 @@ describe('objection-handler plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('objection-handler');
-      try { await HuntDrop.PluginRegistry.mount('objection-handler'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('objection-handler');
+      } catch (e) {}
       const section = document.getElementById('section-objections');
       expect(section).toBeDefined();
     });
@@ -44,7 +46,9 @@ describe('objection-handler plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('objection-handler');
-      try { await HuntDrop.PluginRegistry.mount('objection-handler'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('objection-handler');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -52,7 +56,9 @@ describe('objection-handler plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('objection-handler');
-      try { await HuntDrop.PluginRegistry.mount('objection-handler'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('objection-handler');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('objection-handler');
       expect(document.getElementById('section-objections')).toBeNull();
     });

@@ -53,7 +53,9 @@ describe('Feature: Card Click → product:analyze', () => {
 
     const products = HuntDrop.ALL_PRODUCTS.slice(0, 2);
     await HuntDrop.EventBus.emit('search:results', {
-      query: '', results: products, total: products.length,
+      query: '',
+      results: products,
+      total: products.length,
     });
   });
 
@@ -97,7 +99,7 @@ describe('Feature: Filter → Search Integration', () => {
   it('should filter products by platform via search engine', async () => {
     const results = await HuntDrop.DataLayer.searchAll('', { platform: 'aliexpress' });
     expect(results.length).toBeGreaterThan(0);
-    results.forEach(p => {
+    results.forEach((p) => {
       expect(p.platform).toBe('aliexpress');
     });
   });

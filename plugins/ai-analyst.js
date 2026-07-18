@@ -1,39 +1,39 @@
 // ============================================================================
 // PLUGIN: AI Product Analyst — Deep Product Intelligence
 // ============================================================================
-(function(){
-const {EventBus,PluginRegistry,UI,Config} = window.HuntDrop;
+(function () {
+  const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
 
-let _cleanups = [];
-let _section = null;
-let _trendChart = null;
-let _seasonChart = null;
+  let _cleanups = [];
+  let _section = null;
+  let _trendChart = null;
+  let _seasonChart = null;
 
-function switchTab(panelId) {
-  if (!_section) return;
-  _section.querySelectorAll('.aa-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === panelId));
-  _section.querySelectorAll('.aa-tab-panel').forEach(p => p.classList.toggle('active', p.id === panelId));
-}
+  function switchTab(panelId) {
+    if (!_section) return;
+    _section.querySelectorAll('.aa-tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === panelId));
+    _section.querySelectorAll('.aa-tab-panel').forEach((p) => p.classList.toggle('active', p.id === panelId));
+  }
 
-const AIAnalystPlugin = {
-  id: 'ai-analyst',
-  name: 'AI Analysis',
-  version: '2.0.0',
-  description: 'Deep AI-powered product analysis with tabs for profit, market, competition, ads, and keywords',
-  dependencies: ['search-engine'],
+  const AIAnalystPlugin = {
+    id: 'ai-analyst',
+    name: 'AI Analysis',
+    version: '2.0.0',
+    description: 'Deep AI-powered product analysis with tabs for profit, market, competition, ads, and keywords',
+    dependencies: ['search-engine'],
 
-  init(_ctx) {
-    Config.defaults('aianalyst', { enabled: true });
-  },
+    init(_ctx) {
+      Config.defaults('aianalyst', { enabled: true });
+    },
 
-  mount(_ctx) {
-    const container = UI.$('sections-container');
-    if (!container) return;
+    mount(_ctx) {
+      const container = UI.$('sections-container');
+      if (!container) return;
 
-    const section = document.createElement('section');
-    section.className = 'section section-ai-analyst';
-    section.id = 'section-ai-analyst';
-    section.innerHTML = `
+      const section = document.createElement('section');
+      section.className = 'section section-ai-analyst';
+      section.id = 'section-ai-analyst';
+      section.innerHTML = `
       <div class="section-inner">
         <div class="aa-hero">
           <div class="aa-hero-badge">AI-Powered</div>
@@ -96,108 +96,179 @@ const AIAnalystPlugin = {
         <div id="aiResults" class="aa-results"></div>
 
         ${window.HuntDrop.renderRelatedTools([
-          { section:'section-market-gaps', name:'Market Gap Finder', desc:'Find unmet demand', icon:'🔍', color:'#10b981' },
-          { section:'section-lifecycle', name:'Product Lifecycle Radar', desc:'Track product maturity', icon:'📡', color:'#6366f1' },
-          { section:'section-battlefield', name:'Competitor Battlefield', desc:'Map competitor landscape', icon:'⚔️', color:'#f43f5e' },
-          { section:'section-ad-studio', name:'Ad Studio', desc:'Generate ad creatives', icon:'🎯', color:'#f59e0b' }
+          {
+            section: 'section-market-gaps',
+            name: 'Market Gap Finder',
+            desc: 'Find unmet demand',
+            icon: '🔍',
+            color: '#10b981',
+          },
+          {
+            section: 'section-lifecycle',
+            name: 'Product Lifecycle Radar',
+            desc: 'Track product maturity',
+            icon: '📡',
+            color: '#6366f1',
+          },
+          {
+            section: 'section-battlefield',
+            name: 'Competitor Battlefield',
+            desc: 'Map competitor landscape',
+            icon: '⚔️',
+            color: '#f43f5e',
+          },
+          {
+            section: 'section-ad-studio',
+            name: 'Ad Studio',
+            desc: 'Generate ad creatives',
+            icon: '🎯',
+            color: '#f59e0b',
+          },
         ])}
       </div>
     `;
-    container.appendChild(section);
-    _section = section;
+      container.appendChild(section);
+      _section = section;
 
-    const btn = section.querySelector('#aiAnalyzeBtn');
-    const input = section.querySelector('#aiInput');
-    if (btn) btn.addEventListener('click', () => runAnalysis(input?.value || ''));
-    if (input) input.addEventListener('keypress', e => { if(e.key==='Enter') runAnalysis(input.value); });
+      const btn = section.querySelector('#aiAnalyzeBtn');
+      const input = section.querySelector('#aiInput');
+      if (btn) btn.addEventListener('click', () => runAnalysis(input?.value || ''));
+      if (input)
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') runAnalysis(input.value);
+        });
 
-    section.querySelectorAll('.aa-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const q = chip.dataset.query;
-        if (input) input.value = q;
-        runAnalysis(q);
+      section.querySelectorAll('.aa-chip').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const q = chip.dataset.query;
+          if (input) input.value = q;
+          runAnalysis(q);
+        });
       });
-    });
 
-    const c = [];
-    c.push(
-      EventBus.on('ai-analyst:run', (data) => {
-        if (data && data.query) runAnalysis(data.query);
-      })
-    );
-    _cleanups = c;
-  },
+      const c = [];
+      c.push(
+        EventBus.on('ai-analyst:run', (data) => {
+          if (data && data.query) runAnalysis(data.query);
+        })
+      );
+      _cleanups = c;
+    },
 
-  unmount(_ctx) {
-    if (_trendChart) { _trendChart.destroy(); _trendChart = null; }
-    if (_seasonChart) { _seasonChart.destroy(); _seasonChart = null; }
-    if (_section) { _section.remove(); _section = null; }
-    (_cleanups||[]).forEach(function(fn){ try{fn();}catch{/* ignored */} });
-    _cleanups = [];
-  },
+    unmount(_ctx) {
+      if (_trendChart) {
+        _trendChart.destroy();
+        _trendChart = null;
+      }
+      if (_seasonChart) {
+        _seasonChart.destroy();
+        _seasonChart = null;
+      }
+      if (_section) {
+        _section.remove();
+        _section = null;
+      }
+      (_cleanups || []).forEach(function (fn) {
+        try {
+          fn();
+        } catch {
+          /* ignored */
+        }
+      });
+      _cleanups = [];
+    },
 
-  async runAnalysis(query) {
-    if (!query.trim()) return;
-    const esc = s => UI.escapeHtml(String(s));
-    const resultsEl = _section ? _section.querySelector('#aiResults') : null;
-    if (resultsEl) {
-      resultsEl.innerHTML = '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing product...</div><div class="aa-loading-sub">Scanning platforms, suppliers, and market data</div></div>';
-    }
-    await new Promise(r => setTimeout(r, 600));
-    const products = window.HuntDrop.ALL_PRODUCTS || [];
-    const match = products.find(p =>
-      p.title.toLowerCase().includes(query.toLowerCase()) ||
-      p.keywords.some(k => k.toLowerCase().includes(query.toLowerCase()))
-    ) || products[Math.floor(Math.random() * products.length)];
+    async runAnalysis(query) {
+      if (!query.trim()) return;
+      const esc = (s) => UI.escapeHtml(String(s));
+      const resultsEl = _section ? _section.querySelector('#aiResults') : null;
+      if (resultsEl) {
+        resultsEl.innerHTML =
+          '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing product...</div><div class="aa-loading-sub">Scanning platforms, suppliers, and market data</div></div>';
+      }
+      await new Promise((r) => setTimeout(r, 600));
+      const products = window.HuntDrop.ALL_PRODUCTS || [];
+      const match =
+        products.find(
+          (p) =>
+            p.title.toLowerCase().includes(query.toLowerCase()) ||
+            p.keywords.some((k) => k.toLowerCase().includes(query.toLowerCase()))
+        ) || products[Math.floor(Math.random() * products.length)];
 
-    const el = _section ? _section.querySelector('#aiResults') : null;
-    if (!el) return;
+      const el = _section ? _section.querySelector('#aiResults') : null;
+      if (!el) return;
 
-    el.innerHTML = '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing ' + esc(match.title.split('—')[0].trim()) + '...</div><div class="aa-loading-sub">Deep-scanning market data, trends, suppliers, and competition</div></div>';
-    await new Promise(r => setTimeout(r, 1200));
+      el.innerHTML =
+        '<div class="aa-loading"><div class="aa-loading-spinner"></div><div class="aa-loading-text">Analyzing ' +
+        esc(match.title.split('—')[0].trim()) +
+        '...</div><div class="aa-loading-sub">Deep-scanning market data, trends, suppliers, and competition</div></div>';
+      await new Promise((r) => setTimeout(r, 1200));
 
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const fmtN = n => n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n);
-    const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const fmtN = (n) => (n >= 1000 ? (n / 1000).toFixed(1) + 'K' : String(n));
+      const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
-    const sellPrice = match.platformPrices.amazon;
-    const productCost = match.price;
-    const shippingCost = 2.50;
-    const adCost = match.adSpendAvg;
-    const platformFee = +(sellPrice * 0.15).toFixed(2);
-    const refundBuffer = +(sellPrice * 0.03).toFixed(2);
-    const netProfit = +(sellPrice - productCost - shippingCost - adCost - platformFee - refundBuffer).toFixed(2);
-    const roi = productCost > 0 ? +((netProfit / productCost) * 100).toFixed(0) : 0;
-    const breakEven = adCost > 0 ? Math.ceil((productCost + shippingCost + platformFee + refundBuffer) / (sellPrice - productCost - shippingCost - platformFee - refundBuffer - adCost)) : 1;
-    const verdict = match.score >= 75 && match.competition !== 'high' && netProfit > 5;
-    const _riskLevel = match.riskScore < 25 ? 'low' : match.riskScore < 50 ? 'med' : 'high';
+      const sellPrice = match.platformPrices.amazon;
+      const productCost = match.price;
+      const shippingCost = 2.5;
+      const adCost = match.adSpendAvg;
+      const platformFee = +(sellPrice * 0.15).toFixed(2);
+      const refundBuffer = +(sellPrice * 0.03).toFixed(2);
+      const netProfit = +(sellPrice - productCost - shippingCost - adCost - platformFee - refundBuffer).toFixed(2);
+      const roi = productCost > 0 ? +((netProfit / productCost) * 100).toFixed(0) : 0;
+      const breakEven =
+        adCost > 0
+          ? Math.ceil(
+              (productCost + shippingCost + platformFee + refundBuffer) /
+                (sellPrice - productCost - shippingCost - platformFee - refundBuffer - adCost)
+            )
+          : 1;
+      const verdict = match.score >= 75 && match.competition !== 'high' && netProfit > 5;
+      const _riskLevel = match.riskScore < 25 ? 'low' : match.riskScore < 50 ? 'med' : 'high';
 
-    const relatedProducts = products.filter(p => p.id !== match.id && p.category === match.category).slice(0, 3);
+      const relatedProducts = products.filter((p) => p.id !== match.id && p.category === match.category).slice(0, 3);
 
-    const competitionNames = ['TechGear Store','DropShip Pro','TrendHunter','QuickShip Hub','PrimeSelection'];
-    const compData = competitionNames.map((name) => ({
-      name,
-      price: +(sellPrice * (0.85 + Math.random() * 0.35)).toFixed(2),
-      rating: +(3.5 + Math.random() * 1.5).toFixed(1),
-      sales: Math.floor(100 + Math.random() * 900),
-      saturation: Math.floor(20 + Math.random() * 60)
-    })).sort((a, b) => b.sales - a.sales);
+      const competitionNames = ['TechGear Store', 'DropShip Pro', 'TrendHunter', 'QuickShip Hub', 'PrimeSelection'];
+      const compData = competitionNames
+        .map((name) => ({
+          name,
+          price: +(sellPrice * (0.85 + Math.random() * 0.35)).toFixed(2),
+          rating: +(3.5 + Math.random() * 1.5).toFixed(1),
+          sales: Math.floor(100 + Math.random() * 900),
+          saturation: Math.floor(20 + Math.random() * 60),
+        }))
+        .sort((a, b) => b.sales - a.sales);
 
-    const keywordData = match.keywords.map(kw => ({
-      word: kw,
-      volume: Math.floor(500 + Math.random() * 9500),
-      competition: Math.floor(15 + Math.random() * 70)
-    })).sort((a, b) => b.volume - a.volume);
+      const keywordData = match.keywords
+        .map((kw) => ({
+          word: kw,
+          volume: Math.floor(500 + Math.random() * 9500),
+          competition: Math.floor(15 + Math.random() * 70),
+        }))
+        .sort((a, b) => b.volume - a.volume);
 
-    const hooks = [
-      { type: 'Problem-Solution', text: 'Stop struggling with ' + esc(match.category) + ' — this game-changer does it all' },
-      { type: 'Social Proof', text: 'Join 10,000+ happy customers who switched to ' + esc(match.title.split('—')[0].trim()) },
-      { type: 'Urgency', text: 'Limited stock: The ' + esc(match.title.split('—')[0].trim()) + ' everyone is talking about' },
-      { type: 'Curiosity', text: 'The secret ' + esc(match.category) + ' hack pros don\'t want you to know' },
-      { type: 'Before/After', text: 'Before: frustrated. After: obsessed. See why ' + esc(match.title.split('—')[0].trim()) + ' is different' }
-    ];
+      const hooks = [
+        {
+          type: 'Problem-Solution',
+          text: 'Stop struggling with ' + esc(match.category) + ' — this game-changer does it all',
+        },
+        {
+          type: 'Social Proof',
+          text: 'Join 10,000+ happy customers who switched to ' + esc(match.title.split('—')[0].trim()),
+        },
+        {
+          type: 'Urgency',
+          text: 'Limited stock: The ' + esc(match.title.split('—')[0].trim()) + ' everyone is talking about',
+        },
+        { type: 'Curiosity', text: 'The secret ' + esc(match.category) + " hack pros don't want you to know" },
+        {
+          type: 'Before/After',
+          text:
+            'Before: frustrated. After: obsessed. See why ' + esc(match.title.split('—')[0].trim()) + ' is different',
+        },
+      ];
 
-    el.innerHTML = `
+      el.innerHTML = `
       <div class="aa-output">
         <div class="aa-product-header">
           <img class="aa-product-img" src="${esc(match.image)}" alt="${esc(match.title)}" onerror="this.style.display='none'">
@@ -318,12 +389,16 @@ const AIAnalystPlugin = {
           <div class="aa-card" style="margin-top:14px">
             <div class="aa-card-header"><span class="aa-card-icon">🔄</span>Cross-Platform Prices</div>
             <div class="aa-profit-row">
-              ${Object.entries(match.platformPrices).map(([platform, price]) => `
+              ${Object.entries(match.platformPrices)
+                .map(
+                  ([platform, price]) => `
                 <div class="aa-profit-item">
                   <span class="aa-profit-label">${esc(cap(platform))}</span>
                   <span class="aa-profit-value" style="color:${price === sellPrice ? 'var(--accent-cyan)' : 'var(--text-primary)'}">$${price.toFixed(2)}${price === sellPrice ? ' ← you' : ''}</span>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
         </div>
@@ -337,15 +412,22 @@ const AIAnalystPlugin = {
             <div class="aa-card-header"><span class="aa-card-icon">🗓</span>Seasonality Heatmap</div>
             <div style="margin-bottom:8px;font-size:11px;color:var(--text-muted)">Demand intensity by month (darker = higher demand)</div>
             <div class="aa-heatmap">
-              ${match.seasonality.map((val) => {
-                const max = Math.max(...match.seasonality);
-                const intensity = max > 0 ? val / max : 0;
-                const bg = intensity > 0.7 ? 'rgba(0,255,136,0.35)' : intensity > 0.4 ? 'rgba(0,229,255,0.2)' : 'rgba(85,85,112,0.15)';
-                return '<div class="aa-heatmap-cell" style="background:' + bg + '">' + val + '</div>';
-              }).join('')}
+              ${match.seasonality
+                .map((val) => {
+                  const max = Math.max(...match.seasonality);
+                  const intensity = max > 0 ? val / max : 0;
+                  const bg =
+                    intensity > 0.7
+                      ? 'rgba(0,255,136,0.35)'
+                      : intensity > 0.4
+                        ? 'rgba(0,229,255,0.2)'
+                        : 'rgba(85,85,112,0.15)';
+                  return '<div class="aa-heatmap-cell" style="background:' + bg + '">' + val + '</div>';
+                })
+                .join('')}
             </div>
             <div class="aa-heatmap-labels">
-              ${months.map(m => '<div class="aa-heatmap-label">' + m + '</div>').join('')}
+              ${months.map((m) => '<div class="aa-heatmap-label">' + m + '</div>').join('')}
             </div>
           </div>
           <div class="aa-grid-4" style="margin-top:14px">
@@ -360,12 +442,12 @@ const AIAnalystPlugin = {
           <div class="aa-grid-4">
             <div class="aa-stat-card"><div class="aa-stat-value" style="font-size:15px">${esc(match.audience.age)}</div><div class="aa-stat-label">Age Range</div></div>
             <div class="aa-stat-card"><div class="aa-stat-value" style="font-size:15px">${esc(match.audience.gender)}</div><div class="aa-stat-label">Gender</div></div>
-            <div class="aa-stat-card"><div class="aa-stat-value" style="font-size:12px">${esc(match.audience.countries.slice(0,3).join(', '))}</div><div class="aa-stat-label">Top Countries</div></div>
+            <div class="aa-stat-card"><div class="aa-stat-value" style="font-size:12px">${esc(match.audience.countries.slice(0, 3).join(', '))}</div><div class="aa-stat-label">Top Countries</div></div>
             <div class="aa-stat-card"><div class="aa-stat-value" style="font-size:15px">$${match.cpaAvg.toFixed(2)}</div><div class="aa-stat-label">Est. CPA</div></div>
           </div>
           <div class="aa-card" style="margin-top:14px">
             <div class="aa-card-header"><span class="aa-card-icon">💡</span>Interests & Behaviors</div>
-            <div class="aa-tags">${match.audience.interests.map(i => '<span class="aa-tag">' + esc(i) + '</span>').join('')}</div>
+            <div class="aa-tags">${match.audience.interests.map((i) => '<span class="aa-tag">' + esc(i) + '</span>').join('')}</div>
           </div>
           <div class="aa-card" style="margin-top:14px">
             <div class="aa-card-header"><span class="aa-card-icon">📱</span>Best Platforms to Reach Them</div>
@@ -398,7 +480,9 @@ const AIAnalystPlugin = {
           <div class="aa-card">
             <div class="aa-card-header"><span class="aa-card-icon">⚔️</span>Competitor Landscape</div>
             <div style="display:flex;flex-direction:column;gap:8px">
-              ${compData.map((c, i) => `
+              ${compData
+                .map(
+                  (c, i) => `
                 <div class="aa-comp-row">
                   <div class="aa-comp-rank">#${i + 1}</div>
                   <div class="aa-comp-thumb">🏪</div>
@@ -412,7 +496,9 @@ const AIAnalystPlugin = {
                     <div class="aa-comp-bar-label">${c.saturation}%</div>
                   </div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
           <div class="aa-card" style="margin-top:14px">
@@ -458,7 +544,9 @@ const AIAnalystPlugin = {
           <div class="aa-card">
             <div class="aa-card-header"><span class="aa-card-icon">🏢</span>Best Suppliers</div>
             <div class="aa-suppliers">
-              ${match.suppliers.map(s => `
+              ${match.suppliers
+                .map(
+                  (s) => `
                 <div class="aa-supplier">
                   <div class="aa-supplier-avatar">${esc(s.name.charAt(0))}</div>
                   <div class="aa-supplier-info">
@@ -472,7 +560,9 @@ const AIAnalystPlugin = {
                     ${s.verified ? '<span class="aa-supplier-badge">✓ Verified</span>' : ''}
                   </div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
           <div class="aa-card" style="margin-top:14px">
@@ -489,12 +579,16 @@ const AIAnalystPlugin = {
           <div class="aa-card">
             <div class="aa-card-header"><span class="aa-card-icon">🎣</span>Winning Ad Hooks</div>
             <div class="aa-ad-hooks">
-              ${hooks.map(h => `
+              ${hooks
+                .map(
+                  (h) => `
                 <div class="aa-ad-hook">
                   <div class="aa-ad-hook-type">${esc(h.type)}</div>
                   <div>"${esc(h.text)}"</div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
           <div class="aa-card" style="margin-top:14px">
@@ -532,7 +626,10 @@ const AIAnalystPlugin = {
             <div class="aa-card-header"><span class="aa-card-icon">🔑</span>Keyword Research</div>
             <div class="aa-kw-primary">
               <div class="aa-kw-section-title">Primary Keywords</div>
-              ${keywordData.slice(0, 5).map(kw => `
+              ${keywordData
+                .slice(0, 5)
+                .map(
+                  (kw) => `
                 <div class="aa-kw-row">
                   <span class="aa-kw-word">${esc(kw.word)}</span>
                   <span class="aa-kw-vol">${fmtN(kw.volume)}/mo</span>
@@ -540,11 +637,16 @@ const AIAnalystPlugin = {
                     <div class="aa-kw-comp-bar"><div class="aa-kw-comp-fill" style="width:${kw.competition}%;background:${kw.competition > 60 ? 'var(--accent-red)' : kw.competition > 35 ? 'var(--accent-yellow)' : 'var(--accent-green)'}"></div></div>
                   </div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
             <div class="aa-kw-primary">
               <div class="aa-kw-section-title">Long-Tail Keywords</div>
-              ${keywordData.slice(5).map(kw => `
+              ${keywordData
+                .slice(5)
+                .map(
+                  (kw) => `
                 <div class="aa-kw-row">
                   <span class="aa-kw-word">${esc(kw.word)}</span>
                   <span class="aa-kw-vol">${fmtN(kw.volume)}/mo</span>
@@ -552,18 +654,23 @@ const AIAnalystPlugin = {
                     <div class="aa-kw-comp-bar"><div class="aa-kw-comp-fill" style="width:${kw.competition}%;background:${kw.competition > 60 ? 'var(--accent-red)' : kw.competition > 35 ? 'var(--accent-yellow)' : 'var(--accent-green)'}"></div></div>
                   </div>
                 </div>
-              `).join('')}
+              `
+                )
+                .join('')}
             </div>
           </div>
           <div class="aa-card" style="margin-top:14px">
             <div class="aa-card-header"><span class="aa-card-icon">🏷</span>All Tags</div>
-            <div class="aa-tags">${match.keywords.map(k => '<span class="aa-tag">' + esc(k) + '</span>').join('')}</div>
+            <div class="aa-tags">${match.keywords.map((k) => '<span class="aa-tag">' + esc(k) + '</span>').join('')}</div>
           </div>
           <div class="aa-card" style="margin-top:14px">
             <div class="aa-card-header"><span class="aa-card-icon">📝</span>Suggested Listing Title</div>
             <div class="aa-kw-listing">
               <div class="aa-kw-listing-label">Optimized Title</div>
-              <div class="aa-kw-listing-text">${esc(match.title.split('—')[0].trim())} - ${keywordData.slice(0, 3).map(k => esc(k.word)).join(', ')} | ${match.rating}★ Rated | Free Shipping</div>
+              <div class="aa-kw-listing-text">${esc(match.title.split('—')[0].trim())} - ${keywordData
+                .slice(0, 3)
+                .map((k) => esc(k.word))
+                .join(', ')} | ${match.rating}★ Rated | Free Shipping</div>
             </div>
           </div>
         </div>
@@ -575,11 +682,15 @@ const AIAnalystPlugin = {
           <a class="aa-action-btn" href="#section-battlefield" onclick="window.HuntDrop.EventBus.emit('navigate',{section:'section-battlefield'})"><span class="aa-action-icon">⚔️</span>Spy Competitors</a>
         </div>
 
-        ${relatedProducts.length > 0 ? `
+        ${
+          relatedProducts.length > 0
+            ? `
         <div class="aa-card" style="margin-top:14px">
           <div class="aa-card-header"><span class="aa-card-icon">🔍</span>Related Products Worth Analyzing</div>
           <div class="aa-related-grid">
-            ${relatedProducts.map(rp => `
+            ${relatedProducts
+              .map(
+                (rp) => `
               <div class="aa-related-card" data-related-query="${esc(rp.title.split('—')[0].trim())}">
                 <img class="aa-related-img" src="${esc(rp.image)}" alt="${esc(rp.title)}" onerror="this.style.display='none'">
                 <div class="aa-related-title">${esc(rp.title.split('—')[0].trim())}</div>
@@ -588,66 +699,78 @@ const AIAnalystPlugin = {
                   <span class="aa-related-price">$${rp.price.toFixed(2)}</span>
                 </div>
               </div>
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>`;
 
-    if (_section) {
-      _section.querySelectorAll('.aa-tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-      });
-      // Event delegation for related product cards (safe: no inline onclick)
-      const relatedGrid = _section.querySelector('.aa-related-grid');
-      if (relatedGrid) {
-        relatedGrid.addEventListener('click', function(e) {
-          const card = e.target.closest('.aa-related-card[data-related-query]');
-          if (!card) return;
-          const query = card.getAttribute('data-related-query');
-          const aiInput = document.getElementById('aiInput');
-          if (aiInput) aiInput.value = query;
-          EventBus.emit('ai-analyst:run', { query: query });
+      if (_section) {
+        _section.querySelectorAll('.aa-tab').forEach((tab) => {
+          tab.addEventListener('click', () => switchTab(tab.dataset.tab));
         });
+        // Event delegation for related product cards (safe: no inline onclick)
+        const relatedGrid = _section.querySelector('.aa-related-grid');
+        if (relatedGrid) {
+          relatedGrid.addEventListener('click', function (e) {
+            const card = e.target.closest('.aa-related-card[data-related-query]');
+            if (!card) return;
+            const query = card.getAttribute('data-related-query');
+            const aiInput = document.getElementById('aiInput');
+            if (aiInput) aiInput.value = query;
+            EventBus.emit('ai-analyst:run', { query: query });
+          });
+        }
       }
-    }
 
-    setTimeout(() => {
-      const chartCtx = _section?.querySelector('#aiTrendChart');
-      if (chartCtx) {
-        if (_trendChart) _trendChart.destroy();
-        _trendChart = new Chart(chartCtx, {
-          type: 'line',
-          data: {
-            labels: months,
-            datasets: [{
-              label: 'Demand',
-              data: match.trendData,
-              borderColor: '#00ff88',
-              backgroundColor: 'rgba(0,255,136,0.06)',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.4,
-              pointBackgroundColor: '#00ff88',
-              pointBorderColor: '#06060c',
-              pointBorderWidth: 2,
-              pointRadius: 3
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: 'rgba(255,255,255,0.025)' }, ticks: { color: '#555570', font: { family: 'JetBrains Mono', size: 9 } } },
-              y: { grid: { color: 'rgba(255,255,255,0.025)' }, ticks: { color: '#555570', font: { family: 'JetBrains Mono', size: 9 } } }
-            }
-          }
-        });
-      }
-    }, 100);
-  }
-};
+      setTimeout(() => {
+        const chartCtx = _section?.querySelector('#aiTrendChart');
+        if (chartCtx) {
+          if (_trendChart) _trendChart.destroy();
+          _trendChart = new Chart(chartCtx, {
+            type: 'line',
+            data: {
+              labels: months,
+              datasets: [
+                {
+                  label: 'Demand',
+                  data: match.trendData,
+                  borderColor: '#00ff88',
+                  backgroundColor: 'rgba(0,255,136,0.06)',
+                  borderWidth: 2,
+                  fill: true,
+                  tension: 0.4,
+                  pointBackgroundColor: '#00ff88',
+                  pointBorderColor: '#06060c',
+                  pointBorderWidth: 2,
+                  pointRadius: 3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: {
+                  grid: { color: 'rgba(255,255,255,0.025)' },
+                  ticks: { color: '#555570', font: { family: 'JetBrains Mono', size: 9 } },
+                },
+                y: {
+                  grid: { color: 'rgba(255,255,255,0.025)' },
+                  ticks: { color: '#555570', font: { family: 'JetBrains Mono', size: 9 } },
+                },
+              },
+            },
+          });
+        }
+      }, 100);
+    },
+  };
 
-PluginRegistry.register('ai-analyst', AIAnalystPlugin);
+  PluginRegistry.register('ai-analyst', AIAnalystPlugin);
 })();

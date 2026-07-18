@@ -36,7 +36,9 @@ describe('niche-radar plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('niche-radar');
-      try { await HuntDrop.PluginRegistry.mount('niche-radar'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('niche-radar');
+      } catch (e) {}
       const section = document.getElementById('section-niche-radar');
       expect(section).toBeDefined();
       expect(section.id).toBe('section-niche-radar');
@@ -45,7 +47,9 @@ describe('niche-radar plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('niche-radar');
-      try { await HuntDrop.PluginRegistry.mount('niche-radar'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('niche-radar');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -53,7 +57,9 @@ describe('niche-radar plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('niche-radar');
-      try { await HuntDrop.PluginRegistry.mount('niche-radar'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('niche-radar');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('niche-radar');
       expect(document.getElementById('section-niche-radar')).toBeNull();
     });

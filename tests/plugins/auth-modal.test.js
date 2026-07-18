@@ -60,7 +60,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:required');
       // Wait for modal creation
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const overlay = document.querySelector('.hd-auth-modal-overlay');
       expect(overlay).toBeDefined();
     });
@@ -69,7 +69,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const overlay = document.querySelector('.hd-auth-modal-overlay');
       expect(overlay).toBeDefined();
     });
@@ -78,7 +78,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-register');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const overlay = document.querySelector('.hd-auth-modal-overlay');
       expect(overlay).toBeDefined();
       // Should have register form elements
@@ -90,9 +90,9 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const overlays = document.querySelectorAll('.hd-auth-modal-overlay');
       expect(overlays.length).toBe(1);
     });
@@ -103,11 +103,11 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const closeBtn = document.querySelector('.hd-auth-close');
       if (closeBtn) closeBtn.click();
       // Wait for animation delay (300ms)
-      await new Promise(r => setTimeout(r, 350));
+      await new Promise((r) => setTimeout(r, 350));
       const overlay = document.querySelector('.hd-auth-modal-overlay');
       expect(overlay).toBeNull();
     });
@@ -118,7 +118,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const email = document.getElementById('authEmail');
       const password = document.getElementById('authPassword');
       expect(email).toBeDefined();
@@ -129,7 +129,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       const skip = document.getElementById('authSkip');
       expect(skip).toBeDefined();
     });
@@ -140,7 +140,7 @@ describe('auth-modal plugin', () => {
       await HuntDrop.PluginRegistry.init('auth-modal');
       await HuntDrop.PluginRegistry.mount('auth-modal');
       HuntDrop.EventBus.emit('auth:show-login');
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
       await HuntDrop.PluginRegistry.unmount('auth-modal');
       // After unmount, the event listeners should be removed
       // and the modal should be closed

@@ -7,10 +7,7 @@ describe('product-lifecycle plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/product-lifecycle.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/product-lifecycle.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
     plugin = HuntDrop.PluginRegistry.get('product-lifecycle');
   });
@@ -38,8 +35,6 @@ describe('product-lifecycle plugin', () => {
       expect(true).toBe(true);
     });
   });
-
-
 
   describe('unmount()', () => {
     it('should clean up section', async () => {

@@ -1,31 +1,31 @@
 // ============================================================================
 // PLUGIN: Profit Calculator Lab — Redesigned
 // ============================================================================
-(function(){
-const {PluginRegistry,UI,Config} = window.HuntDrop;
+(function () {
+  const { PluginRegistry, UI, Config } = window.HuntDrop;
 
-const plugin = {
-  id: 'profit-calculator',
-  name: 'Profit Calculator',
-  version: '3.0.0',
-  description: 'Real-time profit margin calculator with powerful visuals',
-  _section: null,
-  _chart: null,
-  _barChart: null,
-  _gaugeInterval: null,
+  const plugin = {
+    id: 'profit-calculator',
+    name: 'Profit Calculator',
+    version: '3.0.0',
+    description: 'Real-time profit margin calculator with powerful visuals',
+    _section: null,
+    _chart: null,
+    _barChart: null,
+    _gaugeInterval: null,
 
-  init(_ctx) {
-    Config.defaults('profitcalc', { defaultSellPrice: 29.99, defaultCost: 5.99 });
-  },
+    init(_ctx) {
+      Config.defaults('profitcalc', { defaultSellPrice: 29.99, defaultCost: 5.99 });
+    },
 
-  mount(_ctx) {
-    const container = UI.$('sections-container');
-    if (!container) return;
+    mount(_ctx) {
+      const container = UI.$('sections-container');
+      if (!container) return;
 
-    const section = document.createElement('section');
-    section.className = 'section section-profit-lab';
-    section.id = 'section-profit-lab';
-    section.innerHTML = `
+      const section = document.createElement('section');
+      section.className = 'section section-profit-lab';
+      section.id = 'section-profit-lab';
+      section.innerHTML = `
       <div class="section-inner">
         <div class="pcl-hero">
           <div class="pcl-hero-badge">
@@ -354,386 +354,590 @@ const plugin = {
         </div>
 
         ${window.HuntDrop.renderRelatedTools([
-          { section:'section-elasticity', name:'Price Elasticity', desc:'Simulate pricing', icon:'📈', color:'#00e5ff' },
-          { section:'section-time-machine', name:'Profit Time Machine', desc:'Forecast revenue', icon:'⏳', color:'#f59e0b' },
-          { section:'section-bundles', name:'Bundle Intelligence', desc:'Optimize bundles', icon:'📦', color:'#8b5cf6' },
-          { section:'section-budget', name:'Ad Budget Allocator', desc:'Allocate ad spend', icon:'📊', color:'#a855f7' }
+          {
+            section: 'section-elasticity',
+            name: 'Price Elasticity',
+            desc: 'Simulate pricing',
+            icon: '📈',
+            color: '#00e5ff',
+          },
+          {
+            section: 'section-time-machine',
+            name: 'Profit Time Machine',
+            desc: 'Forecast revenue',
+            icon: '⏳',
+            color: '#f59e0b',
+          },
+          {
+            section: 'section-bundles',
+            name: 'Bundle Intelligence',
+            desc: 'Optimize bundles',
+            icon: '📦',
+            color: '#8b5cf6',
+          },
+          {
+            section: 'section-budget',
+            name: 'Ad Budget Allocator',
+            desc: 'Allocate ad spend',
+            icon: '📊',
+            color: '#a855f7',
+          },
         ])}
       </div>`;
-    container.appendChild(section);
-    plugin._section = section;
+      container.appendChild(section);
+      plugin._section = section;
 
-    const ids = ['pcSellPrice','pcProductCost','pcShipping','pcPlatformFee','pcAdCost','pcAdBudget','pcMonthlySales'];
-    ids.forEach(id => {
-      const el = section.querySelector('#' + id);
-      if (el) el.addEventListener('input', () => { plugin.calculate(); plugin.saveState(); });
-    });
-
-    plugin.loadState();
-
-    section.querySelectorAll('.pcl-preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        section.querySelectorAll('.pcl-preset-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const q = id => section.querySelector('#' + id);
-        if (q('pcSellPrice')) q('pcSellPrice').value = btn.dataset.sp;
-        if (q('pcProductCost')) q('pcProductCost').value = btn.dataset.cost;
-        if (q('pcShipping')) q('pcShipping').value = btn.dataset.ship;
-        if (q('pcPlatformFee')) q('pcPlatformFee').value = btn.dataset.fee;
-        if (q('pcAdCost')) q('pcAdCost').value = btn.dataset.ad;
-        plugin.calculate();
+      const ids = [
+        'pcSellPrice',
+        'pcProductCost',
+        'pcShipping',
+        'pcPlatformFee',
+        'pcAdCost',
+        'pcAdBudget',
+        'pcMonthlySales',
+      ];
+      ids.forEach((id) => {
+        const el = section.querySelector('#' + id);
+        if (el)
+          el.addEventListener('input', () => {
+            plugin.calculate();
+            plugin.saveState();
+          });
       });
-    });
 
-    plugin.calculate();
+      plugin.loadState();
 
-    const exportBtn = section.querySelector('#pcExportCSV');
-    if (exportBtn) exportBtn.addEventListener('click', function() { plugin.exportCSV(); });
-    const resetBtn = section.querySelector('#pcResetBtn');
-    if (resetBtn) resetBtn.addEventListener('click', function() {
-      const q = function(id) { return plugin._section.querySelector('#' + id); };
-      if (q('pcSellPrice')) q('pcSellPrice').value = '29.99';
-      if (q('pcProductCost')) q('pcProductCost').value = '5.99';
-      if (q('pcShipping')) q('pcShipping').value = '2.50';
-      if (q('pcPlatformFee')) q('pcPlatformFee').value = '15';
-      if (q('pcAdCost')) q('pcAdCost').value = '3.00';
-      if (q('pcAdBudget')) q('pcAdBudget').value = '500';
-      if (q('pcMonthlySales')) q('pcMonthlySales').value = '100';
-      section.querySelectorAll('.pcl-preset-btn').forEach(function(b) { b.classList.remove('active'); });
+      section.querySelectorAll('.pcl-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          section.querySelectorAll('.pcl-preset-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const q = (id) => section.querySelector('#' + id);
+          if (q('pcSellPrice')) q('pcSellPrice').value = btn.dataset.sp;
+          if (q('pcProductCost')) q('pcProductCost').value = btn.dataset.cost;
+          if (q('pcShipping')) q('pcShipping').value = btn.dataset.ship;
+          if (q('pcPlatformFee')) q('pcPlatformFee').value = btn.dataset.fee;
+          if (q('pcAdCost')) q('pcAdCost').value = btn.dataset.ad;
+          plugin.calculate();
+        });
+      });
+
       plugin.calculate();
-      plugin.saveState();
-    });
 
-    section.querySelectorAll('.pcl-linked-card').forEach(function(card) {
-      card.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        const sec = card.getAttribute('data-section');
-        if (sec && window.HuntDrop.navigateTo) {
-          window.HuntDrop.navigateTo('section-' + sec);
+      const exportBtn = section.querySelector('#pcExportCSV');
+      if (exportBtn)
+        exportBtn.addEventListener('click', function () {
+          plugin.exportCSV();
+        });
+      const resetBtn = section.querySelector('#pcResetBtn');
+      if (resetBtn)
+        resetBtn.addEventListener('click', function () {
+          const q = function (id) {
+            return plugin._section.querySelector('#' + id);
+          };
+          if (q('pcSellPrice')) q('pcSellPrice').value = '29.99';
+          if (q('pcProductCost')) q('pcProductCost').value = '5.99';
+          if (q('pcShipping')) q('pcShipping').value = '2.50';
+          if (q('pcPlatformFee')) q('pcPlatformFee').value = '15';
+          if (q('pcAdCost')) q('pcAdCost').value = '3.00';
+          if (q('pcAdBudget')) q('pcAdBudget').value = '500';
+          if (q('pcMonthlySales')) q('pcMonthlySales').value = '100';
+          section.querySelectorAll('.pcl-preset-btn').forEach(function (b) {
+            b.classList.remove('active');
+          });
+          plugin.calculate();
+          plugin.saveState();
+        });
+
+      section.querySelectorAll('.pcl-linked-card').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const sec = card.getAttribute('data-section');
+          if (sec && window.HuntDrop.navigateTo) {
+            window.HuntDrop.navigateTo('section-' + sec);
+          }
+        });
+      });
+    },
+
+    unmount(_ctx) {
+      if (plugin._chart) {
+        plugin._chart.destroy();
+        plugin._chart = null;
+      }
+      if (plugin._barChart) {
+        plugin._barChart.destroy();
+        plugin._barChart = null;
+      }
+      if (plugin._section) {
+        plugin._section.remove();
+        plugin._section = null;
+      }
+    },
+
+    saveState() {
+      try {
+        const state = {};
+        [
+          'pcSellPrice',
+          'pcProductCost',
+          'pcShipping',
+          'pcPlatformFee',
+          'pcAdCost',
+          'pcAdBudget',
+          'pcMonthlySales',
+        ].forEach(function (id) {
+          const el = document.getElementById(id);
+          if (el) state[id] = el.value;
+        });
+        localStorage.setItem('huntdrop_profitcalc', JSON.stringify(state));
+      } catch {
+        /* ignored */
+      }
+    },
+
+    loadState() {
+      try {
+        const saved = localStorage.getItem('huntdrop_profitcalc');
+        if (!saved || !plugin._section) return;
+        const state = JSON.parse(saved);
+        Object.keys(state).forEach(function (id) {
+          const el = document.getElementById(id);
+          if (el) el.value = state[id];
+        });
+        plugin.calculate();
+      } catch {
+        /* ignored */
+      }
+    },
+
+    animateValue(el, start, end, duration, prefix, suffix) {
+      prefix = prefix || '';
+      suffix = suffix || '';
+      let startTs = null;
+      function step(ts) {
+        if (!startTs) startTs = ts;
+        const p = Math.min((ts - startTs) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const current = start + (end - start) * ease;
+        el.textContent =
+          prefix + current.toLocaleString(undefined, { maximumFractionDigits: prefix === '$' ? 2 : 1 }) + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    },
+
+    calculate() {
+      if (!plugin._section) return;
+      const q = function (id) {
+        return plugin._section.querySelector('#' + id);
+      };
+
+      const sp = parseFloat(q('pcSellPrice')?.value) || 0;
+      const cost = parseFloat(q('pcProductCost')?.value) || 0;
+      const ship = parseFloat(q('pcShipping')?.value) || 0;
+      const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
+      const adCost = parseFloat(q('pcAdCost')?.value) || 0;
+      const budget = parseFloat(q('pcAdBudget')?.value) || 0;
+      const sales = parseInt(q('pcMonthlySales')?.value) || 0;
+
+      const platformFee = sp * (fee / 100);
+      const totalCost = cost + ship + platformFee + adCost;
+      const profitPerSale = sp - totalCost;
+      const margin = sp > 0 ? (profitPerSale / sp) * 100 : 0;
+      const monthlyRev = sp * sales;
+      const monthlyProfit = profitPerSale * sales;
+      const roas = adCost > 0 ? sp / adCost : 0;
+      const breakEven = profitPerSale > 0 ? Math.ceil(budget / profitPerSale) : Infinity;
+
+      const bigProfit = q('pcBigProfit');
+      const bigMargin = q('pcBigMargin');
+      const marginBar = q('pcMarginBar');
+      if (bigProfit) {
+        bigProfit.textContent = '$' + profitPerSale.toFixed(2);
+        bigProfit.className = 'pcl-kpi-value ' + (profitPerSale >= 0 ? 'pcl-val-green' : 'pcl-val-red');
+      }
+      if (bigMargin) {
+        bigMargin.textContent = margin.toFixed(1) + '% margin';
+        bigMargin.className =
+          'pcl-kpi-sub ' + (margin >= 30 ? 'pcl-sub-green' : margin >= 15 ? 'pcl-sub-yellow' : 'pcl-sub-red');
+      }
+      if (marginBar) {
+        const barW = Math.max(0, Math.min(100, margin));
+        marginBar.style.width = barW + '%';
+        marginBar.className =
+          'pcl-kpi-bar-fill ' + (margin >= 30 ? 'pcl-bar-green' : margin >= 15 ? 'pcl-bar-yellow' : 'pcl-bar-red');
+      }
+
+      const setVal = function (id, val, cls) {
+        const el = q(id);
+        if (el) {
+          el.textContent = val;
+          if (cls) el.className = 'pcl-kpi-value ' + cls;
+        }
+      };
+      setVal(
+        'pcMonthlyRevenue',
+        '$' + monthlyRev.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        'pcl-val-cyan'
+      );
+      setVal(
+        'pcMonthlyProfit',
+        '$' + monthlyProfit.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+        monthlyProfit >= 0 ? 'pcl-val-green' : 'pcl-val-red'
+      );
+      setVal(
+        'pcROAS',
+        roas.toFixed(1) + 'x',
+        roas >= 3 ? 'pcl-val-green' : roas >= 2 ? 'pcl-val-yellow' : 'pcl-val-red'
+      );
+      setVal(
+        'pcBreakEven',
+        breakEven === Infinity ? '\u221E' : breakEven.toLocaleString(),
+        breakEven <= sales ? 'pcl-val-green' : 'pcl-val-orange'
+      );
+
+      const revSub = q('pcRevenueSub');
+      if (revSub) revSub.textContent = sales + ' sales projected';
+      const profitSub = q('pcProfitSub');
+      if (profitSub) profitSub.textContent = monthlyProfit >= 0 ? 'after all costs' : 'net loss projected';
+      const roasSub = q('pcRoasSub');
+      if (roasSub) {
+        if (roas >= 3) roasSub.textContent = 'excellent return';
+        else if (roas >= 2) roasSub.textContent = 'good return';
+        else roasSub.textContent = 'needs improvement';
+      }
+      const beSub = q('pcBeSub');
+      if (beSub) beSub.textContent = breakEven <= sales ? 'within your target' : 'above your target';
+
+      const scenarios = [10, 50, 100, 250, 500, 1000];
+      let maxScProfit = 0;
+      const profits = scenarios.map(function (s) {
+        return profitPerSale * s;
+      });
+      profits.forEach(function (p) {
+        if (p > maxScProfit) maxScProfit = p;
+      });
+      if (maxScProfit === 0) maxScProfit = 1;
+
+      scenarios.forEach(function (s, i) {
+        const p = profits[i];
+        const el = q('pcSc' + s + 'p');
+        const card = q('pcSc' + s);
+        const barFill = q('pcSc' + s + 'b');
+        if (el) el.textContent = '$' + p.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        if (card) {
+          card.className = 'pcl-scenario ' + (p >= 0 ? 'pcl-sc-positive' : 'pcl-sc-negative');
+        }
+        if (barFill) {
+          const bw = Math.max(0, (Math.abs(p) / maxScProfit) * 100);
+          barFill.style.width = bw + '%';
+          barFill.className = 'pcl-sc-bar-fill ' + (p >= 0 ? 'pcl-sc-fill-green' : 'pcl-sc-fill-red');
         }
       });
-    });
-  },
 
-  unmount(_ctx) {
-    if (plugin._chart) { plugin._chart.destroy(); plugin._chart = null; }
-    if (plugin._barChart) { plugin._barChart.destroy(); plugin._barChart = null; }
-    if (plugin._section) { plugin._section.remove(); plugin._section = null; }
-  },
+      plugin.updateInsights(margin, roas, profitPerSale, breakEven, sales, adCost, budget);
 
-  saveState() {
-    try {
-      const state = {};
-      ['pcSellPrice','pcProductCost','pcShipping','pcPlatformFee','pcAdCost','pcAdBudget','pcMonthlySales'].forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) state[id] = el.value;
+      plugin.renderDonut(cost, ship, platformFee, adCost, profitPerSale);
+      plugin.renderBar(cost, ship, platformFee, adCost, profitPerSale, sp);
+    },
+
+    updateInsights(margin, roas, profit, breakEven, sales, _adCost, _budget) {
+      const badge = plugin._section.querySelector('#pcInsightBadge');
+      const insight1 = plugin._section.querySelector('#pcInsight1');
+      const insight2 = plugin._section.querySelector('#pcInsight2');
+      const insight3 = plugin._section.querySelector('#pcInsight3');
+      const card1 = plugin._section.querySelector('#pcInsightCard1');
+      const card2 = plugin._section.querySelector('#pcInsightCard2');
+      const card3 = plugin._section.querySelector('#pcInsightCard3');
+
+      if (badge) {
+        if (margin >= 30) badge.textContent = 'Healthy Margins';
+        else if (margin >= 15) badge.textContent = 'Moderate Margins';
+        else if (margin > 0) badge.textContent = 'Low Margins';
+        else badge.textContent = 'Negative Margin';
+        badge.className =
+          'pcl-insights-badge ' +
+          (margin >= 30 ? 'pcl-badge-green' : margin >= 15 ? 'pcl-badge-yellow' : 'pcl-badge-red');
+      }
+
+      if (insight1 && card1) {
+        if (margin >= 50) {
+          insight1.textContent =
+            'Excellent margin! You keep $' +
+            profit.toFixed(2) +
+            ' of every $' +
+            (profit / (margin / 100)).toFixed(0) +
+            ' earned. This is above the 30% e-commerce benchmark.';
+          card1.className = 'pcl-insight-card pcl-ic-green';
+        } else if (margin >= 30) {
+          insight1.textContent =
+            'Solid margin at ' +
+            margin.toFixed(1) +
+            '%. Industry average is 20-30%. Consider raising price or cutting costs to reach 50%+ for scaling.';
+          card1.className = 'pcl-insight-card pcl-ic-cyan';
+        } else if (margin > 0) {
+          insight1.textContent =
+            'Margin is thin at ' +
+            margin.toFixed(1) +
+            "%. You're only keeping $" +
+            profit.toFixed(2) +
+            ' per sale. Increase price or reduce ad cost per sale.';
+          card1.className = 'pcl-insight-card pcl-ic-orange';
+        } else {
+          insight1.textContent =
+            "WARNING: You're losing $" +
+            Math.abs(profit).toFixed(2) +
+            ' per sale! Fix pricing or costs before running ads.';
+          card1.className = 'pcl-insight-card pcl-ic-red';
+        }
+      }
+
+      if (insight2 && card2) {
+        if (roas >= 4) {
+          insight2.textContent =
+            'ROAS of ' +
+            roas.toFixed(1) +
+            'x is exceptional. Each ad dollar returns $' +
+            roas.toFixed(2) +
+            '. Scale budget aggressively while maintaining efficiency.';
+          card2.className = 'pcl-insight-card pcl-ic-green';
+        } else if (roas >= 2.5) {
+          insight2.textContent =
+            'ROAS of ' +
+            roas.toFixed(1) +
+            'x is profitable. Test new audiences and creatives to push toward 4x+ for aggressive scaling.';
+          card2.className = 'pcl-insight-card pcl-ic-cyan';
+        } else if (roas >= 1.5) {
+          insight2.textContent =
+            'ROAS of ' +
+            roas.toFixed(1) +
+            'x is break-even territory. Optimize targeting, test new creatives, or reduce product cost to improve.';
+          card2.className = 'pcl-insight-card pcl-ic-orange';
+        } else {
+          insight2.textContent =
+            'ROAS of ' +
+            roas.toFixed(1) +
+            'x is unprofitable. You spend $' +
+            (1 / roas).toFixed(2) +
+            ' in ads to earn $1 in revenue. Fix before scaling.';
+          card2.className = 'pcl-insight-card pcl-ic-red';
+        }
+      }
+
+      if (insight3 && card3) {
+        if (breakEven <= sales) {
+          insight3.textContent =
+            'Break-even at ' +
+            breakEven +
+            ' sales is well within your ' +
+            sales +
+            ' target. You have ' +
+            (sales - breakEven) +
+            ' sales of pure profit headroom.';
+          card3.className = 'pcl-insight-card pcl-ic-green';
+        } else if (breakEven <= sales * 1.5) {
+          insight3.textContent =
+            'Break-even at ' +
+            breakEven +
+            ' sales is close to your ' +
+            sales +
+            ' target. Push for more volume or cut costs to widen the safety margin.';
+          card3.className = 'pcl-insight-card pcl-ic-yellow';
+        } else {
+          insight3.textContent =
+            'Break-even at ' +
+            breakEven +
+            ' sales exceeds your ' +
+            sales +
+            ' target. You need ' +
+            (breakEven - sales) +
+            ' more sales to become profitable.';
+          card3.className = 'pcl-insight-card pcl-ic-red';
+        }
+      }
+    },
+
+    renderDonut(cost, ship, platformFee, adCost, profit) {
+      const ctx = plugin._section ? plugin._section.querySelector('#pcDonutChart') : null;
+      if (!ctx) return;
+      if (plugin._chart) plugin._chart.destroy();
+      plugin._chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Product Cost', 'Shipping', 'Platform Fee', 'Ad Cost', 'Net Profit'],
+          datasets: [
+            {
+              data: [cost, ship, platformFee, adCost, Math.max(profit, 0)],
+              backgroundColor: [
+                'rgba(255,51,102,0.8)',
+                'rgba(255,138,0,0.8)',
+                'rgba(168,85,247,0.8)',
+                'rgba(0,229,255,0.8)',
+                'rgba(0,255,136,0.8)',
+              ],
+              borderColor: ['#ff3366', '#ff8a00', '#a855f7', '#00e5ff', '#00ff88'],
+              borderWidth: 2,
+              hoverOffset: 8,
+              borderRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#8888a4',
+                font: { family: 'Inter', size: 11 },
+                padding: 14,
+                usePointStyle: true,
+                pointStyleWidth: 8,
+              },
+            },
+            tooltip: {
+              backgroundColor: '#111119',
+              titleColor: '#f0f0f8',
+              bodyColor: '#8888a4',
+              borderColor: '#2a2a3d',
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 12,
+              callbacks: {
+                label: function (c) {
+                  return c.label + ': $' + c.raw.toFixed(2);
+                },
+              },
+            },
+          },
+          animation: { animateRotate: true, duration: 800 },
+        },
       });
-      localStorage.setItem('huntdrop_profitcalc', JSON.stringify(state));
-    } catch{/* ignored */}
-  },
+    },
 
-  loadState() {
-    try {
-      const saved = localStorage.getItem('huntdrop_profitcalc');
-      if (!saved || !plugin._section) return;
-      const state = JSON.parse(saved);
-      Object.keys(state).forEach(function(id) {
-        const el = document.getElementById(id);
-        if (el) el.value = state[id];
+    renderBar(cost, ship, platformFee, adCost, profit, sp) {
+      const ctx = plugin._section ? plugin._section.querySelector('#pcBarChart') : null;
+      if (!ctx) return;
+      if (plugin._barChart) plugin._barChart.destroy();
+      const total = sp || 1;
+      plugin._barChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Product', 'Shipping', 'Platform', 'Ads', 'Profit'],
+          datasets: [
+            {
+              data: [
+                (cost / total) * 100,
+                (ship / total) * 100,
+                (platformFee / total) * 100,
+                (adCost / total) * 100,
+                (Math.max(profit, 0) / total) * 100,
+              ],
+              backgroundColor: [
+                'rgba(255,51,102,0.75)',
+                'rgba(255,138,0,0.75)',
+                'rgba(168,85,247,0.75)',
+                'rgba(0,229,255,0.75)',
+                'rgba(0,255,136,0.75)',
+              ],
+              borderColor: ['#ff3366', '#ff8a00', '#a855f7', '#00e5ff', '#00ff88'],
+              borderWidth: 1,
+              borderRadius: 6,
+              borderSkipped: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              max: 100,
+              grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+              ticks: {
+                color: '#555570',
+                callback: function (v) {
+                  return v + '%';
+                },
+              },
+            },
+            y: { grid: { display: false }, ticks: { color: '#8888a4', font: { family: 'Inter', size: 11 } } },
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#111119',
+              titleColor: '#f0f0f8',
+              bodyColor: '#8888a4',
+              borderColor: '#2a2a3d',
+              borderWidth: 1,
+              cornerRadius: 8,
+              padding: 12,
+              callbacks: {
+                label: function (c) {
+                  return c.raw.toFixed(1) + '% of selling price';
+                },
+              },
+            },
+          },
+          animation: { duration: 600 },
+        },
       });
-      plugin.calculate();
-    } catch{/* ignored */}
-  },
+    },
 
-  animateValue(el, start, end, duration, prefix, suffix) {
-    prefix = prefix || '';
-    suffix = suffix || '';
-    let startTs = null;
-    function step(ts) {
-      if (!startTs) startTs = ts;
-      const p = Math.min((ts - startTs) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3);
-      const current = start + (end - start) * ease;
-      el.textContent = prefix + current.toLocaleString(undefined, {maximumFractionDigits: prefix === '$' ? 2 : 1}) + suffix;
-      if (p < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  },
+    exportCSV() {
+      if (!plugin._section) return;
+      const q = function (id) {
+        return document.getElementById(id);
+      };
+      const sp = parseFloat(q('pcSellPrice')?.value) || 0;
+      const cost = parseFloat(q('pcProductCost')?.value) || 0;
+      const ship = parseFloat(q('pcShipping')?.value) || 0;
+      const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
+      const adCost = parseFloat(q('pcAdCost')?.value) || 0;
+      const budget = parseFloat(q('pcAdBudget')?.value) || 0;
+      const sales = parseInt(q('pcMonthlySales')?.value) || 0;
+      const platformFee = sp * (fee / 100);
+      const totalCost = cost + ship + platformFee + adCost;
+      const profitPerSale = sp - totalCost;
+      const margin = sp > 0 ? (profitPerSale / sp) * 100 : 0;
 
-  calculate() {
-    if (!plugin._section) return;
-    const q = function(id) { return plugin._section.querySelector('#' + id); };
+      let csv = 'Metric,Value\n';
+      csv += 'Selling Price,$' + sp.toFixed(2) + '\n';
+      csv += 'Product Cost,$' + cost.toFixed(2) + '\n';
+      csv += 'Shipping Cost,$' + ship.toFixed(2) + '\n';
+      csv += 'Platform Fee,' + fee + '%\n';
+      csv += 'Ad Cost per Sale,$' + adCost.toFixed(2) + '\n';
+      csv += 'Monthly Ad Budget,$' + budget + '\n';
+      csv += 'Est. Monthly Sales,' + sales + '\n';
+      csv += '---,---\n';
+      csv += 'Profit Per Sale,$' + profitPerSale.toFixed(2) + '\n';
+      csv += 'Margin,' + margin.toFixed(1) + '%\n';
+      csv += 'Monthly Revenue,$' + (sp * sales).toFixed(0) + '\n';
+      csv += 'Monthly Profit,$' + (profitPerSale * sales).toFixed(0) + '\n';
+      csv += 'ROAS,' + (adCost > 0 ? (sp / adCost).toFixed(1) + 'x' : 'N/A') + '\n';
+      csv += '---,---\n';
+      csv += 'Sales/Month,Monthly Profit\n';
+      [10, 50, 100, 250, 500, 1000].forEach(function (s) {
+        csv += s + ',$' + (profitPerSale * s).toFixed(0) + '\n';
+      });
 
-    const sp = parseFloat(q('pcSellPrice')?.value) || 0;
-    const cost = parseFloat(q('pcProductCost')?.value) || 0;
-    const ship = parseFloat(q('pcShipping')?.value) || 0;
-    const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
-    const adCost = parseFloat(q('pcAdCost')?.value) || 0;
-    const budget = parseFloat(q('pcAdBudget')?.value) || 0;
-    const sales = parseInt(q('pcMonthlySales')?.value) || 0;
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'profit-analysis.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      if (window.HuntDrop.UI) window.HuntDrop.UI.toast('CSV exported successfully!', 'success', 2000);
+    },
+  };
 
-    const platformFee = sp * (fee / 100);
-    const totalCost = cost + ship + platformFee + adCost;
-    const profitPerSale = sp - totalCost;
-    const margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
-    const monthlyRev = sp * sales;
-    const monthlyProfit = profitPerSale * sales;
-    const roas = adCost > 0 ? sp / adCost : 0;
-    const breakEven = profitPerSale > 0 ? Math.ceil(budget / profitPerSale) : Infinity;
-
-    const bigProfit = q('pcBigProfit');
-    const bigMargin = q('pcBigMargin');
-    const marginBar = q('pcMarginBar');
-    if (bigProfit) {
-      bigProfit.textContent = '$' + profitPerSale.toFixed(2);
-      bigProfit.className = 'pcl-kpi-value ' + (profitPerSale >= 0 ? 'pcl-val-green' : 'pcl-val-red');
-    }
-    if (bigMargin) {
-      bigMargin.textContent = margin.toFixed(1) + '% margin';
-      bigMargin.className = 'pcl-kpi-sub ' + (margin >= 30 ? 'pcl-sub-green' : margin >= 15 ? 'pcl-sub-yellow' : 'pcl-sub-red');
-    }
-    if (marginBar) {
-      const barW = Math.max(0, Math.min(100, margin));
-      marginBar.style.width = barW + '%';
-      marginBar.className = 'pcl-kpi-bar-fill ' + (margin >= 30 ? 'pcl-bar-green' : margin >= 15 ? 'pcl-bar-yellow' : 'pcl-bar-red');
-    }
-
-    const setVal = function(id, val, cls) {
-      const el = q(id);
-      if (el) { el.textContent = val; if (cls) el.className = 'pcl-kpi-value ' + cls; }
-    };
-    setVal('pcMonthlyRevenue', '$' + monthlyRev.toLocaleString(undefined,{maximumFractionDigits:0}), 'pcl-val-cyan');
-    setVal('pcMonthlyProfit', '$' + monthlyProfit.toLocaleString(undefined,{maximumFractionDigits:0}), monthlyProfit >= 0 ? 'pcl-val-green' : 'pcl-val-red');
-    setVal('pcROAS', roas.toFixed(1) + 'x', roas >= 3 ? 'pcl-val-green' : roas >= 2 ? 'pcl-val-yellow' : 'pcl-val-red');
-    setVal('pcBreakEven', breakEven === Infinity ? '\u221E' : breakEven.toLocaleString(), breakEven <= sales ? 'pcl-val-green' : 'pcl-val-orange');
-
-    const revSub = q('pcRevenueSub');
-    if (revSub) revSub.textContent = sales + ' sales projected';
-    const profitSub = q('pcProfitSub');
-    if (profitSub) profitSub.textContent = monthlyProfit >= 0 ? 'after all costs' : 'net loss projected';
-    const roasSub = q('pcRoasSub');
-    if (roasSub) {
-      if (roas >= 3) roasSub.textContent = 'excellent return';
-      else if (roas >= 2) roasSub.textContent = 'good return';
-      else roasSub.textContent = 'needs improvement';
-    }
-    const beSub = q('pcBeSub');
-    if (beSub) beSub.textContent = breakEven <= sales ? 'within your target' : 'above your target';
-
-    const scenarios = [10,50,100,250,500,1000];
-    let maxScProfit = 0;
-    const profits = scenarios.map(function(s) { return profitPerSale * s; });
-    profits.forEach(function(p) { if (p > maxScProfit) maxScProfit = p; });
-    if (maxScProfit === 0) maxScProfit = 1;
-
-    scenarios.forEach(function(s, i) {
-      const p = profits[i];
-      const el = q('pcSc' + s + 'p');
-      const card = q('pcSc' + s);
-      const barFill = q('pcSc' + s + 'b');
-      if (el) el.textContent = '$' + p.toLocaleString(undefined,{maximumFractionDigits:0});
-      if (card) {
-        card.className = 'pcl-scenario ' + (p >= 0 ? 'pcl-sc-positive' : 'pcl-sc-negative');
-      }
-      if (barFill) {
-        const bw = Math.max(0, (Math.abs(p) / maxScProfit) * 100);
-        barFill.style.width = bw + '%';
-        barFill.className = 'pcl-sc-bar-fill ' + (p >= 0 ? 'pcl-sc-fill-green' : 'pcl-sc-fill-red');
-      }
-    });
-
-    plugin.updateInsights(margin, roas, profitPerSale, breakEven, sales, adCost, budget);
-
-    plugin.renderDonut(cost, ship, platformFee, adCost, profitPerSale);
-    plugin.renderBar(cost, ship, platformFee, adCost, profitPerSale, sp);
-  },
-
-  updateInsights(margin, roas, profit, breakEven, sales, _adCost, _budget) {
-    const badge = plugin._section.querySelector('#pcInsightBadge');
-    const insight1 = plugin._section.querySelector('#pcInsight1');
-    const insight2 = plugin._section.querySelector('#pcInsight2');
-    const insight3 = plugin._section.querySelector('#pcInsight3');
-    const card1 = plugin._section.querySelector('#pcInsightCard1');
-    const card2 = plugin._section.querySelector('#pcInsightCard2');
-    const card3 = plugin._section.querySelector('#pcInsightCard3');
-
-    if (badge) {
-      if (margin >= 30) badge.textContent = 'Healthy Margins';
-      else if (margin >= 15) badge.textContent = 'Moderate Margins';
-      else if (margin > 0) badge.textContent = 'Low Margins';
-      else badge.textContent = 'Negative Margin';
-      badge.className = 'pcl-insights-badge ' + (margin >= 30 ? 'pcl-badge-green' : margin >= 15 ? 'pcl-badge-yellow' : 'pcl-badge-red');
-    }
-
-    if (insight1 && card1) {
-      if (margin >= 50) {
-        insight1.textContent = 'Excellent margin! You keep $' + profit.toFixed(2) + ' of every $' + (profit / (margin/100)).toFixed(0) + ' earned. This is above the 30% e-commerce benchmark.';
-        card1.className = 'pcl-insight-card pcl-ic-green';
-      } else if (margin >= 30) {
-        insight1.textContent = 'Solid margin at ' + margin.toFixed(1) + '%. Industry average is 20-30%. Consider raising price or cutting costs to reach 50%+ for scaling.';
-        card1.className = 'pcl-insight-card pcl-ic-cyan';
-      } else if (margin > 0) {
-        insight1.textContent = 'Margin is thin at ' + margin.toFixed(1) + '%. You\'re only keeping $' + profit.toFixed(2) + ' per sale. Increase price or reduce ad cost per sale.';
-        card1.className = 'pcl-insight-card pcl-ic-orange';
-      } else {
-        insight1.textContent = 'WARNING: You\'re losing $' + Math.abs(profit).toFixed(2) + ' per sale! Fix pricing or costs before running ads.';
-        card1.className = 'pcl-insight-card pcl-ic-red';
-      }
-    }
-
-    if (insight2 && card2) {
-      if (roas >= 4) {
-        insight2.textContent = 'ROAS of ' + roas.toFixed(1) + 'x is exceptional. Each ad dollar returns $' + roas.toFixed(2) + '. Scale budget aggressively while maintaining efficiency.';
-        card2.className = 'pcl-insight-card pcl-ic-green';
-      } else if (roas >= 2.5) {
-        insight2.textContent = 'ROAS of ' + roas.toFixed(1) + 'x is profitable. Test new audiences and creatives to push toward 4x+ for aggressive scaling.';
-        card2.className = 'pcl-insight-card pcl-ic-cyan';
-      } else if (roas >= 1.5) {
-        insight2.textContent = 'ROAS of ' + roas.toFixed(1) + 'x is break-even territory. Optimize targeting, test new creatives, or reduce product cost to improve.';
-        card2.className = 'pcl-insight-card pcl-ic-orange';
-      } else {
-        insight2.textContent = 'ROAS of ' + roas.toFixed(1) + 'x is unprofitable. You spend $' + (1/roas).toFixed(2) + ' in ads to earn $1 in revenue. Fix before scaling.';
-        card2.className = 'pcl-insight-card pcl-ic-red';
-      }
-    }
-
-    if (insight3 && card3) {
-      if (breakEven <= sales) {
-        insight3.textContent = 'Break-even at ' + breakEven + ' sales is well within your ' + sales + ' target. You have ' + (sales - breakEven) + ' sales of pure profit headroom.';
-        card3.className = 'pcl-insight-card pcl-ic-green';
-      } else if (breakEven <= sales * 1.5) {
-        insight3.textContent = 'Break-even at ' + breakEven + ' sales is close to your ' + sales + ' target. Push for more volume or cut costs to widen the safety margin.';
-        card3.className = 'pcl-insight-card pcl-ic-yellow';
-      } else {
-        insight3.textContent = 'Break-even at ' + breakEven + ' sales exceeds your ' + sales + ' target. You need ' + (breakEven - sales) + ' more sales to become profitable.';
-        card3.className = 'pcl-insight-card pcl-ic-red';
-      }
-    }
-  },
-
-  renderDonut(cost, ship, platformFee, adCost, profit) {
-    const ctx = plugin._section ? plugin._section.querySelector('#pcDonutChart') : null;
-    if (!ctx) return;
-    if (plugin._chart) plugin._chart.destroy();
-    plugin._chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Product Cost', 'Shipping', 'Platform Fee', 'Ad Cost', 'Net Profit'],
-        datasets: [{
-          data: [cost, ship, platformFee, adCost, Math.max(profit,0)],
-          backgroundColor: ['rgba(255,51,102,0.8)','rgba(255,138,0,0.8)','rgba(168,85,247,0.8)','rgba(0,229,255,0.8)','rgba(0,255,136,0.8)'],
-          borderColor: ['#ff3366','#ff8a00','#a855f7','#00e5ff','#00ff88'],
-          borderWidth: 2,
-          hoverOffset: 8,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false, cutout: '68%',
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#8888a4', font: { family: 'Inter', size: 11 }, padding: 14, usePointStyle: true, pointStyleWidth: 8 } },
-          tooltip: {
-            backgroundColor: '#111119',
-            titleColor: '#f0f0f8',
-            bodyColor: '#8888a4',
-            borderColor: '#2a2a3d',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 12,
-            callbacks: { label: function(c) { return c.label + ': $' + c.raw.toFixed(2); } }
-          }
-        },
-        animation: { animateRotate: true, duration: 800 }
-      }
-    });
-  },
-
-  renderBar(cost, ship, platformFee, adCost, profit, sp) {
-    const ctx = plugin._section ? plugin._section.querySelector('#pcBarChart') : null;
-    if (!ctx) return;
-    if (plugin._barChart) plugin._barChart.destroy();
-    const total = sp || 1;
-    plugin._barChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Product', 'Shipping', 'Platform', 'Ads', 'Profit'],
-        datasets: [{
-          data: [(cost/total)*100, (ship/total)*100, (platformFee/total)*100, (adCost/total)*100, (Math.max(profit,0)/total)*100],
-          backgroundColor: ['rgba(255,51,102,0.75)','rgba(255,138,0,0.75)','rgba(168,85,247,0.75)','rgba(0,229,255,0.75)','rgba(0,255,136,0.75)'],
-          borderColor: ['#ff3366','#ff8a00','#a855f7','#00e5ff','#00ff88'],
-          borderWidth: 1, borderRadius: 6, borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-        scales: {
-          x: { max: 100, grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false }, ticks: { color: '#555570', callback: function(v) { return v + '%'; } } },
-          y: { grid: { display: false }, ticks: { color: '#8888a4', font: { family: 'Inter', size: 11 } } }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#111119',
-            titleColor: '#f0f0f8',
-            bodyColor: '#8888a4',
-            borderColor: '#2a2a3d',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 12,
-            callbacks: { label: function(c) { return c.raw.toFixed(1) + '% of selling price'; } }
-          }
-        },
-        animation: { duration: 600 }
-      }
-    });
-  },
-
-  exportCSV() {
-    if (!plugin._section) return;
-    const q = function(id) { return document.getElementById(id); };
-    const sp = parseFloat(q('pcSellPrice')?.value) || 0;
-    const cost = parseFloat(q('pcProductCost')?.value) || 0;
-    const ship = parseFloat(q('pcShipping')?.value) || 0;
-    const fee = parseFloat(q('pcPlatformFee')?.value) || 0;
-    const adCost = parseFloat(q('pcAdCost')?.value) || 0;
-    const budget = parseFloat(q('pcAdBudget')?.value) || 0;
-    const sales = parseInt(q('pcMonthlySales')?.value) || 0;
-    const platformFee = sp * (fee / 100);
-    const totalCost = cost + ship + platformFee + adCost;
-    const profitPerSale = sp - totalCost;
-    const margin = sp > 0 ? ((profitPerSale / sp) * 100) : 0;
-
-    let csv = 'Metric,Value\n';
-    csv += 'Selling Price,$' + sp.toFixed(2) + '\n';
-    csv += 'Product Cost,$' + cost.toFixed(2) + '\n';
-    csv += 'Shipping Cost,$' + ship.toFixed(2) + '\n';
-    csv += 'Platform Fee,' + fee + '%\n';
-    csv += 'Ad Cost per Sale,$' + adCost.toFixed(2) + '\n';
-    csv += 'Monthly Ad Budget,$' + budget + '\n';
-    csv += 'Est. Monthly Sales,' + sales + '\n';
-    csv += '---,---\n';
-    csv += 'Profit Per Sale,$' + profitPerSale.toFixed(2) + '\n';
-    csv += 'Margin,' + margin.toFixed(1) + '%\n';
-    csv += 'Monthly Revenue,$' + (sp * sales).toFixed(0) + '\n';
-    csv += 'Monthly Profit,$' + (profitPerSale * sales).toFixed(0) + '\n';
-    csv += 'ROAS,' + (adCost > 0 ? (sp / adCost).toFixed(1) + 'x' : 'N/A') + '\n';
-    csv += '---,---\n';
-    csv += 'Sales/Month,Monthly Profit\n';
-    [10,50,100,250,500,1000].forEach(function(s) {
-      csv += s + ',$' + (profitPerSale * s).toFixed(0) + '\n';
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'profit-analysis.csv'; a.click();
-    URL.revokeObjectURL(url);
-    if (window.HuntDrop.UI) window.HuntDrop.UI.toast('CSV exported successfully!', 'success', 2000);
-  }
-};
-
-// Expose for testing
-window.HuntDrop.ProfitCalc = plugin;
-PluginRegistry.register('profit-calculator', plugin);
+  // Expose for testing
+  window.HuntDrop.ProfitCalc = plugin;
+  PluginRegistry.register('profit-calculator', plugin);
 })();

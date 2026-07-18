@@ -36,7 +36,9 @@ describe('customer-persona plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('customer-persona');
-      try { await HuntDrop.PluginRegistry.mount('customer-persona'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('customer-persona');
+      } catch (e) {}
       const section = document.getElementById('section-personas');
       expect(section).toBeDefined();
     });
@@ -44,7 +46,9 @@ describe('customer-persona plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('customer-persona');
-      try { await HuntDrop.PluginRegistry.mount('customer-persona'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('customer-persona');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -52,7 +56,9 @@ describe('customer-persona plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('customer-persona');
-      try { await HuntDrop.PluginRegistry.mount('customer-persona'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('customer-persona');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('customer-persona');
       expect(document.getElementById('section-personas')).toBeNull();
     });

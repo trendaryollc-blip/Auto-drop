@@ -10,10 +10,7 @@ describe('Search Engine — Edge Cases', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/search-engine.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/search-engine.js']));
   });
 
   describe('fuzzyMatch() — edge cases', () => {

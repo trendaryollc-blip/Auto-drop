@@ -12,10 +12,7 @@ describe('refund-detail plugin', () => {
   beforeEach(() => {
     setupDashboardDOM();
     sessionStorage.clear();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/refund-detail.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/refund-detail.js']));
     plugin = HuntDrop.PluginRegistry.get('refund-detail');
   });
 

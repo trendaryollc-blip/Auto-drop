@@ -113,7 +113,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should catch errors in listeners and continue', async () => {
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const cb = vi.fn();
-      HuntDrop.EventBus.on('test:err', () => { throw new Error('boom'); });
+      HuntDrop.EventBus.on('test:err', () => {
+        throw new Error('boom');
+      });
       HuntDrop.EventBus.on('test:err', cb);
       await HuntDrop.EventBus.emit('test:err');
       expect(errSpy).toHaveBeenCalled();
@@ -124,7 +126,13 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should support context option', async () => {
       const ctx = { value: 42 };
       let receivedCtx;
-      HuntDrop.EventBus.on('test:ctx', function() { receivedCtx = this; }, { context: ctx });
+      HuntDrop.EventBus.on(
+        'test:ctx',
+        function () {
+          receivedCtx = this;
+        },
+        { context: ctx }
+      );
       await HuntDrop.EventBus.emit('test:ctx');
       expect(receivedCtx).toBe(ctx);
     });
@@ -292,7 +300,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should catch init errors and not mark as initialized', async () => {
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       HuntDrop.PluginRegistry.register('init-err-plugin', {
-        init: () => { throw new Error('init failed'); }
+        init: () => {
+          throw new Error('init failed');
+        },
       });
       await HuntDrop.PluginRegistry.init('init-err-plugin');
       expect(HuntDrop.PluginRegistry.get('init-err-plugin')._initialized).toBe(false);
@@ -302,7 +312,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should catch mount errors and not mark as mounted', async () => {
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       HuntDrop.PluginRegistry.register('mount-err-plugin', {
-        mount: () => { throw new Error('mount failed'); }
+        mount: () => {
+          throw new Error('mount failed');
+        },
       });
       await HuntDrop.PluginRegistry.mount('mount-err-plugin');
       expect(HuntDrop.PluginRegistry.get('mount-err-plugin')._mounted).toBe(false);
@@ -335,7 +347,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
 
     it('executeHook() should catch handler errors', async () => {
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      HuntDrop.PluginRegistry.addHook('err:hook', 'p1', () => { throw new Error('hook err'); });
+      HuntDrop.PluginRegistry.addHook('err:hook', 'p1', () => {
+        throw new Error('hook err');
+      });
       const result = await HuntDrop.PluginRegistry.executeHook('err:hook', { data: 1 });
       expect(result).toEqual({ data: 1 });
       errSpy.mockRestore();
@@ -344,7 +358,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('should pass context object to init/mount/unmount/destroy', async () => {
       let receivedCtx;
       HuntDrop.PluginRegistry.register('ctx-plugin', {
-        init: (ctx) => { receivedCtx = ctx; }
+        init: (ctx) => {
+          receivedCtx = ctx;
+        },
       });
       await HuntDrop.PluginRegistry.init('ctx-plugin');
       expect(receivedCtx).toBeDefined();
@@ -539,12 +555,14 @@ describe('core.js — HuntDrop Core Foundation', () => {
       HuntDrop.EventBus.on('config:changed', cb);
       HuntDrop.Config.defaults('emit', { a: 1 });
       HuntDrop.Config.set('emit.a', 2);
-      expect(cb).toHaveBeenCalledWith(expect.objectContaining({
-        path: 'emit.a',
-        value: 2,
-        oldValue: 1,
-        namespace: 'emit',
-      }));
+      expect(cb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: 'emit.a',
+          value: 2,
+          oldValue: 1,
+          namespace: 'emit',
+        })
+      );
     });
 
     it('should support validators', () => {
@@ -583,10 +601,12 @@ describe('core.js — HuntDrop Core Foundation', () => {
       const cb = vi.fn();
       HuntDrop.Config.watch('watch.a', cb);
       HuntDrop.Config.set('watch.a', 2);
-      expect(cb).toHaveBeenCalledWith(expect.objectContaining({
-        path: 'watch.a',
-        value: 2,
-      }));
+      expect(cb).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: 'watch.a',
+          value: 2,
+        })
+      );
     });
 
     it('watch() should match child paths', async () => {
@@ -662,7 +682,9 @@ describe('core.js — HuntDrop Core Foundation', () => {
     it('searchAll() should catch adapter errors', async () => {
       const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       HuntDrop.DataLayer.registerAdapter('err-adapter', {
-        search: async () => { throw new Error('search failed'); },
+        search: async () => {
+          throw new Error('search failed');
+        },
       });
       const results = await HuntDrop.DataLayer.searchAll('query');
       expect(results).toEqual([]);

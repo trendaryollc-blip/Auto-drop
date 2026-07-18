@@ -11,10 +11,7 @@ describe('order-tracker plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/order-tracker.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/order-tracker.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('order-tracker');
   });
@@ -104,7 +101,7 @@ describe('order-tracker plugin', () => {
       await HuntDrop.PluginRegistry.init('order-tracker');
       await HuntDrop.PluginRegistry.mount('order-tracker');
       const inputs = ['otNewId', 'otNewProduct', 'otNewCustomer', 'otNewCost', 'otNewSell'];
-      inputs.forEach(id => {
+      inputs.forEach((id) => {
         const el = document.getElementById(id);
         expect(el).toBeDefined();
       });

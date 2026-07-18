@@ -15,10 +15,7 @@ describe('Business Logic — Profit Calculator Accuracy', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/profit-calculator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/profit-calculator.js']));
     calc = HuntDrop.ProfitCalc;
   });
 
@@ -42,7 +39,7 @@ describe('Business Logic — Profit Calculator Accuracy', () => {
       calc.calculate();
       // Expected: 50 - 15 - 5 - (50*0.15) - 3 = 50 - 15 - 5 - 7.50 - 3 = 19.50
       const bigProfit = document.getElementById('pcBigProfit');
-      expect(parseFloat(bigProfit.textContent.replace('$', ''))).toBeCloseTo(19.50, 2);
+      expect(parseFloat(bigProfit.textContent.replace('$', ''))).toBeCloseTo(19.5, 2);
     });
 
     it('should compute margin = (profitPerSale / sellPrice) * 100', () => {
@@ -272,7 +269,9 @@ describe('Business Logic — Profit Calculator Accuracy', () => {
       });
       calc.saveState();
       // Reset fields
-      Object.keys(fields).forEach(id => { document.getElementById(id).value = '0'; });
+      Object.keys(fields).forEach((id) => {
+        document.getElementById(id).value = '0';
+      });
       calc.loadState();
       Object.entries(fields).forEach(([id, val]) => {
         expect(document.getElementById(id).value).toBe(val);
@@ -296,10 +295,7 @@ describe('Business Logic — Budget Allocator Scoring & Allocation', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ad-budget-allocator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ad-budget-allocator.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
   });
 
@@ -359,26 +355,23 @@ describe('Business Logic — AI Risk Analyzer Calculations', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-risk-analyzer.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-risk-analyzer.js']));
     analyzer = HuntDrop.AIRiskAnalyzer;
   });
 
   describe('calculateProfit() — exact formula', () => {
     it('should compute profit = amazonPrice - cost - 2.50 - adSpendAvg', () => {
       const p = createSampleProduct({
-        price: 10.00,
+        price: 10.0,
         platformPrices: { amazon: 29.99 },
-        adSpendAvg: 3.00,
+        adSpendAvg: 3.0,
       });
       expect(analyzer.calculateProfit(p)).toBeCloseTo(14.49, 1);
     });
 
     it('should handle zero adSpendAvg (defaults to 3)', () => {
       const p = createSampleProduct({
-        price: 10.00,
+        price: 10.0,
         platformPrices: { amazon: 29.99 },
         adSpendAvg: 0,
       });
@@ -397,9 +390,9 @@ describe('Business Logic — AI Risk Analyzer Calculations', () => {
   describe('calculateBreakEven() — formula', () => {
     it('should compute breakEven = ceil(50 / profit)', () => {
       const p = createSampleProduct({
-        price: 10.00,
-        platformPrices: { amazon: 30.00 },
-        adSpendAvg: 3.00,
+        price: 10.0,
+        platformPrices: { amazon: 30.0 },
+        adSpendAvg: 3.0,
       });
       // profit = 30 - 10 - 2.50 - 3 = 14.50
       // breakEven = ceil(50 / 14.50) = 4
@@ -408,9 +401,9 @@ describe('Business Logic — AI Risk Analyzer Calculations', () => {
 
     it('should return Infinity for negative profit', () => {
       const p = createSampleProduct({
-        price: 50.00,
-        platformPrices: { amazon: 20.00 },
-        adSpendAvg: 5.00,
+        price: 50.0,
+        platformPrices: { amazon: 20.0 },
+        adSpendAvg: 5.0,
       });
       expect(analyzer.calculateBreakEven(p)).toBe(Infinity);
     });
@@ -449,8 +442,12 @@ describe('Business Logic — AI Risk Analyzer Calculations', () => {
 
     it('should return valid analysis for good product', () => {
       const p = createSampleProduct({
-        score: 90, margin: 70, competition: 'low', riskScore: 20,
-        demand: 85, marketSaturation: 25,
+        score: 90,
+        margin: 70,
+        competition: 'low',
+        riskScore: 20,
+        demand: 85,
+        marketSaturation: 25,
         trendData: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320],
         suppliers: [{ name: 'S1', verified: true }],
       });
@@ -466,8 +463,12 @@ describe('Business Logic — AI Risk Analyzer Calculations', () => {
 
     it('should classify as PROCEED for high-scoring product', () => {
       const p = createSampleProduct({
-        score: 95, margin: 80, competition: 'low', riskScore: 10,
-        demand: 95, marketSaturation: 15,
+        score: 95,
+        margin: 80,
+        competition: 'low',
+        riskScore: 10,
+        demand: 95,
+        marketSaturation: 15,
         trendData: [50, 80, 110, 140, 170, 200, 230, 260, 290, 320, 350, 380],
         suppliers: [{ name: 'S1', verified: true }],
       });
@@ -595,7 +596,7 @@ describe('Business Logic — AI Chat Service Fallback Responses', () => {
         platformPrices: { amazon: 30 },
         adSpendAvg: 5,
       });
-      expect(chat.estimateProfit(p)).toBeCloseTo(12.50, 1);
+      expect(chat.estimateProfit(p)).toBeCloseTo(12.5, 1);
     });
 
     it('should fallback to shopify price if no amazon', () => {
@@ -604,7 +605,7 @@ describe('Business Logic — AI Chat Service Fallback Responses', () => {
         platformPrices: { shopify: 25 },
         adSpendAvg: 3,
       });
-      expect(chat.estimateProfit(p)).toBeCloseTo(9.50, 1);
+      expect(chat.estimateProfit(p)).toBeCloseTo(9.5, 1);
     });
   });
 });
@@ -625,7 +626,7 @@ describe('Business Logic — Bundle Intelligence Calculations', () => {
     it('should be registered in PluginRegistry', () => {
       expect(HuntDrop.PluginRegistry).toBeDefined();
       const allPlugins = HuntDrop.PluginRegistry.getAll();
-      const ids = allPlugins.map(p => p.id);
+      const ids = allPlugins.map((p) => p.id);
       expect(ids).toContain('bundle-intelligence');
     });
   });
@@ -637,10 +638,7 @@ describe('Business Logic — Context Builder Data Integrity', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-context-builder.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-context-builder.js']));
     ctx = HuntDrop.AIContextBuilder;
   });
 
@@ -662,7 +660,7 @@ describe('Business Logic — Context Builder Data Integrity', () => {
 
     it('should include required fields for each product', () => {
       const context = ctx.buildFullContext();
-      context.products.forEach(p => {
+      context.products.forEach((p) => {
         expect(p.id).toBeDefined();
         expect(p.title).toBeDefined();
         expect(p.platform).toBeDefined();
@@ -707,7 +705,7 @@ describe('Business Logic — Context Builder Data Integrity', () => {
   describe('getProductsByCategory()', () => {
     it('should filter products by category', () => {
       const electronics = ctx.getProductsByCategory('Electronics');
-      electronics.forEach(p => {
+      electronics.forEach((p) => {
         expect(p.category.toLowerCase()).toContain('electronics');
       });
     });

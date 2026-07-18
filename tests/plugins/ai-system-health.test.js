@@ -6,10 +6,7 @@ describe('ai-system-health plugin', () => {
   let plugin;
 
   beforeEach(() => {
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-system-health.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-system-health.js']));
     plugin = HuntDrop.AISystemHealth;
   });
 
@@ -33,7 +30,7 @@ describe('ai-system-health plugin', () => {
 
     it('each check should have id, name, pass, issues, severity', () => {
       const checks = plugin.runAllChecks();
-      checks.forEach(c => {
+      checks.forEach((c) => {
         expect(c.id).toBeDefined();
         expect(c.name).toBeDefined();
         expect(typeof c.pass).toBe('boolean');

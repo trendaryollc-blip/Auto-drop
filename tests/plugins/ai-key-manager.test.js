@@ -282,21 +282,21 @@ describe('ai-key-manager plugin', () => {
     });
 
     it('should return Bearer auth for new OpenAI-compatible providers', () => {
-      ['deepseek', 'together', 'perplexity'].forEach(function(p) {
+      ['deepseek', 'together', 'perplexity'].forEach(function (p) {
         const headers = km.getHeaders(p, 'test-key');
         expect(headers['Authorization']).toBe('Bearer test-key');
       });
     });
 
     it('should return Bearer auth for mistral and cohere', () => {
-      ['mistral', 'cohere', 'huggingface'].forEach(function(p) {
+      ['mistral', 'cohere', 'huggingface'].forEach(function (p) {
         const headers = km.getHeaders(p, 'test-key');
         expect(headers['Authorization']).toBe('Bearer test-key');
       });
     });
 
     it('should return Bearer auth for new expanded providers', () => {
-      ['fireworks', 'openrouter', 'octoai', 'lepton'].forEach(function(p) {
+      ['fireworks', 'openrouter', 'octoai', 'lepton'].forEach(function (p) {
         const headers = km.getHeaders(p, 'test-key');
         expect(headers['Authorization']).toBe('Bearer test-key');
         expect(headers['Content-Type']).toBe('application/json');

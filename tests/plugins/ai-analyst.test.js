@@ -36,7 +36,9 @@ describe('ai-analyst plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('ai-analyst');
-      try { await HuntDrop.PluginRegistry.mount('ai-analyst'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-analyst');
+      } catch (e) {}
       const section = document.getElementById('section-ai-analyst');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-ai-analyst');
@@ -44,7 +46,9 @@ describe('ai-analyst plugin', () => {
 
     it('should contain search input and analyze button', async () => {
       await HuntDrop.PluginRegistry.init('ai-analyst');
-      try { await HuntDrop.PluginRegistry.mount('ai-analyst'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-analyst');
+      } catch (e) {}
       expect(document.getElementById('aiInput')).toBeDefined();
       expect(document.getElementById('aiAnalyzeBtn')).toBeDefined();
     });
@@ -52,7 +56,9 @@ describe('ai-analyst plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('ai-analyst');
-      try { await HuntDrop.PluginRegistry.mount('ai-analyst'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-analyst');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -60,7 +66,9 @@ describe('ai-analyst plugin', () => {
   describe('unmount()', () => {
     it('should clean up section and charts', async () => {
       await HuntDrop.PluginRegistry.init('ai-analyst');
-      try { await HuntDrop.PluginRegistry.mount('ai-analyst'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-analyst');
+      } catch (e) {}
       const section = document.getElementById('section-ai-analyst');
       expect(section).toBeDefined();
       await HuntDrop.PluginRegistry.unmount('ai-analyst');

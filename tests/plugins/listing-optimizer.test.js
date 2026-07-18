@@ -11,10 +11,7 @@ describe('listing-optimizer plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/listing-optimizer.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/listing-optimizer.js']));
     plugin = HuntDrop.PluginRegistry.get('listing-optimizer');
   });
 
@@ -99,7 +96,8 @@ describe('listing-optimizer plugin', () => {
       const titleInput = document.getElementById('loTitle');
       const descInput = document.getElementById('loDesc');
       if (titleInput) titleInput.value = 'Premium Wireless Bluetooth Earbuds Noise Cancelling';
-      if (descInput) descInput.value = 'High quality wireless earbuds with active noise cancellation and long battery life.';
+      if (descInput)
+        descInput.value = 'High quality wireless earbuds with active noise cancellation and long battery life.';
 
       const analyzeBtn = document.getElementById('loAnalyzeBtn');
       if (analyzeBtn) analyzeBtn.click();

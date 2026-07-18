@@ -25,7 +25,7 @@ const CORE_ASSETS = [
   '/css/components.css',
   '/css/navigation.css',
   '/css/dashboard.css',
-  '/css/responsive.css'
+  '/css/responsive.css',
 ];
 
 // Offline fallback page (inline HTML for when network is unavailable)
@@ -139,33 +139,42 @@ const OFFLINE_PAGE = `<!DOCTYPE html>
 </html>`;
 
 // Install: pre-cache ONLY core files
-self.addEventListener('install', function(event) {
+self.addEventListener('install', function (event) {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(CORE_ASSETS);
-    }).then(function() {
-      return self.skipWaiting();
-    }).catch(function(err) {
-      console.warn('[SW] Pre-cache failed for some core assets:', err);
-      return self.skipWaiting();
-    })
+    caches
+      .open(CACHE_NAME)
+      .then(function (cache) {
+        return cache.addAll(CORE_ASSETS);
+      })
+      .then(function () {
+        return self.skipWaiting();
+      })
+      .catch(function (err) {
+        console.warn('[SW] Pre-cache failed for some core assets:', err);
+        return self.skipWaiting();
+      })
   );
 });
 
 // Activate: clean up old caches
-self.addEventListener('activate', function(event) {
+self.addEventListener('activate', function (event) {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.filter(function(name) {
-          return name !== CACHE_NAME;
-        }).map(function(name) {
-          return caches.delete(name);
-        })
-      );
-    }).then(function() {
-      return self.clients.claim();
-    })
+    caches
+      .keys()
+      .then(function (cacheNames) {
+        return Promise.all(
+          cacheNames
+            .filter(function (name) {
+              return name !== CACHE_NAME;
+            })
+            .map(function (name) {
+              return caches.delete(name);
+            })
+        );
+      })
+      .then(function () {
+        return self.clients.claim();
+      })
   );
 });
 
@@ -176,9 +185,11 @@ async function evictOldCacheEntries(cache, maxItems) {
     if (keys.length > maxItems) {
       // Remove oldest entries (first in = first out)
       const entriesToRemove = keys.slice(0, keys.length - maxItems);
-      await Promise.all(entriesToRemove.map(function(request) {
-        return cache.delete(request);
-      }));
+      await Promise.all(
+        entriesToRemove.map(function (request) {
+          return cache.delete(request);
+        })
+      );
     }
   } catch (err) {
     console.warn('[SW] Cache eviction failed:', err);
@@ -186,20 +197,22 @@ async function evictOldCacheEntries(cache, maxItems) {
 }
 
 // Fetch: network-first for APIs, cache-first for core, cache-on-first-use for others
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
   const url = new URL(event.request.url);
 
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
   // Network-first for API calls and external resources
-  if (url.hostname !== self.location.hostname ||
-      url.pathname.startsWith('/api/') ||
-      url.hostname.includes('cdn.jsdelivr.net') ||
-      url.hostname.includes('fonts.googleapis.com') ||
-      url.hostname.includes('fonts.gstatic.com')) {
+  if (
+    url.hostname !== self.location.hostname ||
+    url.pathname.startsWith('/api/') ||
+    url.hostname.includes('cdn.jsdelivr.net') ||
+    url.hostname.includes('fonts.googleapis.com') ||
+    url.hostname.includes('fonts.gstatic.com')
+  ) {
     event.respondWith(
-      fetch(event.request).catch(function() {
+      fetch(event.request).catch(function () {
         return caches.match(event.request);
       })
     );
@@ -208,32 +221,34 @@ self.addEventListener('fetch', function(event) {
 
   // Cache-first for same-origin requests (serves pre-cached + previously fetched)
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
+    caches.match(event.request).then(function (cached) {
       if (cached) return cached;
 
-      return fetch(event.request).then(function(response) {
-        // Cache successful same-origin responses (cache-on-first-use)
-        if (response.ok && url.origin === self.location.origin) {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(async function(cache) {
-            await cache.put(event.request, responseClone);
-            // Enforce LRU cache limit
-            await evictOldCacheEntries(cache, MAX_CACHE_ITEMS);
-          });
-        }
-        return response;
-      }).catch(function() {
+      return fetch(event.request)
+        .then(function (response) {
+          // Cache successful same-origin responses (cache-on-first-use)
+          if (response.ok && url.origin === self.location.origin) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(async function (cache) {
+              await cache.put(event.request, responseClone);
+              // Enforce LRU cache limit
+              await evictOldCacheEntries(cache, MAX_CACHE_ITEMS);
+            });
+          }
+          return response;
+        })
+        .catch(function () {
           // Offline fallback: return offline page for navigation requests
           if (event.request.mode === 'navigate') {
             // Return the offline page as a Response
-            var offlineBytes = new TextEncoder().encode(OFFLINE_PAGE);
+            const offlineBytes = new TextEncoder().encode(OFFLINE_PAGE);
             return new Response(offlineBytes, {
               status: 200,
-              headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Length': String(offlineBytes.length) }
+              headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Length': String(offlineBytes.length) },
             });
           }
-        return new Response('Offline', { status: 503, statusText: 'Offline' });
-      });
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
     })
   );
 });

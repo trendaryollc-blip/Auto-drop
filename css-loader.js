@@ -1,6 +1,6 @@
 // Load non-critical CSS asynchronously to preserve the inline critical path.
 // This avoids blocking render and reduces FOUC while still loading full styles.
-var CSS_ASSETS = [
+const CSS_ASSETS = [
   'css/base.css',
   'css/components.css',
   'css/navigation.css',
@@ -19,21 +19,21 @@ var CSS_ASSETS = [
   'css/plugin-market-gap.css',
   'css/plugin-lifecycle.css',
   'css/plugin-settings.css',
-  'css/plugin-utilities.css'
+  'css/plugin-utilities.css',
 ];
 
 function loadStyleSheet(href) {
-  var link = document.createElement('link');
+  const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.href = href;
-  link.onerror = function() {
+  link.onerror = function () {
     console.warn('[HuntDrop] Failed to load CSS:', href);
   };
   document.head.appendChild(link);
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     CSS_ASSETS.forEach(loadStyleSheet);
   });
 } else {

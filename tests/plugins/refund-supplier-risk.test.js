@@ -12,10 +12,7 @@ describe('refund-supplier-risk plugin', () => {
   beforeEach(() => {
     setupDashboardDOM();
     sessionStorage.clear();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/refund-supplier-risk.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/refund-supplier-risk.js']));
     plugin = HuntDrop.PluginRegistry.get('refund-supplier-risk');
   });
 

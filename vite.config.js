@@ -14,7 +14,7 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: {
       compress: { drop_console: false },
-      format: { comments: false }
+      format: { comments: false },
     },
     rollupOptions: {
       input: resolve(__dirname, 'index.html'),
@@ -33,8 +33,8 @@ export default defineConfig({
     },
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
+      Pragma: 'no-cache',
+      Expires: '0',
     },
   },
   css: {

@@ -3,7 +3,14 @@
 // ============================================================================
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadCoreWithPlugins, loadCore, loadScript, setupDashboardDOM, createSampleProduct, flushPromises } from './setup.js';
+import {
+  loadCoreWithPlugins,
+  loadCore,
+  loadScript,
+  setupDashboardDOM,
+  createSampleProduct,
+  flushPromises,
+} from './setup.js';
 
 describe('Integration — Search → Grid Rendering', () => {
   let HuntDrop;
@@ -57,10 +64,7 @@ describe('Integration — Filter Chain: platform + sort + price', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/search-engine.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/search-engine.js']));
   });
 
   it('should apply platform filter + sort together', async () => {
@@ -77,7 +81,7 @@ describe('Integration — Filter Chain: platform + sort + price', () => {
 
     expect(resultsCb).toHaveBeenCalled();
     const results = resultsCb.mock.calls[resultsCb.mock.calls.length - 1][0].results;
-    results.forEach(r => {
+    results.forEach((r) => {
       expect(r.platform).toBe('amazon');
     });
     // Verify sort order
@@ -99,7 +103,7 @@ describe('Integration — Filter Chain: platform + sort + price', () => {
     await flushPromises(50);
 
     const results = resultsCb.mock.calls[resultsCb.mock.calls.length - 1][0].results;
-    results.forEach(r => {
+    results.forEach((r) => {
       expect(r.price).toBeLessThanOrEqual(20);
       expect(r.competition).toBe('low');
     });
@@ -158,9 +162,7 @@ describe('Integration — Navigation Flow', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js']));
   });
 
   it('should support Router navigate', async () => {
@@ -196,10 +198,7 @@ describe('Integration — Config Persistence', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-key-manager.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-key-manager.js']));
   });
 
   it('should persist config values across sessions', async () => {
@@ -226,9 +225,7 @@ describe('Integration — Feature Flags', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js']));
   });
 
   it('should register and check feature flags', () => {
@@ -254,9 +251,7 @@ describe('Integration — Export Helpers', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js']));
   });
 
   it('should have EventBus for cross-plugin communication', () => {
@@ -278,10 +273,7 @@ describe('Integration — Full Plugin Lifecycle (init → mount → use → unmo
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/profit-calculator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/profit-calculator.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
   });
 
@@ -320,10 +312,7 @@ describe('Integration — Error Recovery', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/search-engine.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/search-engine.js']));
   });
 
   it('should recover from EventBus listener errors', async () => {

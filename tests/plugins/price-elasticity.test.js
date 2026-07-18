@@ -7,10 +7,7 @@ describe('price-elasticity plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/price-elasticity.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/price-elasticity.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
     plugin = HuntDrop.PluginRegistry.get('price-elasticity');
   });

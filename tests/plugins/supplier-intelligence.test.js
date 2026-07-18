@@ -11,10 +11,7 @@ describe('supplier-intelligence plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/supplier-intelligence.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/supplier-intelligence.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('supplier-intelligence');
   });

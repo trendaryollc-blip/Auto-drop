@@ -6,10 +6,7 @@ describe('product-hunt plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/product-hunt.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/product-hunt.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
   });
 
@@ -78,6 +75,4 @@ describe('product-hunt plugin', () => {
       expect(sidebar).toBeNull();
     });
   });
-
-
 });

@@ -11,10 +11,7 @@ describe('business-simulator plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/business-simulator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/business-simulator.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('business-simulator');
   });
@@ -54,16 +51,18 @@ describe('business-simulator plugin', () => {
 
   describe('simulate() function', () => {
     it('should return results with daily data for 90 days', () => {
-      const results = plugin.simulate ? plugin.simulate({
-        budget: 5000,
-        productCount: 5,
-        avgCpa: 5,
-        avgOrderValue: 30,
-        avgMargin: 40,
-        dailyAdSpend: 100,
-        growthRate: 10,
-        refundRate: 5,
-      }) : null;
+      const results = plugin.simulate
+        ? plugin.simulate({
+            budget: 5000,
+            productCount: 5,
+            avgCpa: 5,
+            avgOrderValue: 30,
+            avgMargin: 40,
+            dailyAdSpend: 100,
+            growthRate: 10,
+            refundRate: 5,
+          })
+        : null;
       // If simulate is not exposed, we test via runSimulation
       if (results) {
         expect(results.daily).toBeDefined();

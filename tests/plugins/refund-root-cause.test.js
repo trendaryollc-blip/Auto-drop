@@ -12,10 +12,7 @@ describe('refund-root-cause plugin', () => {
   beforeEach(() => {
     setupDashboardDOM();
     sessionStorage.clear();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/refund-root-cause.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/refund-root-cause.js']));
     plugin = HuntDrop.PluginRegistry.get('refund-root-cause');
   });
 

@@ -125,7 +125,9 @@ describe('ai-chat-service plugin', () => {
     });
 
     it('should limit history to last 10 messages', () => {
-      const history = Array(15).fill(null).map((_, i) => ({ role: 'user', content: `msg ${i}` }));
+      const history = Array(15)
+        .fill(null)
+        .map((_, i) => ({ role: 'user', content: `msg ${i}` }));
       const messages = plugin.buildMessages('system', 'current', history);
       expect(messages.length).toBeLessThanOrEqual(12);
     });

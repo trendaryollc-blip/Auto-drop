@@ -51,7 +51,11 @@ describe('Integration — Full App Boot', () => {
 
     const loadErrors = [];
     plugins.forEach((p) => {
-      try { loadScript(p); } catch(e) { loadErrors.push({ plugin: p, error: e.message }); }
+      try {
+        loadScript(p);
+      } catch (e) {
+        loadErrors.push({ plugin: p, error: e.message });
+      }
     });
     if (loadErrors.length > 0) {
       console.warn(`[Integration Test] ${loadErrors.length} plugin(s) failed to load:`, loadErrors);
@@ -61,7 +65,7 @@ describe('Integration — Full App Boot', () => {
     try {
       loadScript('app.js');
       document.dispatchEvent(new Event('DOMContentLoaded'));
-    } catch(e) {
+    } catch (e) {
       console.warn('[Integration Test] app.js failed to load:', e.message);
     }
   });
@@ -143,7 +147,7 @@ describe('Integration — Full App Boot', () => {
 
       // Use empty query to get all products
       await HuntDrop.EventBus.emit('search:query', { query: '', filters: {} });
-      
+
       // Wait for async search and rendering to complete
       await flushPromises(100);
 
@@ -240,7 +244,7 @@ describe('Integration — Full App Boot', () => {
       for (const p of plugins) {
         try {
           await PluginRegistry.mount(p.id);
-        } catch(e) {
+        } catch (e) {
           console.warn(`[Integration Test] Plugin "${p.id}" failed to mount:`, e.message);
         }
       }

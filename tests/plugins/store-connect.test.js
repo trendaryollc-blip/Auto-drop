@@ -13,12 +13,9 @@ describe('store-connect plugin', () => {
     setupDashboardDOM();
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ success: true, created: 1, failed: 0, results: [{ success: true }] })
+      json: () => Promise.resolve({ success: true, created: 1, failed: 0, results: [{ success: true }] }),
     });
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/store-connect.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/store-connect.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related</div>');
     plugin = HuntDrop.PluginRegistry.get('store-connect');
   });

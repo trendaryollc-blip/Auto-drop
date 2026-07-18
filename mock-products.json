@@ -8,10 +8,7 @@
     "originalPrice": 49.99,
     "margin": 74,
     "score": 92,
-    "badges": [
-      "trending",
-      "ai"
-    ],
+    "badges": ["trending", "ai"],
     "salesVelocity": 850,
     "competition": "medium",
     "demand": 88,
@@ -20,13 +17,7 @@
     "orders": "45K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "bluetooth",
-      "earbuds",
-      "wireless",
-      "audio",
-      "headphones"
-    ],
+    "keywords": ["bluetooth", "earbuds", "wireless", "audio", "headphones"],
     "suppliers": [
       {
         "name": "Shenzhen Audio Tech",
@@ -57,47 +48,13 @@
       "dhgate": 13.5,
       "wish": 15.99
     },
-    "trendData": [
-      320,
-      380,
-      420,
-      510,
-      580,
-      620,
-      680,
-      720,
-      780,
-      820,
-      850,
-      870
-    ],
-    "seasonality": [
-      90,
-      85,
-      80,
-      75,
-      80,
-      90,
-      100,
-      110,
-      120,
-      130,
-      140,
-      150
-    ],
+    "trendData": [320, 380, 420, 510, 580, 620, 680, 720, 780, 820, 850, 870],
+    "seasonality": [90, 85, 80, 75, 80, 90, 100, 110, 120, 130, 140, 150],
     "audience": {
       "age": "18-34",
       "gender": "All",
-      "interests": [
-        "Music",
-        "Tech",
-        "Fitness"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Music", "Tech", "Fitness"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 22,
     "marketSaturation": 45,
@@ -114,9 +71,7 @@
     "originalPrice": 29.99,
     "margin": 72,
     "score": 85,
-    "badges": [
-      "hot"
-    ],
+    "badges": ["hot"],
     "salesVelocity": 620,
     "competition": "high",
     "demand": 78,
@@ -125,14 +80,7 @@
     "orders": "32K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "led",
-      "strip",
-      "lights",
-      "rgb",
-      "decor",
-      "room"
-    ],
+    "keywords": ["led", "strip", "lights", "rgb", "decor", "room"],
     "suppliers": [
       {
         "name": "Yueqing LED Factory",
@@ -155,47 +103,13 @@
       "dhgate": 8.99,
       "wish": 10.99
     },
-    "trendData": [
-      280,
-      310,
-      340,
-      380,
-      420,
-      480,
-      520,
-      560,
-      590,
-      610,
-      620,
-      640
-    ],
-    "seasonality": [
-      70,
-      65,
-      60,
-      65,
-      70,
-      80,
-      90,
-      100,
-      110,
-      120,
-      130,
-      140
-    ],
+    "trendData": [280, 310, 340, 380, 420, 480, 520, 560, 590, 610, 620, 640],
+    "seasonality": [70, 65, 60, 65, 70, 80, 90, 100, 110, 120, 130, 140],
     "audience": {
       "age": "16-28",
       "gender": "All",
-      "interests": [
-        "Gaming",
-        "Home Decor",
-        "Streaming"
-      ],
-      "countries": [
-        "US",
-        "DE",
-        "BR"
-      ]
+      "interests": ["Gaming", "Home Decor", "Streaming"],
+      "countries": ["US", "DE", "BR"]
     },
     "riskScore": 35,
     "marketSaturation": 62,
@@ -212,9 +126,7 @@
     "originalPrice": 19.99,
     "margin": 79,
     "score": 88,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 720,
     "competition": "medium",
     "demand": 82,
@@ -223,14 +135,7 @@
     "orders": "58K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "phone",
-      "mount",
-      "magnetic",
-      "car",
-      "holder",
-      "accessory"
-    ],
+    "keywords": ["phone", "mount", "magnetic", "car", "holder", "accessory"],
     "suppliers": [
       {
         "name": "Shenzhen Mobile Accessories",
@@ -253,47 +158,13 @@
       "dhgate": 4.5,
       "wish": 5.99
     },
-    "trendData": [
-      400,
-      420,
-      450,
-      480,
-      520,
-      560,
-      600,
-      640,
-      680,
-      700,
-      720,
-      740
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      120,
-      125
-    ],
+    "trendData": [400, 420, 450, 480, 520, 560, 600, 640, 680, 700, 720, 740],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125],
     "audience": {
       "age": "25-54",
       "gender": "Male",
-      "interests": [
-        "Driving",
-        "Tech",
-        "Travel"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Driving", "Tech", "Travel"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 18,
     "marketSaturation": 38,
@@ -319,13 +190,7 @@
     "orders": "15K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "kitchen",
-      "utensil",
-      "silicone",
-      "cooking",
-      "tools"
-    ],
+    "keywords": ["kitchen", "utensil", "silicone", "cooking", "tools"],
     "suppliers": [
       {
         "name": "Ningbo Kitchenware Co",
@@ -348,47 +213,13 @@
       "dhgate": 12.5,
       "wish": 14.99
     },
-    "trendData": [
-      200,
-      220,
-      240,
-      260,
-      290,
-      310,
-      330,
-      350,
-      360,
-      370,
-      380,
-      390
-    ],
-    "seasonality": [
-      80,
-      75,
-      70,
-      70,
-      75,
-      80,
-      85,
-      90,
-      100,
-      110,
-      130,
-      140
-    ],
+    "trendData": [200, 220, 240, 260, 290, 310, 330, 350, 360, 370, 380, 390],
+    "seasonality": [80, 75, 70, 70, 75, 80, 85, 90, 100, 110, 130, 140],
     "audience": {
       "age": "28-55",
       "gender": "Female",
-      "interests": [
-        "Cooking",
-        "Home",
-        "Kitchen"
-      ],
-      "countries": [
-        "US",
-        "CA",
-        "UK"
-      ]
+      "interests": ["Cooking", "Home", "Kitchen"],
+      "countries": ["US", "CA", "UK"]
     },
     "riskScore": 28,
     "marketSaturation": 32,
@@ -405,9 +236,7 @@
     "originalPrice": 24.99,
     "margin": 72,
     "score": 82,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 540,
     "competition": "medium",
     "demand": 75,
@@ -416,14 +245,7 @@
     "orders": "28K",
     "shipFrom": "China",
     "category": "Pet Supplies",
-    "keywords": [
-      "pet",
-      "grooming",
-      "brush",
-      "dog",
-      "cat",
-      "deshedding"
-    ],
+    "keywords": ["pet", "grooming", "brush", "dog", "cat", "deshedding"],
     "suppliers": [
       {
         "name": "PetCare Supplies CN",
@@ -446,48 +268,13 @@
       "dhgate": 7.25,
       "wish": 8.99
     },
-    "trendData": [
-      300,
-      320,
-      340,
-      360,
-      400,
-      430,
-      460,
-      490,
-      510,
-      530,
-      540,
-      550
-    ],
-    "seasonality": [
-      95,
-      90,
-      85,
-      80,
-      85,
-      90,
-      100,
-      105,
-      110,
-      115,
-      100,
-      95
-    ],
+    "trendData": [300, 320, 340, 360, 400, 430, 460, 490, 510, 530, 540, 550],
+    "seasonality": [95, 90, 85, 80, 85, 90, 100, 105, 110, 115, 100, 95],
     "audience": {
       "age": "25-50",
       "gender": "All",
-      "interests": [
-        "Pets",
-        "Animals",
-        "Home"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU",
-        "CA"
-      ]
+      "interests": ["Pets", "Animals", "Home"],
+      "countries": ["US", "UK", "AU", "CA"]
     },
     "riskScore": 20,
     "marketSaturation": 35,
@@ -504,10 +291,7 @@
     "originalPrice": 79.99,
     "margin": 63,
     "score": 91,
-    "badges": [
-      "trending",
-      "ai"
-    ],
+    "badges": ["trending", "ai"],
     "salesVelocity": 920,
     "competition": "high",
     "demand": 92,
@@ -516,13 +300,7 @@
     "orders": "89K",
     "shipFrom": "USA",
     "category": "Electronics",
-    "keywords": [
-      "bluetooth",
-      "speaker",
-      "portable",
-      "waterproof",
-      "audio"
-    ],
+    "keywords": ["bluetooth", "speaker", "portable", "waterproof", "audio"],
     "suppliers": [
       {
         "name": "AudioMax USA",
@@ -545,47 +323,13 @@
       "dhgate": 16.5,
       "wish": 19.99
     },
-    "trendData": [
-      500,
-      550,
-      600,
-      650,
-      720,
-      780,
-      830,
-      870,
-      900,
-      910,
-      920,
-      930
-    ],
-    "seasonality": [
-      80,
-      75,
-      75,
-      80,
-      90,
-      110,
-      120,
-      115,
-      100,
-      85,
-      80,
-      85
-    ],
+    "trendData": [500, 550, 600, 650, 720, 780, 830, 870, 900, 910, 920, 930],
+    "seasonality": [80, 75, 75, 80, 90, 110, 120, 115, 100, 85, 80, 85],
     "audience": {
       "age": "18-40",
       "gender": "Male",
-      "interests": [
-        "Music",
-        "Outdoor",
-        "Travel"
-      ],
-      "countries": [
-        "US",
-        "CA",
-        "UK"
-      ]
+      "interests": ["Music", "Outdoor", "Travel"],
+      "countries": ["US", "CA", "UK"]
     },
     "riskScore": 30,
     "marketSaturation": 55,
@@ -611,14 +355,7 @@
     "orders": "142K",
     "shipFrom": "USA",
     "category": "Sports",
-    "keywords": [
-      "water",
-      "bottle",
-      "stainless",
-      "steel",
-      "insulated",
-      "gym"
-    ],
+    "keywords": ["water", "bottle", "stainless", "steel", "insulated", "gym"],
     "suppliers": [
       {
         "name": "HydroFlask Direct",
@@ -641,46 +378,13 @@
       "dhgate": 9.5,
       "wish": 11.99
     },
-    "trendData": [
-      450,
-      470,
-      490,
-      510,
-      540,
-      570,
-      600,
-      630,
-      650,
-      670,
-      680,
-      690
-    ],
-    "seasonality": [
-      70,
-      65,
-      65,
-      70,
-      80,
-      100,
-      115,
-      120,
-      105,
-      85,
-      70,
-      65
-    ],
+    "trendData": [450, 470, 490, 510, 540, 570, 600, 630, 650, 670, 680, 690],
+    "seasonality": [70, 65, 65, 70, 80, 100, 115, 120, 105, 85, 70, 65],
     "audience": {
       "age": "22-45",
       "gender": "All",
-      "interests": [
-        "Fitness",
-        "Health",
-        "Outdoor"
-      ],
-      "countries": [
-        "US",
-        "CA"
-      ]
+      "interests": ["Fitness", "Health", "Outdoor"],
+      "countries": ["US", "CA"]
     },
     "riskScore": 25,
     "marketSaturation": 68,
@@ -697,9 +401,7 @@
     "originalPrice": 59.99,
     "margin": 62,
     "score": 87,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 750,
     "competition": "medium",
     "demand": 85,
@@ -708,14 +410,7 @@
     "orders": "56K",
     "shipFrom": "USA",
     "category": "Travel",
-    "keywords": [
-      "neck",
-      "pillow",
-      "travel",
-      "memory",
-      "foam",
-      "comfort"
-    ],
+    "keywords": ["neck", "pillow", "travel", "memory", "foam", "comfort"],
     "suppliers": [
       {
         "name": "ComfortRest US",
@@ -738,47 +433,13 @@
       "dhgate": 10.5,
       "wish": 13.99
     },
-    "trendData": [
-      380,
-      400,
-      430,
-      460,
-      500,
-      540,
-      580,
-      620,
-      660,
-      700,
-      740,
-      760
-    ],
-    "seasonality": [
-      90,
-      85,
-      85,
-      90,
-      100,
-      110,
-      120,
-      115,
-      100,
-      90,
-      85,
-      80
-    ],
+    "trendData": [380, 400, 430, 460, 500, 540, 580, 620, 660, 700, 740, 760],
+    "seasonality": [90, 85, 85, 90, 100, 110, 120, 115, 100, 90, 85, 80],
     "audience": {
       "age": "25-55",
       "gender": "All",
-      "interests": [
-        "Travel",
-        "Comfort",
-        "Business"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Travel", "Comfort", "Business"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 22,
     "marketSaturation": 40,
@@ -804,14 +465,7 @@
     "orders": "38K",
     "shipFrom": "USA",
     "category": "Sports",
-    "keywords": [
-      "yoga",
-      "mat",
-      "exercise",
-      "fitness",
-      "gym",
-      "workout"
-    ],
+    "keywords": ["yoga", "mat", "exercise", "fitness", "gym", "workout"],
     "suppliers": [
       {
         "name": "FlexFit Sports",
@@ -834,47 +488,13 @@
       "dhgate": 11.5,
       "wish": 14.99
     },
-    "trendData": [
-      280,
-      300,
-      320,
-      340,
-      360,
-      380,
-      400,
-      410,
-      420,
-      425,
-      420,
-      415
-    ],
-    "seasonality": [
-      130,
-      140,
-      120,
-      90,
-      80,
-      75,
-      70,
-      70,
-      75,
-      80,
-      90,
-      110
-    ],
+    "trendData": [280, 300, 320, 340, 360, 380, 400, 410, 420, 425, 420, 415],
+    "seasonality": [130, 140, 120, 90, 80, 75, 70, 70, 75, 80, 90, 110],
     "audience": {
       "age": "22-40",
       "gender": "Female",
-      "interests": [
-        "Yoga",
-        "Fitness",
-        "Wellness"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Yoga", "Fitness", "Wellness"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 35,
     "marketSaturation": 72,
@@ -891,10 +511,7 @@
     "originalPrice": 129.99,
     "margin": 69,
     "score": 94,
-    "badges": [
-      "hot",
-      "ai"
-    ],
+    "badges": ["hot", "ai"],
     "salesVelocity": 980,
     "competition": "high",
     "demand": 95,
@@ -903,14 +520,7 @@
     "orders": "112K",
     "shipFrom": "USA",
     "category": "Electronics",
-    "keywords": [
-      "smart",
-      "watch",
-      "fitness",
-      "tracker",
-      "health",
-      "wearable"
-    ],
+    "keywords": ["smart", "watch", "fitness", "tracker", "health", "wearable"],
     "suppliers": [
       {
         "name": "TechWear Inc",
@@ -933,48 +543,13 @@
       "dhgate": 21.5,
       "wish": 25.99
     },
-    "trendData": [
-      600,
-      650,
-      700,
-      750,
-      800,
-      850,
-      900,
-      930,
-      950,
-      970,
-      980,
-      990
-    ],
-    "seasonality": [
-      100,
-      110,
-      100,
-      90,
-      85,
-      80,
-      80,
-      85,
-      90,
-      100,
-      120,
-      140
-    ],
+    "trendData": [600, 650, 700, 750, 800, 850, 900, 930, 950, 970, 980, 990],
+    "seasonality": [100, 110, 100, 90, 85, 80, 80, 85, 90, 100, 120, 140],
     "audience": {
       "age": "18-45",
       "gender": "All",
-      "interests": [
-        "Tech",
-        "Fitness",
-        "Health"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE",
-        "JP"
-      ]
+      "interests": ["Tech", "Fitness", "Health"],
+      "countries": ["US", "UK", "DE", "JP"]
     },
     "riskScore": 40,
     "marketSaturation": 65,
@@ -991,9 +566,7 @@
     "originalPrice": 69.99,
     "margin": 59,
     "score": 86,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 580,
     "competition": "medium",
     "demand": 78,
@@ -1002,13 +575,7 @@
     "orders": "22K",
     "shipFrom": "USA",
     "category": "Fashion",
-    "keywords": [
-      "wallet",
-      "leather",
-      "minimalist",
-      "rfid",
-      "accessory"
-    ],
+    "keywords": ["wallet", "leather", "minimalist", "rfid", "accessory"],
     "suppliers": [
       {
         "name": "Urban Leather Co",
@@ -1031,47 +598,13 @@
       "dhgate": 9.5,
       "wish": 12.99
     },
-    "trendData": [
-      320,
-      350,
-      380,
-      410,
-      440,
-      470,
-      500,
-      530,
-      550,
-      570,
-      580,
-      590
-    ],
-    "seasonality": [
-      80,
-      85,
-      90,
-      95,
-      100,
-      100,
-      95,
-      90,
-      95,
-      100,
-      110,
-      130
-    ],
+    "trendData": [320, 350, 380, 410, 440, 470, 500, 530, 550, 570, 580, 590],
+    "seasonality": [80, 85, 90, 95, 100, 100, 95, 90, 95, 100, 110, 130],
     "audience": {
       "age": "25-45",
       "gender": "Male",
-      "interests": [
-        "Fashion",
-        "Minimalism",
-        "Travel"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "FR"
-      ]
+      "interests": ["Fashion", "Minimalism", "Travel"],
+      "countries": ["US", "UK", "FR"]
     },
     "riskScore": 18,
     "marketSaturation": 35,
@@ -1088,10 +621,7 @@
     "originalPrice": 79.99,
     "margin": 56,
     "score": 89,
-    "badges": [
-      "hot",
-      "ai"
-    ],
+    "badges": ["hot", "ai"],
     "salesVelocity": 720,
     "competition": "medium",
     "demand": 88,
@@ -1100,14 +630,7 @@
     "orders": "48K",
     "shipFrom": "USA",
     "category": "Beauty",
-    "keywords": [
-      "serum",
-      "vitamin",
-      "c",
-      "organic",
-      "skincare",
-      "face"
-    ],
+    "keywords": ["serum", "vitamin", "c", "organic", "skincare", "face"],
     "suppliers": [
       {
         "name": "Glow Naturals",
@@ -1130,48 +653,13 @@
       "dhgate": 8.5,
       "wish": 11.99
     },
-    "trendData": [
-      400,
-      430,
-      460,
-      490,
-      530,
-      570,
-      610,
-      650,
-      680,
-      700,
-      720,
-      730
-    ],
-    "seasonality": [
-      85,
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      90,
-      95,
-      100,
-      105,
-      110
-    ],
+    "trendData": [400, 430, 460, 490, 530, 570, 610, 650, 680, 700, 720, 730],
+    "seasonality": [85, 90, 95, 100, 105, 100, 95, 90, 95, 100, 105, 110],
     "audience": {
       "age": "22-45",
       "gender": "Female",
-      "interests": [
-        "Skincare",
-        "Beauty",
-        "Wellness"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU",
-        "CA"
-      ]
+      "interests": ["Skincare", "Beauty", "Wellness"],
+      "countries": ["US", "UK", "AU", "CA"]
     },
     "riskScore": 25,
     "marketSaturation": 48,
@@ -1197,13 +685,7 @@
     "orders": "16K",
     "shipFrom": "USA",
     "category": "Fashion",
-    "keywords": [
-      "sunglasses",
-      "polarized",
-      "bamboo",
-      "eco",
-      "uv"
-    ],
+    "keywords": ["sunglasses", "polarized", "bamboo", "eco", "uv"],
     "suppliers": [
       {
         "name": "EcoVision Eyewear",
@@ -1226,47 +708,13 @@
       "dhgate": 8.25,
       "wish": 10.99
     },
-    "trendData": [
-      250,
-      280,
-      320,
-      370,
-      420,
-      460,
-      490,
-      500,
-      490,
-      470,
-      450,
-      430
-    ],
-    "seasonality": [
-      60,
-      65,
-      80,
-      100,
-      120,
-      140,
-      145,
-      140,
-      120,
-      90,
-      65,
-      55
-    ],
+    "trendData": [250, 280, 320, 370, 420, 460, 490, 500, 490, 470, 450, 430],
+    "seasonality": [60, 65, 80, 100, 120, 140, 145, 140, 120, 90, 65, 55],
     "audience": {
       "age": "20-38",
       "gender": "All",
-      "interests": [
-        "Fashion",
-        "Eco-friendly",
-        "Summer"
-      ],
-      "countries": [
-        "US",
-        "FR",
-        "ES"
-      ]
+      "interests": ["Fashion", "Eco-friendly", "Summer"],
+      "countries": ["US", "FR", "ES"]
     },
     "riskScore": 30,
     "marketSaturation": 42,
@@ -1292,13 +740,7 @@
     "orders": "9K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "candle",
-      "soy",
-      "handmade",
-      "aromatherapy",
-      "home"
-    ],
+    "keywords": ["candle", "soy", "handmade", "aromatherapy", "home"],
     "suppliers": [
       {
         "name": "Artisan Candle Studio",
@@ -1321,47 +763,13 @@
       "dhgate": 10.5,
       "wish": 13.99
     },
-    "trendData": [
-      180,
-      200,
-      220,
-      240,
-      260,
-      280,
-      300,
-      310,
-      320,
-      330,
-      340,
-      350
-    ],
-    "seasonality": [
-      110,
-      105,
-      95,
-      85,
-      80,
-      75,
-      75,
-      80,
-      85,
-      95,
-      115,
-      140
-    ],
+    "trendData": [180, 200, 220, 240, 260, 280, 300, 310, 320, 330, 340, 350],
+    "seasonality": [110, 105, 95, 85, 80, 75, 75, 80, 85, 95, 115, 140],
     "audience": {
       "age": "25-50",
       "gender": "Female",
-      "interests": [
-        "Home",
-        "Wellness",
-        "Gifts"
-      ],
-      "countries": [
-        "US",
-        "CA",
-        "UK"
-      ]
+      "interests": ["Home", "Wellness", "Gifts"],
+      "countries": ["US", "CA", "UK"]
     },
     "riskScore": 15,
     "marketSaturation": 28,
@@ -1378,9 +786,7 @@
     "originalPrice": 99.99,
     "margin": 57,
     "score": 85,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 520,
     "competition": "medium",
     "demand": 76,
@@ -1389,13 +795,7 @@
     "orders": "28K",
     "shipFrom": "USA",
     "category": "Fashion",
-    "keywords": [
-      "backpack",
-      "canvas",
-      "vintage",
-      "travel",
-      "laptop"
-    ],
+    "keywords": ["backpack", "canvas", "vintage", "travel", "laptop"],
     "suppliers": [
       {
         "name": "Heritage Bags Co",
@@ -1418,47 +818,13 @@
       "dhgate": 13.5,
       "wish": 16.99
     },
-    "trendData": [
-      290,
-      310,
-      330,
-      350,
-      380,
-      410,
-      440,
-      470,
-      490,
-      510,
-      520,
-      530
-    ],
-    "seasonality": [
-      75,
-      70,
-      70,
-      75,
-      85,
-      95,
-      105,
-      110,
-      105,
-      95,
-      80,
-      75
-    ],
+    "trendData": [290, 310, 330, 350, 380, 410, 440, 470, 490, 510, 520, 530],
+    "seasonality": [75, 70, 70, 75, 85, 95, 105, 110, 105, 95, 80, 75],
     "audience": {
       "age": "20-40",
       "gender": "All",
-      "interests": [
-        "Travel",
-        "Fashion",
-        "College"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Travel", "Fashion", "College"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 22,
     "marketSaturation": 38,
@@ -1484,14 +850,7 @@
     "orders": "12K",
     "shipFrom": "USA",
     "category": "Electronics",
-    "keywords": [
-      "vinyl",
-      "record",
-      "player",
-      "turntable",
-      "retro",
-      "music"
-    ],
+    "keywords": ["vinyl", "record", "player", "turntable", "retro", "music"],
     "suppliers": [
       {
         "name": "RetroAudio Imports",
@@ -1514,47 +873,13 @@
       "dhgate": 48.5,
       "wish": 55.99
     },
-    "trendData": [
-      150,
-      170,
-      190,
-      210,
-      230,
-      240,
-      250,
-      260,
-      270,
-      275,
-      280,
-      285
-    ],
-    "seasonality": [
-      80,
-      75,
-      70,
-      70,
-      75,
-      80,
-      85,
-      90,
-      100,
-      110,
-      130,
-      140
-    ],
+    "trendData": [150, 170, 190, 210, 230, 240, 250, 260, 270, 275, 280, 285],
+    "seasonality": [80, 75, 70, 70, 75, 80, 85, 90, 100, 110, 130, 140],
     "audience": {
       "age": "25-50",
       "gender": "Male",
-      "interests": [
-        "Music",
-        "Vintage",
-        "Collecting"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Music", "Vintage", "Collecting"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 20,
     "marketSaturation": 25,
@@ -1571,9 +896,7 @@
     "originalPrice": 349.99,
     "margin": 64,
     "score": 82,
-    "badges": [
-      "ai"
-    ],
+    "badges": ["ai"],
     "salesVelocity": 320,
     "competition": "medium",
     "demand": 70,
@@ -1582,13 +905,7 @@
     "orders": "8K",
     "shipFrom": "USA",
     "category": "Electronics",
-    "keywords": [
-      "camera",
-      "lens",
-      "canon",
-      "50mm",
-      "photography"
-    ],
+    "keywords": ["camera", "lens", "canon", "50mm", "photography"],
     "suppliers": [
       {
         "name": "PhotoGear Pro",
@@ -1611,47 +928,13 @@
       "dhgate": 68.5,
       "wish": 78.99
     },
-    "trendData": [
-      180,
-      190,
-      200,
-      210,
-      230,
-      250,
-      270,
-      290,
-      300,
-      310,
-      320,
-      330
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      105,
-      100,
-      95
-    ],
+    "trendData": [180, 190, 200, 210, 230, 250, 270, 290, 300, 310, 320, 330],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 105, 100, 95],
     "audience": {
       "age": "28-55",
       "gender": "Male",
-      "interests": [
-        "Photography",
-        "Art",
-        "Tech"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "JP"
-      ]
+      "interests": ["Photography", "Art", "Tech"],
+      "countries": ["US", "UK", "JP"]
     },
     "riskScore": 35,
     "marketSaturation": 45,
@@ -1668,10 +951,7 @@
     "originalPrice": 129.99,
     "margin": 62,
     "score": 88,
-    "badges": [
-      "trending",
-      "hot"
-    ],
+    "badges": ["trending", "hot"],
     "salesVelocity": 680,
     "competition": "medium",
     "demand": 85,
@@ -1680,13 +960,7 @@
     "orders": "38K",
     "shipFrom": "China",
     "category": "Toys",
-    "keywords": [
-      "gaming",
-      "console",
-      "retro",
-      "games",
-      "nostalgia"
-    ],
+    "keywords": ["gaming", "console", "retro", "games", "nostalgia"],
     "suppliers": [
       {
         "name": "GameZone Shenzhen",
@@ -1709,47 +983,13 @@
       "dhgate": 23.5,
       "wish": 28.99
     },
-    "trendData": [
-      350,
-      380,
-      420,
-      460,
-      500,
-      540,
-      580,
-      620,
-      650,
-      670,
-      680,
-      690
-    ],
-    "seasonality": [
-      110,
-      90,
-      80,
-      75,
-      75,
-      80,
-      85,
-      90,
-      100,
-      110,
-      140,
-      150
-    ],
+    "trendData": [350, 380, 420, 460, 500, 540, 580, 620, 650, 670, 680, 690],
+    "seasonality": [110, 90, 80, 75, 75, 80, 85, 90, 100, 110, 140, 150],
     "audience": {
       "age": "25-45",
       "gender": "Male",
-      "interests": [
-        "Gaming",
-        "Nostalgia",
-        "Entertainment"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "BR"
-      ]
+      "interests": ["Gaming", "Nostalgia", "Entertainment"],
+      "countries": ["US", "UK", "BR"]
     },
     "riskScore": 28,
     "marketSaturation": 42,
@@ -1775,14 +1015,7 @@
     "orders": "5K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "lamp",
-      "desk",
-      "brass",
-      "antique",
-      "vintage",
-      "office"
-    ],
+    "keywords": ["lamp", "desk", "brass", "antique", "vintage", "office"],
     "suppliers": [
       {
         "name": "Vintage Home Imports",
@@ -1805,47 +1038,13 @@
       "dhgate": 30.5,
       "wish": 35.99
     },
-    "trendData": [
-      100,
-      110,
-      120,
-      130,
-      140,
-      150,
-      160,
-      170,
-      175,
-      178,
-      180,
-      182
-    ],
-    "seasonality": [
-      75,
-      70,
-      70,
-      75,
-      80,
-      85,
-      90,
-      95,
-      100,
-      110,
-      120,
-      130
-    ],
+    "trendData": [100, 110, 120, 130, 140, 150, 160, 170, 175, 178, 180, 182],
+    "seasonality": [75, 70, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130],
     "audience": {
       "age": "30-55",
       "gender": "All",
-      "interests": [
-        "Home Decor",
-        "Vintage",
-        "Office"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "FR"
-      ]
+      "interests": ["Home Decor", "Vintage", "Office"],
+      "countries": ["US", "UK", "FR"]
     },
     "riskScore": 15,
     "marketSaturation": 20,
@@ -1871,14 +1070,7 @@
     "orders": "14K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "plant",
-      "pot",
-      "ceramic",
-      "garden",
-      "home",
-      "decor"
-    ],
+    "keywords": ["plant", "pot", "ceramic", "garden", "home", "decor"],
     "suppliers": [
       {
         "name": "Green Thumb Ceramics",
@@ -1901,47 +1093,13 @@
       "dhgate": 13.5,
       "wish": 16.99
     },
-    "trendData": [
-      160,
-      175,
-      190,
-      210,
-      230,
-      250,
-      270,
-      290,
-      300,
-      305,
-      310,
-      315
-    ],
-    "seasonality": [
-      60,
-      65,
-      80,
-      100,
-      120,
-      130,
-      135,
-      130,
-      115,
-      90,
-      65,
-      55
-    ],
+    "trendData": [160, 175, 190, 210, 230, 250, 270, 290, 300, 305, 310, 315],
+    "seasonality": [60, 65, 80, 100, 120, 130, 135, 130, 115, 90, 65, 55],
     "audience": {
       "age": "22-40",
       "gender": "Female",
-      "interests": [
-        "Plants",
-        "Home Decor",
-        "Gardening"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Plants", "Home Decor", "Gardening"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 18,
     "marketSaturation": 30,
@@ -1958,10 +1116,7 @@
     "originalPrice": 39.99,
     "margin": 75,
     "score": 90,
-    "badges": [
-      "trending",
-      "ai"
-    ],
+    "badges": ["trending", "ai"],
     "salesVelocity": 890,
     "competition": "medium",
     "demand": 86,
@@ -1970,13 +1125,7 @@
     "orders": "62K",
     "shipFrom": "China",
     "category": "Health",
-    "keywords": [
-      "toothbrush",
-      "electric",
-      "rechargeable",
-      "dental",
-      "oral"
-    ],
+    "keywords": ["toothbrush", "electric", "rechargeable", "dental", "oral"],
     "suppliers": [
       {
         "name": "SmileTech CN",
@@ -1999,47 +1148,13 @@
       "dhgate": 9.25,
       "wish": 11.99
     },
-    "trendData": [
-      480,
-      510,
-      540,
-      570,
-      620,
-      670,
-      720,
-      770,
-      820,
-      860,
-      890,
-      910
-    ],
-    "seasonality": [
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115
-    ],
+    "trendData": [480, 510, 540, 570, 620, 670, 720, 770, 820, 860, 890, 910],
+    "seasonality": [90, 95, 100, 105, 100, 95, 90, 95, 100, 105, 110, 115],
     "audience": {
       "age": "25-55",
       "gender": "All",
-      "interests": [
-        "Health",
-        "Dental",
-        "Self-care"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Health", "Dental", "Self-care"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 22,
     "marketSaturation": 45,
@@ -2056,9 +1171,7 @@
     "originalPrice": 149.99,
     "margin": 73,
     "score": 86,
-    "badges": [
-      "hot"
-    ],
+    "badges": ["hot"],
     "salesVelocity": 650,
     "competition": "medium",
     "demand": 82,
@@ -2067,14 +1180,7 @@
     "orders": "32K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "projector",
-      "mini",
-      "portable",
-      "hd",
-      "movie",
-      "home"
-    ],
+    "keywords": ["projector", "mini", "portable", "hd", "movie", "home"],
     "suppliers": [
       {
         "name": "ProjectTech Guangzhou",
@@ -2097,47 +1203,13 @@
       "dhgate": 30.5,
       "wish": 35.99
     },
-    "trendData": [
-      320,
-      350,
-      380,
-      410,
-      450,
-      490,
-      530,
-      570,
-      600,
-      630,
-      650,
-      660
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      120,
-      125
-    ],
+    "trendData": [320, 350, 380, 410, 450, 490, 530, 570, 600, 630, 650, 660],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125],
     "audience": {
       "age": "22-40",
       "gender": "Male",
-      "interests": [
-        "Movies",
-        "Tech",
-        "Outdoor"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Movies", "Tech", "Outdoor"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 30,
     "marketSaturation": 48,
@@ -2154,9 +1226,7 @@
     "originalPrice": 99.99,
     "margin": 70,
     "score": 84,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 520,
     "competition": "low",
     "demand": 78,
@@ -2165,14 +1235,7 @@
     "orders": "21K",
     "shipFrom": "China",
     "category": "Pet Supplies",
-    "keywords": [
-      "pet",
-      "feeder",
-      "automatic",
-      "wifi",
-      "cat",
-      "dog"
-    ],
+    "keywords": ["pet", "feeder", "automatic", "wifi", "cat", "dog"],
     "suppliers": [
       {
         "name": "PetSmart Tech CN",
@@ -2195,48 +1258,13 @@
       "dhgate": 24.5,
       "wish": 27.99
     },
-    "trendData": [
-      280,
-      300,
-      320,
-      340,
-      370,
-      400,
-      430,
-      460,
-      490,
-      510,
-      520,
-      530
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      100,
-      90,
-      85
-    ],
+    "trendData": [280, 300, 320, 340, 370, 400, 430, 460, 490, 510, 520, 530],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 100, 90, 85],
     "audience": {
       "age": "25-45",
       "gender": "All",
-      "interests": [
-        "Pets",
-        "Tech",
-        "Convenience"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA",
-        "AU"
-      ]
+      "interests": ["Pets", "Tech", "Convenience"],
+      "countries": ["US", "UK", "CA", "AU"]
     },
     "riskScore": 20,
     "marketSaturation": 28,
@@ -2262,13 +1290,7 @@
     "orders": "18K",
     "shipFrom": "China",
     "category": "Automotive",
-    "keywords": [
-      "car",
-      "vacuum",
-      "cleaner",
-      "cordless",
-      "portable"
-    ],
+    "keywords": ["car", "vacuum", "cleaner", "cordless", "portable"],
     "suppliers": [
       {
         "name": "CleanTech CN",
@@ -2291,47 +1313,13 @@
       "dhgate": 15.5,
       "wish": 17.99
     },
-    "trendData": [
-      240,
-      260,
-      280,
-      300,
-      320,
-      340,
-      360,
-      380,
-      400,
-      420,
-      440,
-      450
-    ],
-    "seasonality": [
-      80,
-      75,
-      75,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      100,
-      90
-    ],
+    "trendData": [240, 260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 450],
+    "seasonality": [80, 75, 75, 80, 85, 90, 95, 100, 105, 110, 100, 90],
     "audience": {
       "age": "25-50",
       "gender": "Male",
-      "interests": [
-        "Cars",
-        "Cleaning",
-        "Tools"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Cars", "Cleaning", "Tools"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 22,
     "marketSaturation": 35,
@@ -2348,9 +1336,7 @@
     "originalPrice": 24.99,
     "margin": 72,
     "score": 87,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 710,
     "competition": "high",
     "demand": 80,
@@ -2359,13 +1345,7 @@
     "orders": "45K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "milk",
-      "frother",
-      "coffee",
-      "kitchen",
-      "barista"
-    ],
+    "keywords": ["milk", "frother", "coffee", "kitchen", "barista"],
     "suppliers": [
       {
         "name": "CoffeeTech CN",
@@ -2388,47 +1368,13 @@
       "dhgate": 4.25,
       "wish": 5.99
     },
-    "trendData": [
-      380,
-      400,
-      420,
-      440,
-      480,
-      520,
-      560,
-      600,
-      640,
-      680,
-      710,
-      720
-    ],
-    "seasonality": [
-      110,
-      115,
-      105,
-      90,
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      105,
-      120
-    ],
+    "trendData": [380, 400, 420, 440, 480, 520, 560, 600, 640, 680, 710, 720],
+    "seasonality": [110, 115, 105, 90, 85, 80, 80, 85, 90, 95, 105, 120],
     "audience": {
       "age": "22-45",
       "gender": "All",
-      "interests": [
-        "Coffee",
-        "Kitchen",
-        "Home"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Coffee", "Kitchen", "Home"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 25,
     "marketSaturation": 55,
@@ -2445,11 +1391,7 @@
     "originalPrice": 89.99,
     "margin": 72,
     "score": 93,
-    "badges": [
-      "hot",
-      "ai",
-      "trending"
-    ],
+    "badges": ["hot", "ai", "trending"],
     "salesVelocity": 950,
     "competition": "medium",
     "demand": 94,
@@ -2458,14 +1400,7 @@
     "orders": "78K",
     "shipFrom": "China",
     "category": "Beauty",
-    "keywords": [
-      "face",
-      "mask",
-      "led",
-      "therapy",
-      "beauty",
-      "skincare"
-    ],
+    "keywords": ["face", "mask", "led", "therapy", "beauty", "skincare"],
     "suppliers": [
       {
         "name": "GlowTech Beauty",
@@ -2488,47 +1423,13 @@
       "dhgate": 13.5,
       "wish": 17.99
     },
-    "trendData": [
-      450,
-      500,
-      560,
-      620,
-      680,
-      740,
-      800,
-      850,
-      900,
-      930,
-      950,
-      960
-    ],
-    "seasonality": [
-      85,
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      95,
-      100,
-      105,
-      110,
-      115
-    ],
+    "trendData": [450, 500, 560, 620, 680, 740, 800, 850, 900, 930, 950, 960],
+    "seasonality": [85, 90, 95, 100, 105, 100, 95, 95, 100, 105, 110, 115],
     "audience": {
       "age": "18-35",
       "gender": "Female",
-      "interests": [
-        "Beauty",
-        "Skincare",
-        "Trends"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Beauty", "Skincare", "Trends"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 28,
     "marketSaturation": 42,
@@ -2545,9 +1446,7 @@
     "originalPrice": 49.99,
     "margin": 70,
     "score": 86,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 680,
     "competition": "medium",
     "demand": 80,
@@ -2556,14 +1455,7 @@
     "orders": "55K",
     "shipFrom": "China",
     "category": "Health",
-    "keywords": [
-      "posture",
-      "corrector",
-      "back",
-      "support",
-      "pain",
-      "ergonomic"
-    ],
+    "keywords": ["posture", "corrector", "back", "support", "pain", "ergonomic"],
     "suppliers": [
       {
         "name": "HealthPlus CN",
@@ -2586,47 +1478,13 @@
       "dhgate": 7.25,
       "wish": 9.99
     },
-    "trendData": [
-      350,
-      380,
-      410,
-      440,
-      480,
-      520,
-      560,
-      600,
-      640,
-      660,
-      680,
-      690
-    ],
-    "seasonality": [
-      100,
-      105,
-      110,
-      115,
-      110,
-      100,
-      90,
-      85,
-      90,
-      95,
-      100,
-      105
-    ],
+    "trendData": [350, 380, 410, 440, 480, 520, 560, 600, 640, 660, 680, 690],
+    "seasonality": [100, 105, 110, 115, 110, 100, 90, 85, 90, 95, 100, 105],
     "audience": {
       "age": "22-45",
       "gender": "All",
-      "interests": [
-        "Health",
-        "Fitness",
-        "Office"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Health", "Fitness", "Office"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 20,
     "marketSaturation": 38,
@@ -2643,9 +1501,7 @@
     "originalPrice": 54.99,
     "margin": 69,
     "score": 84,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 580,
     "competition": "high",
     "demand": 76,
@@ -2654,14 +1510,7 @@
     "orders": "38K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "blender",
-      "portable",
-      "mini",
-      "usb",
-      "smoothie",
-      "juice"
-    ],
+    "keywords": ["blender", "portable", "mini", "usb", "smoothie", "juice"],
     "suppliers": [
       {
         "name": "JuiceTech CN",
@@ -2684,47 +1533,13 @@
       "dhgate": 9.25,
       "wish": 11.99
     },
-    "trendData": [
-      300,
-      330,
-      360,
-      390,
-      420,
-      450,
-      480,
-      510,
-      540,
-      560,
-      580,
-      590
-    ],
-    "seasonality": [
-      80,
-      85,
-      95,
-      105,
-      115,
-      125,
-      130,
-      125,
-      110,
-      95,
-      80,
-      75
-    ],
+    "trendData": [300, 330, 360, 390, 420, 450, 480, 510, 540, 560, 580, 590],
+    "seasonality": [80, 85, 95, 105, 115, 125, 130, 125, 110, 95, 80, 75],
     "audience": {
       "age": "18-35",
       "gender": "Female",
-      "interests": [
-        "Health",
-        "Fitness",
-        "Nutrition"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Health", "Fitness", "Nutrition"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 30,
     "marketSaturation": 52,
@@ -2750,14 +1565,7 @@
     "orders": "24K",
     "shipFrom": "China",
     "category": "Health",
-    "keywords": [
-      "acupressure",
-      "mat",
-      "pillow",
-      "pain",
-      "relief",
-      "wellness"
-    ],
+    "keywords": ["acupressure", "mat", "pillow", "pain", "relief", "wellness"],
     "suppliers": [
       {
         "name": "WellnessGear CN",
@@ -2780,47 +1588,13 @@
       "dhgate": 10.5,
       "wish": 13.99
     },
-    "trendData": [
-      220,
-      240,
-      260,
-      280,
-      300,
-      320,
-      340,
-      360,
-      380,
-      400,
-      420,
-      430
-    ],
-    "seasonality": [
-      100,
-      105,
-      100,
-      95,
-      90,
-      85,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110
-    ],
+    "trendData": [220, 240, 260, 280, 300, 320, 340, 360, 380, 400, 420, 430],
+    "seasonality": [100, 105, 100, 95, 90, 85, 85, 90, 95, 100, 105, 110],
     "audience": {
       "age": "25-50",
       "gender": "All",
-      "interests": [
-        "Wellness",
-        "Pain Relief",
-        "Relaxation"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Wellness", "Pain Relief", "Relaxation"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 18,
     "marketSaturation": 25,
@@ -2837,9 +1611,7 @@
     "originalPrice": 59.99,
     "margin": 68,
     "score": 85,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 550,
     "competition": "low",
     "demand": 78,
@@ -2848,13 +1620,7 @@
     "orders": "30K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "hand",
-      "warmer",
-      "rechargeable",
-      "portable",
-      "winter"
-    ],
+    "keywords": ["hand", "warmer", "rechargeable", "portable", "winter"],
     "suppliers": [
       {
         "name": "WarmTech CN",
@@ -2877,48 +1643,13 @@
       "dhgate": 10.5,
       "wish": 13.99
     },
-    "trendData": [
-      380,
-      400,
-      420,
-      440,
-      460,
-      480,
-      500,
-      520,
-      540,
-      550,
-      560,
-      570
-    ],
-    "seasonality": [
-      140,
-      130,
-      100,
-      70,
-      50,
-      40,
-      40,
-      45,
-      55,
-      80,
-      120,
-      150
-    ],
+    "trendData": [380, 400, 420, 440, 460, 480, 500, 520, 540, 550, 560, 570],
+    "seasonality": [140, 130, 100, 70, 50, 40, 40, 45, 55, 80, 120, 150],
     "audience": {
       "age": "20-45",
       "gender": "All",
-      "interests": [
-        "Winter",
-        "Outdoor",
-        "Commuting"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE",
-        "JP"
-      ]
+      "interests": ["Winter", "Outdoor", "Commuting"],
+      "countries": ["US", "UK", "DE", "JP"]
     },
     "riskScore": 18,
     "marketSaturation": 22,
@@ -2935,10 +1666,7 @@
     "originalPrice": 69.99,
     "margin": 67,
     "score": 91,
-    "badges": [
-      "trending",
-      "ai"
-    ],
+    "badges": ["trending", "ai"],
     "salesVelocity": 780,
     "competition": "medium",
     "demand": 88,
@@ -2947,14 +1675,7 @@
     "orders": "58K",
     "shipFrom": "China",
     "category": "Jewelry",
-    "keywords": [
-      "necklace",
-      "name",
-      "custom",
-      "gold",
-      "personalized",
-      "gift"
-    ],
+    "keywords": ["necklace", "name", "custom", "gold", "personalized", "gift"],
     "suppliers": [
       {
         "name": "JewelryCraft CN",
@@ -2977,48 +1698,13 @@
       "dhgate": 7.25,
       "wish": 9.99
     },
-    "trendData": [
-      420,
-      450,
-      480,
-      510,
-      550,
-      590,
-      630,
-      670,
-      710,
-      740,
-      760,
-      780
-    ],
-    "seasonality": [
-      90,
-      100,
-      95,
-      90,
-      85,
-      80,
-      80,
-      85,
-      90,
-      100,
-      130,
-      150
-    ],
+    "trendData": [420, 450, 480, 510, 550, 590, 630, 670, 710, 740, 760, 780],
+    "seasonality": [90, 100, 95, 90, 85, 80, 80, 85, 90, 100, 130, 150],
     "audience": {
       "age": "18-40",
       "gender": "Female",
-      "interests": [
-        "Jewelry",
-        "Gifts",
-        "Fashion"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA",
-        "AU"
-      ]
+      "interests": ["Jewelry", "Gifts", "Fashion"],
+      "countries": ["US", "UK", "CA", "AU"]
     },
     "riskScore": 22,
     "marketSaturation": 42,
@@ -3044,13 +1730,7 @@
     "orders": "14K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "candle",
-      "soy",
-      "handmade",
-      "aromatherapy",
-      "gift"
-    ],
+    "keywords": ["candle", "soy", "handmade", "aromatherapy", "gift"],
     "suppliers": [
       {
         "name": "Artisan Candle Co",
@@ -3073,47 +1753,13 @@
       "dhgate": 9.5,
       "wish": 12.99
     },
-    "trendData": [
-      180,
-      195,
-      210,
-      225,
-      240,
-      255,
-      270,
-      285,
-      295,
-      305,
-      315,
-      325
-    ],
-    "seasonality": [
-      115,
-      105,
-      95,
-      85,
-      80,
-      75,
-      75,
-      80,
-      85,
-      95,
-      120,
-      145
-    ],
+    "trendData": [180, 195, 210, 225, 240, 255, 270, 285, 295, 305, 315, 325],
+    "seasonality": [115, 105, 95, 85, 80, 75, 75, 80, 85, 95, 120, 145],
     "audience": {
       "age": "25-50",
       "gender": "Female",
-      "interests": [
-        "Home",
-        "Wellness",
-        "Gifts"
-      ],
-      "countries": [
-        "US",
-        "CA",
-        "UK"
-      ]
+      "interests": ["Home", "Wellness", "Gifts"],
+      "countries": ["US", "CA", "UK"]
     },
     "riskScore": 12,
     "marketSaturation": 22,
@@ -3139,14 +1785,7 @@
     "orders": "9K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "resin",
-      "coaster",
-      "handmade",
-      "art",
-      "home",
-      "decor"
-    ],
+    "keywords": ["resin", "coaster", "handmade", "art", "home", "decor"],
     "suppliers": [
       {
         "name": "Artisan Resin Studio",
@@ -3169,47 +1808,13 @@
       "dhgate": 13.5,
       "wish": 16.99
     },
-    "trendData": [
-      150,
-      160,
-      170,
-      185,
-      200,
-      215,
-      230,
-      245,
-      260,
-      270,
-      278,
-      285
-    ],
-    "seasonality": [
-      75,
-      70,
-      70,
-      75,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      115,
-      130
-    ],
+    "trendData": [150, 160, 170, 185, 200, 215, 230, 245, 260, 270, 278, 285],
+    "seasonality": [75, 70, 70, 75, 80, 85, 90, 95, 100, 105, 115, 130],
     "audience": {
       "age": "25-45",
       "gender": "Female",
-      "interests": [
-        "Art",
-        "Home Decor",
-        "Handmade"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "AU"
-      ]
+      "interests": ["Art", "Home Decor", "Handmade"],
+      "countries": ["US", "UK", "AU"]
     },
     "riskScore": 10,
     "marketSaturation": 18,
@@ -3226,9 +1831,7 @@
     "originalPrice": 149.99,
     "margin": 57,
     "score": 83,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 420,
     "competition": "low",
     "demand": 72,
@@ -3237,13 +1840,7 @@
     "orders": "20K",
     "shipFrom": "USA",
     "category": "Fashion",
-    "keywords": [
-      "jacket",
-      "denim",
-      "embroidered",
-      "custom",
-      "fashion"
-    ],
+    "keywords": ["jacket", "denim", "embroidered", "custom", "fashion"],
     "suppliers": [
       {
         "name": "Vintage Denim Co",
@@ -3266,47 +1863,13 @@
       "dhgate": 26.5,
       "wish": 32.99
     },
-    "trendData": [
-      220,
-      240,
-      260,
-      280,
-      300,
-      320,
-      340,
-      360,
-      380,
-      400,
-      415,
-      425
-    ],
-    "seasonality": [
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      90,
-      95,
-      100,
-      105
-    ],
+    "trendData": [220, 240, 260, 280, 300, 320, 340, 360, 380, 400, 415, 425],
+    "seasonality": [80, 85, 90, 95, 100, 105, 100, 95, 90, 95, 100, 105],
     "audience": {
       "age": "18-35",
       "gender": "Female",
-      "interests": [
-        "Fashion",
-        "Custom",
-        "Boho"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Fashion", "Custom", "Boho"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 15,
     "marketSaturation": 15,
@@ -3332,14 +1895,7 @@
     "orders": "11K",
     "shipFrom": "USA",
     "category": "Home & Garden",
-    "keywords": [
-      "cutting",
-      "board",
-      "wooden",
-      "engraved",
-      "kitchen",
-      "gift"
-    ],
+    "keywords": ["cutting", "board", "wooden", "engraved", "kitchen", "gift"],
     "suppliers": [
       {
         "name": "WoodCraft Studio",
@@ -3362,47 +1918,13 @@
       "dhgate": 16.5,
       "wish": 19.99
     },
-    "trendData": [
-      180,
-      195,
-      210,
-      230,
-      250,
-      270,
-      290,
-      310,
-      330,
-      340,
-      348,
-      355
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      130,
-      145
-    ],
+    "trendData": [180, 195, 210, 230, 250, 270, 290, 310, 330, 340, 348, 355],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 130, 145],
     "audience": {
       "age": "30-55",
       "gender": "All",
-      "interests": [
-        "Kitchen",
-        "Gifts",
-        "Home"
-      ],
-      "countries": [
-        "US",
-        "CA",
-        "UK"
-      ]
+      "interests": ["Kitchen", "Gifts", "Home"],
+      "countries": ["US", "CA", "UK"]
     },
     "riskScore": 12,
     "marketSaturation": 20,
@@ -3419,9 +1941,7 @@
     "originalPrice": 34.99,
     "margin": 77,
     "score": 89,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 720,
     "competition": "medium",
     "demand": 84,
@@ -3430,13 +1950,7 @@
     "orders": "38K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "wireless",
-      "charger",
-      "charging",
-      "pad",
-      "fast"
-    ],
+    "keywords": ["wireless", "charger", "charging", "pad", "fast"],
     "suppliers": [
       {
         "name": "CJ Electronics",
@@ -3459,47 +1973,13 @@
       "dhgate": 8.5,
       "wish": 10.99
     },
-    "trendData": [
-      380,
-      400,
-      430,
-      460,
-      490,
-      520,
-      560,
-      600,
-      640,
-      680,
-      710,
-      730
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      120,
-      125
-    ],
+    "trendData": [380, 400, 430, 460, 490, 520, 560, 600, 640, 680, 710, 730],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125],
     "audience": {
       "age": "22-40",
       "gender": "Male",
-      "interests": [
-        "Tech",
-        "Gadgets",
-        "Phones"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Tech", "Gadgets", "Phones"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 22,
     "marketSaturation": 45,
@@ -3525,14 +2005,7 @@
     "orders": "26K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "wifi",
-      "plug",
-      "smart",
-      "home",
-      "timer",
-      "outlet"
-    ],
+    "keywords": ["wifi", "plug", "smart", "home", "timer", "outlet"],
     "suppliers": [
       {
         "name": "SmartHome CN",
@@ -3555,47 +2028,13 @@
       "dhgate": 6.5,
       "wish": 8.99
     },
-    "trendData": [
-      280,
-      300,
-      320,
-      340,
-      370,
-      400,
-      430,
-      460,
-      490,
-      520,
-      540,
-      550
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      120,
-      125
-    ],
+    "trendData": [280, 300, 320, 340, 370, 400, 430, 460, 490, 520, 540, 550],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125],
     "audience": {
       "age": "25-45",
       "gender": "All",
-      "interests": [
-        "Smart Home",
-        "Tech",
-        "Convenience"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Smart Home", "Tech", "Convenience"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 20,
     "marketSaturation": 40,
@@ -3621,14 +2060,7 @@
     "orders": "16K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "lamp",
-      "desk",
-      "led",
-      "usb",
-      "dimmable",
-      "office"
-    ],
+    "keywords": ["lamp", "desk", "led", "usb", "dimmable", "office"],
     "suppliers": [
       {
         "name": "LightTech CN",
@@ -3651,48 +2083,13 @@
       "dhgate": 7.5,
       "wish": 9.99
     },
-    "trendData": [
-      220,
-      235,
-      250,
-      265,
-      280,
-      300,
-      320,
-      340,
-      360,
-      380,
-      410,
-      430
-    ],
-    "seasonality": [
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115
-    ],
+    "trendData": [220, 235, 250, 265, 280, 300, 320, 340, 360, 380, 410, 430],
+    "seasonality": [90, 95, 100, 105, 100, 95, 90, 95, 100, 105, 110, 115],
     "audience": {
       "age": "22-45",
       "gender": "All",
-      "interests": [
-        "Office",
-        "Study",
-        "Tech"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE",
-        "JP"
-      ]
+      "interests": ["Office", "Study", "Tech"],
+      "countries": ["US", "UK", "DE", "JP"]
     },
     "riskScore": 18,
     "marketSaturation": 30,
@@ -3718,13 +2115,7 @@
     "orders": "14K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "wine",
-      "opener",
-      "electric",
-      "rechargeable",
-      "kitchen"
-    ],
+    "keywords": ["wine", "opener", "electric", "rechargeable", "kitchen"],
     "suppliers": [
       {
         "name": "KitchenPro CN",
@@ -3747,48 +2138,13 @@
       "dhgate": 8.5,
       "wish": 10.99
     },
-    "trendData": [
-      200,
-      215,
-      230,
-      245,
-      260,
-      275,
-      290,
-      310,
-      330,
-      350,
-      370,
-      385
-    ],
-    "seasonality": [
-      90,
-      85,
-      85,
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      100,
-      115,
-      130
-    ],
+    "trendData": [200, 215, 230, 245, 260, 275, 290, 310, 330, 350, 370, 385],
+    "seasonality": [90, 85, 85, 90, 95, 100, 105, 100, 95, 100, 115, 130],
     "audience": {
       "age": "30-55",
       "gender": "All",
-      "interests": [
-        "Wine",
-        "Kitchen",
-        "Gifts"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "FR",
-        "IT"
-      ]
+      "interests": ["Wine", "Kitchen", "Gifts"],
+      "countries": ["US", "UK", "FR", "IT"]
     },
     "riskScore": 18,
     "marketSaturation": 28,
@@ -3805,9 +2161,7 @@
     "originalPrice": 32.99,
     "margin": 73,
     "score": 83,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 480,
     "competition": "medium",
     "demand": 72,
@@ -3816,14 +2170,7 @@
     "orders": "22K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "scale",
-      "kitchen",
-      "digital",
-      "stainless",
-      "baking",
-      "cooking"
-    ],
+    "keywords": ["scale", "kitchen", "digital", "stainless", "baking", "cooking"],
     "suppliers": [
       {
         "name": "KitchenScale CN",
@@ -3846,47 +2193,13 @@
       "dhgate": 6.5,
       "wish": 8.99
     },
-    "trendData": [
-      260,
-      275,
-      290,
-      310,
-      330,
-      350,
-      370,
-      390,
-      410,
-      430,
-      460,
-      485
-    ],
-    "seasonality": [
-      95,
-      90,
-      85,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      125,
-      135
-    ],
+    "trendData": [260, 275, 290, 310, 330, 350, 370, 390, 410, 430, 460, 485],
+    "seasonality": [95, 90, 85, 85, 90, 95, 100, 105, 110, 115, 125, 135],
     "audience": {
       "age": "25-55",
       "gender": "All",
-      "interests": [
-        "Cooking",
-        "Baking",
-        "Kitchen"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Cooking", "Baking", "Kitchen"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 18,
     "marketSaturation": 35,
@@ -3903,10 +2216,7 @@
     "originalPrice": 89.99,
     "margin": 82,
     "score": 87,
-    "badges": [
-      "hot",
-      "trending"
-    ],
+    "badges": ["hot", "trending"],
     "salesVelocity": 680,
     "competition": "high",
     "demand": 85,
@@ -3915,13 +2225,7 @@
     "orders": "62K",
     "shipFrom": "China",
     "category": "Fashion",
-    "keywords": [
-      "bag",
-      "crossbody",
-      "designer",
-      "leather",
-      "fashion"
-    ],
+    "keywords": ["bag", "crossbody", "designer", "leather", "fashion"],
     "suppliers": [
       {
         "name": "FashionBag CN",
@@ -3944,48 +2248,13 @@
       "dhgate": 15.99,
       "wish": 19.99
     },
-    "trendData": [
-      380,
-      410,
-      440,
-      470,
-      510,
-      550,
-      590,
-      620,
-      650,
-      670,
-      680,
-      690
-    ],
-    "seasonality": [
-      85,
-      90,
-      95,
-      100,
-      105,
-      100,
-      95,
-      95,
-      100,
-      105,
-      115,
-      125
-    ],
+    "trendData": [380, 410, 440, 470, 510, 550, 590, 620, 650, 670, 680, 690],
+    "seasonality": [85, 90, 95, 100, 105, 100, 95, 95, 100, 105, 115, 125],
     "audience": {
       "age": "18-35",
       "gender": "Female",
-      "interests": [
-        "Fashion",
-        "Bags",
-        "Accessories"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "NG",
-        "GH"
-      ]
+      "interests": ["Fashion", "Bags", "Accessories"],
+      "countries": ["US", "UK", "NG", "GH"]
     },
     "riskScore": 35,
     "marketSaturation": 55,
@@ -4002,9 +2271,7 @@
     "originalPrice": 79.99,
     "margin": 76,
     "score": 84,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 580,
     "competition": "high",
     "demand": 82,
@@ -4013,14 +2280,7 @@
     "orders": "48K",
     "shipFrom": "China",
     "category": "Sports",
-    "keywords": [
-      "shoes",
-      "running",
-      "sports",
-      "breathable",
-      "mesh",
-      "athletic"
-    ],
+    "keywords": ["shoes", "running", "sports", "breathable", "mesh", "athletic"],
     "suppliers": [
       {
         "name": "SportShoe CN",
@@ -4043,47 +2303,13 @@
       "dhgate": 18.99,
       "wish": 21.99
     },
-    "trendData": [
-      320,
-      350,
-      380,
-      410,
-      450,
-      490,
-      520,
-      550,
-      570,
-      580,
-      585,
-      590
-    ],
-    "seasonality": [
-      80,
-      85,
-      95,
-      105,
-      115,
-      120,
-      115,
-      110,
-      100,
-      90,
-      80,
-      75
-    ],
+    "trendData": [320, 350, 380, 410, 450, 490, 520, 550, 570, 580, 585, 590],
+    "seasonality": [80, 85, 95, 105, 115, 120, 115, 110, 100, 90, 80, 75],
     "audience": {
       "age": "18-40",
       "gender": "All",
-      "interests": [
-        "Running",
-        "Fitness",
-        "Sports"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "BR"
-      ]
+      "interests": ["Running", "Fitness", "Sports"],
+      "countries": ["US", "UK", "BR"]
     },
     "riskScore": 40,
     "marketSaturation": 62,
@@ -4100,9 +2326,7 @@
     "originalPrice": 99.99,
     "margin": 75,
     "score": 88,
-    "badges": [
-      "hot"
-    ],
+    "badges": ["hot"],
     "salesVelocity": 720,
     "competition": "medium",
     "demand": 86,
@@ -4111,13 +2335,7 @@
     "orders": "42K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "keyboard",
-      "mechanical",
-      "gaming",
-      "rgb",
-      "computer"
-    ],
+    "keywords": ["keyboard", "mechanical", "gaming", "rgb", "computer"],
     "suppliers": [
       {
         "name": "GameGear CN",
@@ -4140,48 +2358,13 @@
       "dhgate": 24.99,
       "wish": 27.99
     },
-    "trendData": [
-      400,
-      430,
-      460,
-      490,
-      530,
-      570,
-      610,
-      650,
-      680,
-      700,
-      720,
-      730
-    ],
-    "seasonality": [
-      100,
-      95,
-      90,
-      85,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      125,
-      140
-    ],
+    "trendData": [400, 430, 460, 490, 530, 570, 610, 650, 680, 700, 720, 730],
+    "seasonality": [100, 95, 90, 85, 85, 90, 95, 100, 105, 110, 125, 140],
     "audience": {
       "age": "16-35",
       "gender": "Male",
-      "interests": [
-        "Gaming",
-        "Tech",
-        "Esports"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "KR",
-        "DE"
-      ]
+      "interests": ["Gaming", "Tech", "Esports"],
+      "countries": ["US", "UK", "KR", "DE"]
     },
     "riskScore": 28,
     "marketSaturation": 48,
@@ -4198,9 +2381,7 @@
     "originalPrice": 129.99,
     "margin": 75,
     "score": 86,
-    "badges": [
-      "ai"
-    ],
+    "badges": ["ai"],
     "salesVelocity": 540,
     "competition": "medium",
     "demand": 80,
@@ -4209,14 +2390,7 @@
     "orders": "32K",
     "shipFrom": "China",
     "category": "Automotive",
-    "keywords": [
-      "dash",
-      "camera",
-      "car",
-      "4k",
-      "recording",
-      "safety"
-    ],
+    "keywords": ["dash", "camera", "car", "4k", "recording", "safety"],
     "suppliers": [
       {
         "name": "AutoCam CN",
@@ -4239,48 +2413,13 @@
       "dhgate": 32.99,
       "wish": 28.99
     },
-    "trendData": [
-      300,
-      320,
-      340,
-      360,
-      380,
-      400,
-      420,
-      440,
-      460,
-      480,
-      500,
-      520
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      110,
-      105
-    ],
+    "trendData": [300, 320, 340, 360, 380, 400, 420, 440, 460, 480, 500, 520],
+    "seasonality": [85, 80, 80, 85, 90, 95, 100, 105, 110, 115, 110, 105],
     "audience": {
       "age": "25-50",
       "gender": "Male",
-      "interests": [
-        "Cars",
-        "Safety",
-        "Tech"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "RU",
-        "BR"
-      ]
+      "interests": ["Cars", "Safety", "Tech"],
+      "countries": ["US", "UK", "RU", "BR"]
     },
     "riskScore": 25,
     "marketSaturation": 42,
@@ -4297,9 +2436,7 @@
     "originalPrice": 54.99,
     "margin": 76,
     "score": 85,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 620,
     "competition": "high",
     "demand": 84,
@@ -4308,14 +2445,7 @@
     "orders": "55K",
     "shipFrom": "China",
     "category": "Electronics",
-    "keywords": [
-      "power",
-      "bank",
-      "portable",
-      "charger",
-      "battery",
-      "phone"
-    ],
+    "keywords": ["power", "bank", "portable", "charger", "battery", "phone"],
     "suppliers": [
       {
         "name": "PowerTech CN",
@@ -4338,48 +2468,13 @@
       "dhgate": 12.99,
       "wish": 14.99
     },
-    "trendData": [
-      350,
-      370,
-      390,
-      410,
-      440,
-      470,
-      500,
-      530,
-      560,
-      590,
-      610,
-      625
-    ],
-    "seasonality": [
-      85,
-      80,
-      80,
-      85,
-      90,
-      100,
-      110,
-      115,
-      105,
-      95,
-      85,
-      80
-    ],
+    "trendData": [350, 370, 390, 410, 440, 470, 500, 530, 560, 590, 610, 625],
+    "seasonality": [85, 80, 80, 85, 90, 100, 110, 115, 105, 95, 85, 80],
     "audience": {
       "age": "18-45",
       "gender": "All",
-      "interests": [
-        "Tech",
-        "Travel",
-        "Phones"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "IN",
-        "BR"
-      ]
+      "interests": ["Tech", "Travel", "Phones"],
+      "countries": ["US", "UK", "IN", "BR"]
     },
     "riskScore": 30,
     "marketSaturation": 65,
@@ -4405,13 +2500,7 @@
     "orders": "32K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "solar",
-      "garden",
-      "lights",
-      "pathway",
-      "outdoor"
-    ],
+    "keywords": ["solar", "garden", "lights", "pathway", "outdoor"],
     "suppliers": [
       {
         "name": "SolarLight CN",
@@ -4434,47 +2523,13 @@
       "dhgate": 6.5,
       "wish": 7.99
     },
-    "trendData": [
-      200,
-      215,
-      240,
-      280,
-      320,
-      360,
-      390,
-      410,
-      420,
-      415,
-      400,
-      380
-    ],
-    "seasonality": [
-      50,
-      55,
-      70,
-      90,
-      110,
-      130,
-      140,
-      135,
-      115,
-      85,
-      55,
-      45
-    ],
+    "trendData": [200, 215, 240, 280, 320, 360, 390, 410, 420, 415, 400, 380],
+    "seasonality": [50, 55, 70, 90, 110, 130, 140, 135, 115, 85, 55, 45],
     "audience": {
       "age": "30-60",
       "gender": "All",
-      "interests": [
-        "Garden",
-        "Home",
-        "Outdoor"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Garden", "Home", "Outdoor"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 22,
     "marketSaturation": 40,
@@ -4491,9 +2546,7 @@
     "originalPrice": 44.99,
     "margin": 73,
     "score": 82,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 480,
     "competition": "medium",
     "demand": 74,
@@ -4502,13 +2555,7 @@
     "orders": "38K",
     "shipFrom": "China",
     "category": "Toys",
-    "keywords": [
-      "karaoke",
-      "microphone",
-      "bluetooth",
-      "singing",
-      "party"
-    ],
+    "keywords": ["karaoke", "microphone", "bluetooth", "singing", "party"],
     "suppliers": [
       {
         "name": "AudioFun CN",
@@ -4531,47 +2578,13 @@
       "dhgate": 7.5,
       "wish": 11.99
     },
-    "trendData": [
-      260,
-      280,
-      300,
-      320,
-      350,
-      380,
-      410,
-      440,
-      460,
-      470,
-      480,
-      485
-    ],
-    "seasonality": [
-      90,
-      85,
-      80,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      130,
-      145
-    ],
+    "trendData": [260, 280, 300, 320, 350, 380, 410, 440, 460, 470, 480, 485],
+    "seasonality": [90, 85, 80, 80, 85, 90, 95, 100, 105, 110, 130, 145],
     "audience": {
       "age": "12-35",
       "gender": "All",
-      "interests": [
-        "Music",
-        "Party",
-        "Entertainment"
-      ],
-      "countries": [
-        "US",
-        "BR",
-        "MX"
-      ]
+      "interests": ["Music", "Party", "Entertainment"],
+      "countries": ["US", "BR", "MX"]
     },
     "riskScore": 22,
     "marketSaturation": 38,
@@ -4588,9 +2601,7 @@
     "originalPrice": 34.99,
     "margin": 74,
     "score": 85,
-    "badges": [
-      "trending"
-    ],
+    "badges": ["trending"],
     "salesVelocity": 580,
     "competition": "medium",
     "demand": 78,
@@ -4599,13 +2610,7 @@
     "orders": "55K",
     "shipFrom": "China",
     "category": "Beauty",
-    "keywords": [
-      "eyelashes",
-      "magnetic",
-      "beauty",
-      "makeup",
-      "cosmetic"
-    ],
+    "keywords": ["eyelashes", "magnetic", "beauty", "makeup", "cosmetic"],
     "suppliers": [
       {
         "name": "BeautyTech CN",
@@ -4628,47 +2633,13 @@
       "dhgate": 5.5,
       "wish": 8.99
     },
-    "trendData": [
-      320,
-      350,
-      380,
-      410,
-      440,
-      470,
-      500,
-      530,
-      550,
-      570,
-      580,
-      585
-    ],
-    "seasonality": [
-      90,
-      95,
-      100,
-      105,
-      110,
-      105,
-      100,
-      100,
-      105,
-      110,
-      120,
-      130
-    ],
+    "trendData": [320, 350, 380, 410, 440, 470, 500, 530, 550, 570, 580, 585],
+    "seasonality": [90, 95, 100, 105, 110, 105, 100, 100, 105, 110, 120, 130],
     "audience": {
       "age": "18-35",
       "gender": "Female",
-      "interests": [
-        "Beauty",
-        "Makeup",
-        "Cosmetics"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "BR"
-      ]
+      "interests": ["Beauty", "Makeup", "Cosmetics"],
+      "countries": ["US", "UK", "BR"]
     },
     "riskScore": 25,
     "marketSaturation": 45,
@@ -4694,14 +2665,7 @@
     "orders": "22K",
     "shipFrom": "China",
     "category": "Home & Garden",
-    "keywords": [
-      "sewing",
-      "kit",
-      "portable",
-      "travel",
-      "emergency",
-      "repair"
-    ],
+    "keywords": ["sewing", "kit", "portable", "travel", "emergency", "repair"],
     "suppliers": [
       {
         "name": "SewPro CN",
@@ -4724,47 +2688,13 @@
       "dhgate": 3.99,
       "wish": 5.99
     },
-    "trendData": [
-      180,
-      190,
-      200,
-      210,
-      230,
-      250,
-      270,
-      290,
-      300,
-      310,
-      318,
-      325
-    ],
-    "seasonality": [
-      80,
-      75,
-      75,
-      80,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      100,
-      90
-    ],
+    "trendData": [180, 190, 200, 210, 230, 250, 270, 290, 300, 310, 318, 325],
+    "seasonality": [80, 75, 75, 80, 85, 90, 95, 100, 105, 110, 100, 90],
     "audience": {
       "age": "25-55",
       "gender": "Female",
-      "interests": [
-        "Sewing",
-        "Travel",
-        "Crafts"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "CA"
-      ]
+      "interests": ["Sewing", "Travel", "Crafts"],
+      "countries": ["US", "UK", "CA"]
     },
     "riskScore": 12,
     "marketSaturation": 18,
@@ -4790,14 +2720,7 @@
     "orders": "78K",
     "shipFrom": "China",
     "category": "Toys",
-    "keywords": [
-      "fidget",
-      "cube",
-      "stress",
-      "relief",
-      "anxiety",
-      "toy"
-    ],
+    "keywords": ["fidget", "cube", "stress", "relief", "anxiety", "toy"],
     "suppliers": [
       {
         "name": "ToyPro CN",
@@ -4820,47 +2743,13 @@
       "dhgate": 3.25,
       "wish": 4.99
     },
-    "trendData": [
-      200,
-      210,
-      220,
-      230,
-      240,
-      250,
-      260,
-      270,
-      275,
-      278,
-      280,
-      282
-    ],
-    "seasonality": [
-      95,
-      90,
-      85,
-      85,
-      90,
-      95,
-      100,
-      105,
-      110,
-      115,
-      105,
-      100
-    ],
+    "trendData": [200, 210, 220, 230, 240, 250, 260, 270, 275, 278, 280, 282],
+    "seasonality": [95, 90, 85, 85, 90, 95, 100, 105, 110, 115, 105, 100],
     "audience": {
       "age": "12-35",
       "gender": "All",
-      "interests": [
-        "Toys",
-        "Stress Relief",
-        "Office"
-      ],
-      "countries": [
-        "US",
-        "UK",
-        "DE"
-      ]
+      "interests": ["Toys", "Stress Relief", "Office"],
+      "countries": ["US", "UK", "DE"]
     },
     "riskScore": 20,
     "marketSaturation": 72,

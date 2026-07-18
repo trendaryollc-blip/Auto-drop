@@ -11,10 +11,7 @@ describe('product-grid plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/product-grid.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/product-grid.js']));
     plugin = HuntDrop.PluginRegistry.get('product-grid');
   });
 

@@ -40,7 +40,9 @@ describe('competitor-battlefield plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('competitor-battlefield');
-      try { await HuntDrop.PluginRegistry.mount('competitor-battlefield'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('competitor-battlefield');
+      } catch (e) {}
       const section = document.getElementById('section-battlefield');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-battlefield');
@@ -49,7 +51,9 @@ describe('competitor-battlefield plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('competitor-battlefield');
-      try { await HuntDrop.PluginRegistry.mount('competitor-battlefield'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('competitor-battlefield');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -57,7 +61,9 @@ describe('competitor-battlefield plugin', () => {
   describe('unmount()', () => {
     it('should clean up section and charts', async () => {
       await HuntDrop.PluginRegistry.init('competitor-battlefield');
-      try { await HuntDrop.PluginRegistry.mount('competitor-battlefield'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('competitor-battlefield');
+      } catch (e) {}
       const el = document.getElementById('section-battlefield');
       if (el) el.remove();
       expect(document.getElementById('section-battlefield')).toBeNull();

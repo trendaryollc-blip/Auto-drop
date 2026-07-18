@@ -11,9 +11,7 @@ describe('AI Key Manager — Encryption Roundtrip', () => {
 
   beforeEach(async () => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/ai-key-manager.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/ai-key-manager.js']));
     km = HuntDrop.APIKeyManager;
     await HuntDrop.PluginRegistry.init('ai-key-manager');
     await km.waitReady();
@@ -138,22 +136,19 @@ describe('AI Risk Analyzer — Numerical Accuracy', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-risk-analyzer.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-risk-analyzer.js']));
     analyzer = HuntDrop.AIRiskAnalyzer;
   });
 
   describe('calculateProfit() — exact values', () => {
     it('should match hand-calculated profit', () => {
       const p = createSampleProduct({
-        price: 15.00,
-        platformPrices: { amazon: 45.00 },
-        adSpendAvg: 6.00,
+        price: 15.0,
+        platformPrices: { amazon: 45.0 },
+        adSpendAvg: 6.0,
       });
       // profit = 45 - 15 - 2.50 - 6 = 21.50
-      expect(analyzer.calculateProfit(p)).toBe(21.50);
+      expect(analyzer.calculateProfit(p)).toBe(21.5);
     });
 
     it('should default adSpendAvg to 3 when 0', () => {
@@ -163,7 +158,7 @@ describe('AI Risk Analyzer — Numerical Accuracy', () => {
         adSpendAvg: 0,
       });
       // profit = 30 - 10 - 2.50 - 3 = 14.50
-      expect(analyzer.calculateProfit(p)).toBeCloseTo(14.50, 1);
+      expect(analyzer.calculateProfit(p)).toBeCloseTo(14.5, 1);
     });
   });
 
@@ -182,7 +177,7 @@ describe('AI Risk Analyzer — Numerical Accuracy', () => {
     it('should return Infinity for zero profit', () => {
       const p = createSampleProduct({
         price: 20,
-        platformPrices: { amazon: 22.50 },
+        platformPrices: { amazon: 22.5 },
         adSpendAvg: 0,
       });
       // profit = 22.50 - 20 - 2.50 - 3 = -3
@@ -239,12 +234,18 @@ describe('AI Risk Analyzer — Numerical Accuracy', () => {
 
   describe('formatAnalysisForAI() — output format', () => {
     it('should format analysis as readable text', () => {
-      const analysis = analyzer.analyzeProduct(createSampleProduct({
-        score: 85, margin: 60, competition: 'low', riskScore: 20,
-        demand: 80, marketSaturation: 30,
-        trendData: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320],
-        suppliers: [{ name: 'S1', verified: true }],
-      }));
+      const analysis = analyzer.analyzeProduct(
+        createSampleProduct({
+          score: 85,
+          margin: 60,
+          competition: 'low',
+          riskScore: 20,
+          demand: 80,
+          marketSaturation: 30,
+          trendData: [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320],
+          suppliers: [{ name: 'S1', verified: true }],
+        })
+      );
       const formatted = analyzer.formatAnalysisForAI(analysis);
       expect(formatted).toContain('WIN PROBABILITY');
       expect(formatted).toContain('RECOMMENDATION');
@@ -265,10 +266,7 @@ describe('AI Context Builder — Data Accuracy', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ai-context-builder.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-context-builder.js']));
     ctx = HuntDrop.AIContextBuilder;
   });
 
@@ -276,7 +274,7 @@ describe('AI Context Builder — Data Accuracy', () => {
     it('should return products with all required fields', () => {
       const products = ctx.getProducts();
       expect(products.length).toBeGreaterThan(0);
-      products.forEach(p => {
+      products.forEach((p) => {
         expect(p.id).toBeDefined();
         expect(p.title).toBeDefined();
         expect(p.platform).toBeDefined();
@@ -340,7 +338,7 @@ describe('AI Context Builder — Data Accuracy', () => {
     it('should filter by partial category match', () => {
       const electronics = ctx.getProductsByCategory('electron');
       expect(electronics.length).toBeGreaterThan(0);
-      electronics.forEach(p => {
+      electronics.forEach((p) => {
         expect(p.category.toLowerCase()).toContain('electron');
       });
     });
@@ -405,7 +403,7 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
 
   describe('needsWebSearch()', () => {
     const triggers = ['price', 'cost', 'buy', 'amazon', 'trending', 'viral', 'competitor', '2026', 'latest', 'compare'];
-    triggers.forEach(trigger => {
+    triggers.forEach((trigger) => {
       it(`should detect "${trigger}" as search trigger`, () => {
         expect(chat.needsWebSearch(`what is the ${trigger}`)).toBe(true);
       });
@@ -451,7 +449,7 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
         platformPrices: { amazon: 30 },
         adSpendAvg: 5,
       });
-      expect(chat.estimateProfit(p)).toBe(12.50);
+      expect(chat.estimateProfit(p)).toBe(12.5);
     });
 
     it('should fallback to shopify when no amazon', () => {
@@ -460,7 +458,7 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
         platformPrices: { shopify: 25 },
         adSpendAvg: 3,
       });
-      expect(chat.estimateProfit(p)).toBe(9.50);
+      expect(chat.estimateProfit(p)).toBe(9.5);
     });
 
     it('should use price*2 when no platform prices', () => {
@@ -470,7 +468,7 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
         adSpendAvg: 3,
       });
       // price*2 = 30, profit = 30 - 15 - 2.50 - 3 = 9.50
-      expect(chat.estimateProfit(p)).toBeCloseTo(9.50, 1);
+      expect(chat.estimateProfit(p)).toBeCloseTo(9.5, 1);
     });
   });
 });

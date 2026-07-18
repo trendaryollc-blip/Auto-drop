@@ -1,201 +1,353 @@
 // ============================================================================
 // PLUGIN: One-Click Store Generator — PRO v4.0
 // ============================================================================
-(function(){
-const {PluginRegistry,UI,Config} = window.HuntDrop;
-const esc = s => UI.escapeHtml(s);
+(function () {
+  const { PluginRegistry, UI, Config } = window.HuntDrop;
+  const esc = (s) => UI.escapeHtml(s);
 
-let _section = null;
-let _state = {platform:'shopify',theme:'minimal',brand:null};
+  let _section = null;
+  const _state = { platform: 'shopify', theme: 'minimal', brand: null };
 
-const BrandPrefixes=['Nova','Apex','Vibe','Pulse','Glow','Zen','Flux','Luxe','Peak','Aura','Orbit','Drift','Spark','Ember','Tidal','Lunar','Ionic','Velo','Onyx','Echo'];
-const BrandSuffixes=['Lab','Co','Store','Hub','Box','Drop','Mart','Shop','Direct','World','Zone','Gear','Tech','Craft','Studio','Works','Den','Vault','Nest','Core'];
-const ColorPalettes=[
-  {primary:'#6366f1',accent:'#818cf8',bg:'#0f0f23',name:'Indigo Night',text:'#f0f0f8'},
-  {primary:'#f43f5e',accent:'#fb7185',bg:'#1a0a12',name:'Rose Ember',text:'#f8f0f2'},
-  {primary:'#14b8a6',accent:'#2dd4bf',bg:'#0a1a17',name:'Teal Zen',text:'#e8f8f5'},
-  {primary:'#f59e0b',accent:'#fbbf24',bg:'#1a1408',name:'Amber Glow',text:'#f8f2e8'},
-  {primary:'#8b5cf6',accent:'#a78bfa',bg:'#130d1f',name:'Violet Dream',text:'#f0eaf8'},
-  {primary:'#06b6d4',accent:'#22d3ee',bg:'#0a1619',name:'Cyan Frost',text:'#e8f4f8'},
-  {primary:'#ec4899',accent:'#f472b6',bg:'#1a0d16',name:'Pink Pulse',text:'#f8eaf0'},
-  {primary:'#10b981',accent:'#34d399',bg:'#0a1a13',name:'Emerald Fresh',text:'#eaf8f0'}
-];
-
-const Platforms = [
-  {id:'shopify',name:'Shopify',icon:'🟢',color:'#96bf48'},
-  {id:'woocommerce',name:'WooCommerce',icon:'🟣',color:'#7b5ea7'},
-  {id:'bigcommerce',name:'BigCommerce',icon:'🔵',color:'#34313f'},
-  {id:'wix',name:'Wix',icon:'⚫',color:'#0c6efc'}
-];
-
-const ThemeTemplates = [
-  {id:'minimal',name:'Minimal Clean',desc:'Ultra-clean layout with focus on product imagery',icon:'◻️'},
-  {id:'bold',name:'Bold Commerce',desc:'High-impact hero sections with strong typography',icon:'🔶'},
-  {id:'luxury',name:'Luxury Prestige',desc:'Elegant dark theme with gold accents',icon:'👑'},
-  {id:'playful',name:'Playful Pop',desc:'Colorful, energetic design for younger audiences',icon:'🎨'}
-];
-
-function generateBrand(product){
-  const prefix=BrandPrefixes[Math.floor(Math.random()*BrandPrefixes.length)];
-  const suffix=BrandSuffixes[Math.floor(Math.random()*BrandSuffixes.length)];
-  const palette=ColorPalettes[Math.floor(Math.random()*ColorPalettes.length)];
-  const taglines=[`Premium ${product.category||'lifestyle'} essentials`,`Elevate your everyday`,`Quality that speaks for itself`,`Designed for modern living`,`Where style meets function`,`Curated for you`];
-  return {name:prefix+' '+suffix,tagline:taglines[Math.floor(Math.random()*taglines.length)],palette,domain:(prefix+suffix).toLowerCase()+'.myshopify.com'};
-}
-
-function generateProductPage(product,_brand){
-  return {
-    headline:`Introducing the ${product.title.split('—')[0].trim()}`,
-    subheadline:`The #1 rated ${product.keywords[0]||'product'} trusted by ${product.orders}+ customers`,
-    features:[
-      {icon:'✨',title:'Premium Quality',desc:'Crafted with the finest materials for lasting durability and performance'},
-      {icon:'🚚',title:'Free Shipping',desc:'Free worldwide shipping on all orders. Delivered in 7-15 business days'},
-      {icon:'💯',title:'100% Satisfaction',desc:'30-day money-back guarantee. No questions asked.'},
-      {icon:'🔒',title:'Secure Checkout',desc:'SSL encrypted payment. Your data is always protected.'}
-    ],
-    reviews:[
-      {name:'Sarah M.',rating:5,text:'Absolutely love this! The quality exceeded my expectations. Will definitely order again.',verified:true,date:'2 days ago'},
-      {name:'James K.',rating:5,text:'Fast shipping and amazing product. My friends keep asking where I got it!',verified:true,date:'1 week ago'},
-      {name:'Emily R.',rating:5,text:'Best purchase I\'ve made this year. Works exactly as described.',verified:true,date:'2 weeks ago'},
-      {name:'Michael T.',rating:4,text:'Great product for the price. Very happy with my purchase.',verified:true,date:'3 weeks ago'}
-    ],
-    sellingPoints:product.keywords.slice(0,4)
-  };
-}
-
-function generateLegalPages(brand){
-  const bName=brand.name.toLowerCase().replace(/\s/g,'');
-  return {
-    privacy:{title:'Privacy Policy',content:`${brand.name} ("us", "we", or "our") operates the ${brand.domain} website.\n\nInformation We Collect:\nWe collect information you provide directly: name, email, shipping address, and payment information.\n\nHow We Use Your Information:\n• To process and fulfill your orders\n• To send order confirmations and updates\n• To respond to your customer service requests\n• To send promotional communications (with your consent)\n\nData Security:\nWe implement industry-standard SSL encryption and security measures to protect your personal information.\n\nContact Us:\nFor privacy-related inquiries, contact us at privacy@${bName}.com`},
-    terms:{title:'Terms of Service',content:`Welcome to ${brand.name}. By accessing our website, you agree to these terms.\n\nProducts:\nAll product descriptions, images, and specifications are subject to change without notice.\n\nPricing:\nAll prices are in USD. We reserve the right to modify prices at any time.\n\nOrders:\nWe reserve the right to refuse or cancel any order for any reason.\n\nIntellectual Property:\nAll content on this site is the property of ${brand.name} and protected by copyright laws.\n\nLimitation of Liability:\n${brand.name} shall not be liable for any indirect, incidental, or consequential damages.`},
-    returns:{title:'Return & Refund Policy',content:`30-Day Money-Back Guarantee\n\nWe want you to be completely satisfied with your purchase. If you're not happy, we'll make it right.\n\nEligibility:\n• Returns accepted within 30 days of delivery\n• Item must be unused and in original packaging\n• Proof of purchase required\n\nProcess:\n1. Contact our support team at support@${bName}.com\n2. Receive a return authorization number\n3. Ship the item back to us\n4. Refund processed within 5-7 business days\n\nReturn Shipping:\nReturn shipping costs are the responsibility of the customer unless the item is defective.`}
-  };
-}
-
-function generateShippingRules(){
-  return [
-    {zone:'United States',method:'Standard Shipping',time:'7-12 business days',cost:'FREE',icon:'🇺🇸'},
-    {zone:'Canada',method:'Standard Shipping',time:'10-15 business days',cost:'FREE',icon:'🇨🇦'},
-    {zone:'United Kingdom',method:'International Standard',time:'10-18 business days',cost:'FREE',icon:'🇬🇧'},
-    {zone:'Europe (EU)',method:'International Standard',time:'12-20 business days',cost:'FREE',icon:'🇪🇺'},
-    {zone:'Australia / NZ',method:'International Standard',time:'12-18 business days',cost:'FREE',icon:'🇦🇺'},
-    {zone:'Rest of World',method:'International Economy',time:'15-25 business days',cost:'$4.99',icon:'🌍'}
+  const BrandPrefixes = [
+    'Nova',
+    'Apex',
+    'Vibe',
+    'Pulse',
+    'Glow',
+    'Zen',
+    'Flux',
+    'Luxe',
+    'Peak',
+    'Aura',
+    'Orbit',
+    'Drift',
+    'Spark',
+    'Ember',
+    'Tidal',
+    'Lunar',
+    'Ionic',
+    'Velo',
+    'Onyx',
+    'Echo',
   ];
-}
-
-function generateSEO(product,brand){
-  return {
-    title:`${product.title.split('—')[0].trim()} | ${brand.name}`,
-    description:`Shop the ${product.title.split('—')[0].trim()} at ${brand.name}. Free shipping, 30-day returns, and premium quality guaranteed.`,
-    keywords:product.keywords.slice(0,8).join(', '),
-    ogTitle:brand.name+' — '+product.keywords[0],
-    ogDesc:`Discover the best ${product.keywords[0]||'product'}. ${brand.tagline}`,
-    slug:product.title.split('—')[0].trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')
-  };
-}
-
-function generatePricing(product,_brand){
-  const base=product.platformPrices.amazon;
-  const retail=(base*2.2).toFixed(2);
-  const cost=base.toFixed(2);
-  const profit=(retail-cost).toFixed(2);
-  const margin=((profit/retail)*100).toFixed(0);
-  return {retail,cost,profit,margin,compareAtPrice:(base*2.8).toFixed(2),currency:'USD'};
-}
-
-function generateSocialProof(_product){
-  return {
-    testimonials:[
-      {name:'Alex R.',role:'Verified Buyer',text:'This product changed my daily routine. Highly recommend!',avatar:'A',color:'#6366f1'},
-      {name:'Jordan P.',role:'Repeat Customer',text:'Ordered twice already. Quality is consistently amazing.',avatar:'J',color:'#10b981'},
-      {name:'Sam W.',role:'First Purchase',text:'Skeptical at first but blown away by the quality. 10/10.',avatar:'S',color:'#f59e0b'},
-      {name:'Casey L.',role:'Gift Buyer',text:'Bought as a gift and now I need one for myself!',avatar:'C',color:'#ec4899'}
-    ],
-    stats:[
-      {label:'Happy Customers',value:'10,000+',icon:'😊'},
-      {label:'5-Star Reviews',value:'2,400+',icon:'⭐'},
-      {label:'Orders Shipped',value:'25,000+',icon:'📦'},
-      {label:'Countries Served',value:'80+',icon:'🌍'}
-    ]
-  };
-}
-
-function generatePaymentMethods(){
-  return [
-    {name:'Credit Card',icon:'💳',desc:'Visa, Mastercard, Amex'},
-    {name:'PayPal',icon:'🅿️',desc:'Fast & secure checkout'},
-    {name:'Apple Pay',icon:'🍎',desc:'One-tap checkout'},
-    {name:'Google Pay',icon:'🔵',desc:'Quick payment'},
-    {name:'Shop Pay',icon:'🟩',desc:'Accelerated checkout'},
-    {name:'Klarna',icon:'🩷',desc:'Buy now, pay later'}
+  const BrandSuffixes = [
+    'Lab',
+    'Co',
+    'Store',
+    'Hub',
+    'Box',
+    'Drop',
+    'Mart',
+    'Shop',
+    'Direct',
+    'World',
+    'Zone',
+    'Gear',
+    'Tech',
+    'Craft',
+    'Studio',
+    'Works',
+    'Den',
+    'Vault',
+    'Nest',
+    'Core',
   ];
-}
-
-function generatePages(){
-  return [
-    {name:'Home',icon:'🏠',desc:'Main landing page with hero banner',status:'ready'},
-    {name:'Product Page',icon:'📄',desc:'Individual product detail page',status:'ready'},
-    {name:'Collection',icon:'📁',desc:'Product category/collection page',status:'ready'},
-    {name:'About Us',icon:'ℹ️',desc:'Brand story and mission page',status:'ready'},
-    {name:'Contact',icon:'📧',desc:'Contact form and support info',status:'ready'},
-    {name:'FAQ',icon:'❓',desc:'Frequently asked questions',status:'ready'},
-    {name:'Blog',icon:'📝',desc:'Content marketing hub',status:'ready'},
-    {name:'Cart',icon:'🛒',desc:'Shopping cart page',status:'ready'}
+  const ColorPalettes = [
+    { primary: '#6366f1', accent: '#818cf8', bg: '#0f0f23', name: 'Indigo Night', text: '#f0f0f8' },
+    { primary: '#f43f5e', accent: '#fb7185', bg: '#1a0a12', name: 'Rose Ember', text: '#f8f0f2' },
+    { primary: '#14b8a6', accent: '#2dd4bf', bg: '#0a1a17', name: 'Teal Zen', text: '#e8f8f5' },
+    { primary: '#f59e0b', accent: '#fbbf24', bg: '#1a1408', name: 'Amber Glow', text: '#f8f2e8' },
+    { primary: '#8b5cf6', accent: '#a78bfa', bg: '#130d1f', name: 'Violet Dream', text: '#f0eaf8' },
+    { primary: '#06b6d4', accent: '#22d3ee', bg: '#0a1619', name: 'Cyan Frost', text: '#e8f4f8' },
+    { primary: '#ec4899', accent: '#f472b6', bg: '#1a0d16', name: 'Pink Pulse', text: '#f8eaf0' },
+    { primary: '#10b981', accent: '#34d399', bg: '#0a1a13', name: 'Emerald Fresh', text: '#eaf8f0' },
   ];
-}
 
-function goToStep(n){
-  if(!_section) return;
-  _section.querySelectorAll('.osg-step').forEach(s=>{
-    const sn=parseInt(s.dataset.step);
-    s.classList.remove('osg-step-active','osg-step-done');
-    if(sn<n) s.classList.add('osg-step-done');
-    if(sn===n) s.classList.add('osg-step-active');
-  });
-  for(let i=1;i<=3;i++){
-    const panel=_section.querySelector('#osgStep'+i);
-    if(panel){
-      if(i===n){panel.classList.remove('osg-panel-hidden');panel.classList.add('osg-panel-visible');}
-      else{panel.classList.add('osg-panel-hidden');panel.classList.remove('osg-panel-visible');}
+  const Platforms = [
+    { id: 'shopify', name: 'Shopify', icon: '🟢', color: '#96bf48' },
+    { id: 'woocommerce', name: 'WooCommerce', icon: '🟣', color: '#7b5ea7' },
+    { id: 'bigcommerce', name: 'BigCommerce', icon: '🔵', color: '#34313f' },
+    { id: 'wix', name: 'Wix', icon: '⚫', color: '#0c6efc' },
+  ];
+
+  const ThemeTemplates = [
+    { id: 'minimal', name: 'Minimal Clean', desc: 'Ultra-clean layout with focus on product imagery', icon: '◻️' },
+    { id: 'bold', name: 'Bold Commerce', desc: 'High-impact hero sections with strong typography', icon: '🔶' },
+    { id: 'luxury', name: 'Luxury Prestige', desc: 'Elegant dark theme with gold accents', icon: '👑' },
+    { id: 'playful', name: 'Playful Pop', desc: 'Colorful, energetic design for younger audiences', icon: '🎨' },
+  ];
+
+  function generateBrand(product) {
+    const prefix = BrandPrefixes[Math.floor(Math.random() * BrandPrefixes.length)];
+    const suffix = BrandSuffixes[Math.floor(Math.random() * BrandSuffixes.length)];
+    const palette = ColorPalettes[Math.floor(Math.random() * ColorPalettes.length)];
+    const taglines = [
+      `Premium ${product.category || 'lifestyle'} essentials`,
+      `Elevate your everyday`,
+      `Quality that speaks for itself`,
+      `Designed for modern living`,
+      `Where style meets function`,
+      `Curated for you`,
+    ];
+    return {
+      name: prefix + ' ' + suffix,
+      tagline: taglines[Math.floor(Math.random() * taglines.length)],
+      palette,
+      domain: (prefix + suffix).toLowerCase() + '.myshopify.com',
+    };
+  }
+
+  function generateProductPage(product, _brand) {
+    return {
+      headline: `Introducing the ${product.title.split('—')[0].trim()}`,
+      subheadline: `The #1 rated ${product.keywords[0] || 'product'} trusted by ${product.orders}+ customers`,
+      features: [
+        {
+          icon: '✨',
+          title: 'Premium Quality',
+          desc: 'Crafted with the finest materials for lasting durability and performance',
+        },
+        {
+          icon: '🚚',
+          title: 'Free Shipping',
+          desc: 'Free worldwide shipping on all orders. Delivered in 7-15 business days',
+        },
+        { icon: '💯', title: '100% Satisfaction', desc: '30-day money-back guarantee. No questions asked.' },
+        { icon: '🔒', title: 'Secure Checkout', desc: 'SSL encrypted payment. Your data is always protected.' },
+      ],
+      reviews: [
+        {
+          name: 'Sarah M.',
+          rating: 5,
+          text: 'Absolutely love this! The quality exceeded my expectations. Will definitely order again.',
+          verified: true,
+          date: '2 days ago',
+        },
+        {
+          name: 'James K.',
+          rating: 5,
+          text: 'Fast shipping and amazing product. My friends keep asking where I got it!',
+          verified: true,
+          date: '1 week ago',
+        },
+        {
+          name: 'Emily R.',
+          rating: 5,
+          text: "Best purchase I've made this year. Works exactly as described.",
+          verified: true,
+          date: '2 weeks ago',
+        },
+        {
+          name: 'Michael T.',
+          rating: 4,
+          text: 'Great product for the price. Very happy with my purchase.',
+          verified: true,
+          date: '3 weeks ago',
+        },
+      ],
+      sellingPoints: product.keywords.slice(0, 4),
+    };
+  }
+
+  function generateLegalPages(brand) {
+    const bName = brand.name.toLowerCase().replace(/\s/g, '');
+    return {
+      privacy: {
+        title: 'Privacy Policy',
+        content: `${brand.name} ("us", "we", or "our") operates the ${brand.domain} website.\n\nInformation We Collect:\nWe collect information you provide directly: name, email, shipping address, and payment information.\n\nHow We Use Your Information:\n• To process and fulfill your orders\n• To send order confirmations and updates\n• To respond to your customer service requests\n• To send promotional communications (with your consent)\n\nData Security:\nWe implement industry-standard SSL encryption and security measures to protect your personal information.\n\nContact Us:\nFor privacy-related inquiries, contact us at privacy@${bName}.com`,
+      },
+      terms: {
+        title: 'Terms of Service',
+        content: `Welcome to ${brand.name}. By accessing our website, you agree to these terms.\n\nProducts:\nAll product descriptions, images, and specifications are subject to change without notice.\n\nPricing:\nAll prices are in USD. We reserve the right to modify prices at any time.\n\nOrders:\nWe reserve the right to refuse or cancel any order for any reason.\n\nIntellectual Property:\nAll content on this site is the property of ${brand.name} and protected by copyright laws.\n\nLimitation of Liability:\n${brand.name} shall not be liable for any indirect, incidental, or consequential damages.`,
+      },
+      returns: {
+        title: 'Return & Refund Policy',
+        content: `30-Day Money-Back Guarantee\n\nWe want you to be completely satisfied with your purchase. If you're not happy, we'll make it right.\n\nEligibility:\n• Returns accepted within 30 days of delivery\n• Item must be unused and in original packaging\n• Proof of purchase required\n\nProcess:\n1. Contact our support team at support@${bName}.com\n2. Receive a return authorization number\n3. Ship the item back to us\n4. Refund processed within 5-7 business days\n\nReturn Shipping:\nReturn shipping costs are the responsibility of the customer unless the item is defective.`,
+      },
+    };
+  }
+
+  function generateShippingRules() {
+    return [
+      { zone: 'United States', method: 'Standard Shipping', time: '7-12 business days', cost: 'FREE', icon: '🇺🇸' },
+      { zone: 'Canada', method: 'Standard Shipping', time: '10-15 business days', cost: 'FREE', icon: '🇨🇦' },
+      {
+        zone: 'United Kingdom',
+        method: 'International Standard',
+        time: '10-18 business days',
+        cost: 'FREE',
+        icon: '🇬🇧',
+      },
+      { zone: 'Europe (EU)', method: 'International Standard', time: '12-20 business days', cost: 'FREE', icon: '🇪🇺' },
+      {
+        zone: 'Australia / NZ',
+        method: 'International Standard',
+        time: '12-18 business days',
+        cost: 'FREE',
+        icon: '🇦🇺',
+      },
+      {
+        zone: 'Rest of World',
+        method: 'International Economy',
+        time: '15-25 business days',
+        cost: '$4.99',
+        icon: '🌍',
+      },
+    ];
+  }
+
+  function generateSEO(product, brand) {
+    return {
+      title: `${product.title.split('—')[0].trim()} | ${brand.name}`,
+      description: `Shop the ${product.title.split('—')[0].trim()} at ${brand.name}. Free shipping, 30-day returns, and premium quality guaranteed.`,
+      keywords: product.keywords.slice(0, 8).join(', '),
+      ogTitle: brand.name + ' — ' + product.keywords[0],
+      ogDesc: `Discover the best ${product.keywords[0] || 'product'}. ${brand.tagline}`,
+      slug: product.title
+        .split('—')[0]
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, ''),
+    };
+  }
+
+  function generatePricing(product, _brand) {
+    const base = product.platformPrices.amazon;
+    const retail = (base * 2.2).toFixed(2);
+    const cost = base.toFixed(2);
+    const profit = (retail - cost).toFixed(2);
+    const margin = ((profit / retail) * 100).toFixed(0);
+    return { retail, cost, profit, margin, compareAtPrice: (base * 2.8).toFixed(2), currency: 'USD' };
+  }
+
+  function generateSocialProof(_product) {
+    return {
+      testimonials: [
+        {
+          name: 'Alex R.',
+          role: 'Verified Buyer',
+          text: 'This product changed my daily routine. Highly recommend!',
+          avatar: 'A',
+          color: '#6366f1',
+        },
+        {
+          name: 'Jordan P.',
+          role: 'Repeat Customer',
+          text: 'Ordered twice already. Quality is consistently amazing.',
+          avatar: 'J',
+          color: '#10b981',
+        },
+        {
+          name: 'Sam W.',
+          role: 'First Purchase',
+          text: 'Skeptical at first but blown away by the quality. 10/10.',
+          avatar: 'S',
+          color: '#f59e0b',
+        },
+        {
+          name: 'Casey L.',
+          role: 'Gift Buyer',
+          text: 'Bought as a gift and now I need one for myself!',
+          avatar: 'C',
+          color: '#ec4899',
+        },
+      ],
+      stats: [
+        { label: 'Happy Customers', value: '10,000+', icon: '😊' },
+        { label: '5-Star Reviews', value: '2,400+', icon: '⭐' },
+        { label: 'Orders Shipped', value: '25,000+', icon: '📦' },
+        { label: 'Countries Served', value: '80+', icon: '🌍' },
+      ],
+    };
+  }
+
+  function generatePaymentMethods() {
+    return [
+      { name: 'Credit Card', icon: '💳', desc: 'Visa, Mastercard, Amex' },
+      { name: 'PayPal', icon: '🅿️', desc: 'Fast & secure checkout' },
+      { name: 'Apple Pay', icon: '🍎', desc: 'One-tap checkout' },
+      { name: 'Google Pay', icon: '🔵', desc: 'Quick payment' },
+      { name: 'Shop Pay', icon: '🟩', desc: 'Accelerated checkout' },
+      { name: 'Klarna', icon: '🩷', desc: 'Buy now, pay later' },
+    ];
+  }
+
+  function generatePages() {
+    return [
+      { name: 'Home', icon: '🏠', desc: 'Main landing page with hero banner', status: 'ready' },
+      { name: 'Product Page', icon: '📄', desc: 'Individual product detail page', status: 'ready' },
+      { name: 'Collection', icon: '📁', desc: 'Product category/collection page', status: 'ready' },
+      { name: 'About Us', icon: 'ℹ️', desc: 'Brand story and mission page', status: 'ready' },
+      { name: 'Contact', icon: '📧', desc: 'Contact form and support info', status: 'ready' },
+      { name: 'FAQ', icon: '❓', desc: 'Frequently asked questions', status: 'ready' },
+      { name: 'Blog', icon: '📝', desc: 'Content marketing hub', status: 'ready' },
+      { name: 'Cart', icon: '🛒', desc: 'Shopping cart page', status: 'ready' },
+    ];
+  }
+
+  function goToStep(n) {
+    if (!_section) return;
+    _section.querySelectorAll('.osg-step').forEach((s) => {
+      const sn = parseInt(s.dataset.step);
+      s.classList.remove('osg-step-active', 'osg-step-done');
+      if (sn < n) s.classList.add('osg-step-done');
+      if (sn === n) s.classList.add('osg-step-active');
+    });
+    for (let i = 1; i <= 3; i++) {
+      const panel = _section.querySelector('#osgStep' + i);
+      if (panel) {
+        if (i === n) {
+          panel.classList.remove('osg-panel-hidden');
+          panel.classList.add('osg-panel-visible');
+        } else {
+          panel.classList.add('osg-panel-hidden');
+          panel.classList.remove('osg-panel-visible');
+        }
+      }
     }
   }
-}
 
-function switchTab(tab){
-  if(!_section) return;
-  _section.querySelectorAll('.osg-tab-btn').forEach(b=>b.classList.remove('active'));
-  _section.querySelectorAll('.osg-tab-panel').forEach(p=>p.classList.remove('active'));
-  const tabEl=_section.querySelector('#osgTab'+tab.charAt(0).toUpperCase()+tab.slice(1));
-  if(tabEl) tabEl.classList.add('active');
-  const panelEl=_section.querySelector('#osgPanel'+tab.charAt(0).toUpperCase()+tab.slice(1));
-  if(panelEl) panelEl.classList.add('active');
-}
+  function switchTab(tab) {
+    if (!_section) return;
+    _section.querySelectorAll('.osg-tab-btn').forEach((b) => b.classList.remove('active'));
+    _section.querySelectorAll('.osg-tab-panel').forEach((p) => p.classList.remove('active'));
+    const tabEl = _section.querySelector('#osgTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    if (tabEl) tabEl.classList.add('active');
+    const panelEl = _section.querySelector('#osgPanel' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    if (panelEl) panelEl.classList.add('active');
+  }
 
-function generate(query){
-  if(!query.trim()) return;
-  const products=window.HuntDrop.ALL_PRODUCTS||[];
-  const product=products.find(p=>
-    p.title.toLowerCase().includes(query.toLowerCase())||
-    p.keywords.some(k=>k.toLowerCase().includes(query.toLowerCase()))
-  )||products.sort((a,b)=>b.score-a.score)[0];
-  if(!product) return;
+  function generate(query) {
+    if (!query.trim()) return;
+    const products = window.HuntDrop.ALL_PRODUCTS || [];
+    const product =
+      products.find(
+        (p) =>
+          p.title.toLowerCase().includes(query.toLowerCase()) ||
+          p.keywords.some((k) => k.toLowerCase().includes(query.toLowerCase()))
+      ) || products.sort((a, b) => b.score - a.score)[0];
+    if (!product) return;
 
-  const brand=generateBrand(product);
-  const page=generateProductPage(product,brand);
-  const legal=generateLegalPages(brand);
-  const shipping=generateShippingRules();
-  const seo=generateSEO(product,brand);
-  const pricing=generatePricing(product,brand);
-  const social=generateSocialProof(product);
-  const payments=generatePaymentMethods();
-  const pages=generatePages();
-  const el=_section?_section.querySelector('#sgResults'):null;
-  if(!el) return;
+    const brand = generateBrand(product);
+    const page = generateProductPage(product, brand);
+    const legal = generateLegalPages(brand);
+    const shipping = generateShippingRules();
+    const seo = generateSEO(product, brand);
+    const pricing = generatePricing(product, brand);
+    const social = generateSocialProof(product);
+    const payments = generatePaymentMethods();
+    const pages = generatePages();
+    const el = _section ? _section.querySelector('#sgResults') : null;
+    if (!el) return;
 
-  _section.querySelectorAll('.osg-step').forEach(s=>s.classList.add('osg-step-done'));
-  _section.querySelectorAll('.osg-panel').forEach(p=>{p.classList.add('osg-panel-hidden');p.classList.remove('osg-panel-visible');});
+    _section.querySelectorAll('.osg-step').forEach((s) => s.classList.add('osg-step-done'));
+    _section.querySelectorAll('.osg-panel').forEach((p) => {
+      p.classList.add('osg-panel-hidden');
+      p.classList.remove('osg-panel-visible');
+    });
 
-  el.innerHTML=`
+    el.innerHTML = `
       <div class="osg-output">
 
         <!-- Success Banner -->
@@ -245,7 +397,7 @@ function generate(query){
           <div class="osg-store-preview-frame" id="osgPreviewFrame">
             <div class="osg-store-preview" style="background:${brand.palette.bg};color:${brand.palette.text}">
               <div class="osg-store-topbar">
-                <div class="osg-store-logo" style="color:${brand.palette.primary}">${esc(brand.name.split(' ')[0])}<span style="color:${brand.palette.accent}">${esc(brand.name.split(' ')[1]||'')}</span></div>
+                <div class="osg-store-logo" style="color:${brand.palette.primary}">${esc(brand.name.split(' ')[0])}<span style="color:${brand.palette.accent}">${esc(brand.name.split(' ')[1] || '')}</span></div>
                 <div class="osg-store-nav"><span>Shop</span><span>About</span><span>Contact</span><span class="osg-store-cart">🛒 (0)</span></div>
               </div>
               <div class="osg-store-hero">
@@ -260,7 +412,7 @@ function generate(query){
                   </div>
                   <button class="osg-store-cta" style="background:${brand.palette.primary}">Add to Cart — Free Shipping</button>
                   <div class="osg-store-trust-strip">
-                    ${['🔒 Secure','🚚 Free Ship','💯 Guarantee','⭐ ${product.rating}★'].map(t=>'<span>'+t+'</span>').join('')}
+                    ${['🔒 Secure', '🚚 Free Ship', '💯 Guarantee', '⭐ ${product.rating}★'].map((t) => '<span>' + t + '</span>').join('')}
                   </div>
                 </div>
                 <div class="osg-store-hero-img"><img src="${product.image}" alt=""></div>
@@ -323,19 +475,19 @@ function generate(query){
               <div class="osg-section">
                 <div class="osg-section-header"><h3>✨ Product Features</h3></div>
                 <div class="osg-features-grid">
-                  ${page.features.map(f=>`<div class="osg-feature-card"><div class="osg-feature-icon">${f.icon}</div><div class="osg-feature-title">${f.title}</div><div class="osg-feature-desc">${f.desc}</div></div>`).join('')}
+                  ${page.features.map((f) => `<div class="osg-feature-card"><div class="osg-feature-icon">${f.icon}</div><div class="osg-feature-title">${f.title}</div><div class="osg-feature-desc">${f.desc}</div></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
                 <div class="osg-section-header"><h3>🎯 Selling Points</h3></div>
                 <div class="osg-selling-points">
-                  ${page.sellingPoints.map(sp=>`<div class="osg-sp"><span class="osg-sp-check" style="background:${brand.palette.primary}">✓</span><span>${sp}</span></div>`).join('')}
+                  ${page.sellingPoints.map((sp) => `<div class="osg-sp"><span class="osg-sp-check" style="background:${brand.palette.primary}">✓</span><span>${sp}</span></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
                 <div class="osg-section-header"><h3>⭐ Customer Reviews</h3><span class="osg-section-badge">${page.reviews.length} templates</span></div>
                 <div class="osg-reviews-grid">
-                  ${page.reviews.map(r=>`<div class="osg-review"><div class="osg-review-head"><div class="osg-review-avatar" style="background:${brand.palette.primary}22;color:${brand.palette.primary}">${r.name.charAt(0)}</div><div class="osg-review-meta"><div class="osg-review-name">${r.name}</div><div class="osg-review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div></div>${r.verified?'<span class="osg-verified">✓ Verified</span>':''}</div><div class="osg-review-text">${r.text}</div><div class="osg-review-date">${r.date}</div></div>`).join('')}
+                  ${page.reviews.map((r) => `<div class="osg-review"><div class="osg-review-head"><div class="osg-review-avatar" style="background:${brand.palette.primary}22;color:${brand.palette.primary}">${r.name.charAt(0)}</div><div class="osg-review-meta"><div class="osg-review-name">${r.name}</div><div class="osg-review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div></div>${r.verified ? '<span class="osg-verified">✓ Verified</span>' : ''}</div><div class="osg-review-text">${r.text}</div><div class="osg-review-date">${r.date}</div></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
@@ -353,10 +505,10 @@ function generate(query){
             <div class="osg-tab-panel" id="osgPanelShipping">
               <div class="osg-section">
                 <div class="osg-section-header"><h3>🚚 Shipping Rules</h3><span class="osg-section-badge">${shipping.length} zones</span></div>
-                <p class="osg-section-sub">Based on supplier: ${product.suppliers?.[0]?.name||'N/A'} (${product.suppliers?.[0]?.location||'Global'})</p>
+                <p class="osg-section-sub">Based on supplier: ${product.suppliers?.[0]?.name || 'N/A'} (${product.suppliers?.[0]?.location || 'Global'})</p>
                 <div class="osg-ship-table">
                   <div class="osg-ship-head"><span>Zone</span><span>Method</span><span>Delivery</span><span>Cost</span></div>
-                  ${shipping.map(s=>`<div class="osg-ship-row"><span class="osg-ship-zone">${s.icon} ${s.zone}</span><span>${s.method}</span><span>${s.time}</span><span class="osg-ship-cost" style="color:${s.cost==='FREE'?'var(--accent-green)':'var(--text-primary)'}">${s.cost}</span></div>`).join('')}
+                  ${shipping.map((s) => `<div class="osg-ship-row"><span class="osg-ship-zone">${s.icon} ${s.zone}</span><span>${s.method}</span><span>${s.time}</span><span class="osg-ship-cost" style="color:${s.cost === 'FREE' ? 'var(--accent-green)' : 'var(--text-primary)'}">${s.cost}</span></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
@@ -450,7 +602,7 @@ function generate(query){
                 <div class="osg-section-header"><h3>💳 Payment Methods</h3><span class="osg-section-badge">${payments.length} providers</span></div>
                 <p class="osg-section-sub">Pre-configured and ready to accept payments from day one</p>
                 <div class="osg-payments-grid">
-                  ${payments.map(pm=>`<div class="osg-payment-card"><div class="osg-payment-icon">${pm.icon}</div><div class="osg-payment-name">${pm.name}</div><div class="osg-payment-desc">${pm.desc}</div><div class="osg-payment-status"><span class="osg-payment-dot"></span>Ready</div></div>`).join('')}
+                  ${payments.map((pm) => `<div class="osg-payment-card"><div class="osg-payment-icon">${pm.icon}</div><div class="osg-payment-name">${pm.name}</div><div class="osg-payment-desc">${pm.desc}</div><div class="osg-payment-status"><span class="osg-payment-dot"></span>Ready</div></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
@@ -470,7 +622,7 @@ function generate(query){
                 <div class="osg-section-header"><h3>📑 Store Pages</h3><span class="osg-section-badge">${pages.length} pages</span></div>
                 <p class="osg-section-sub">All pages auto-generated with your brand styling, copy, and SEO</p>
                 <div class="osg-pages-grid">
-                  ${pages.map(pg=>`<div class="osg-page-card"><div class="osg-page-icon">${pg.icon}</div><div class="osg-page-info"><div class="osg-page-name">${pg.name}</div><div class="osg-page-desc">${pg.desc}</div></div><div class="osg-page-status"><span class="osg-page-dot"></span>${pg.status}</div></div>`).join('')}
+                  ${pages.map((pg) => `<div class="osg-page-card"><div class="osg-page-icon">${pg.icon}</div><div class="osg-page-info"><div class="osg-page-name">${pg.name}</div><div class="osg-page-desc">${pg.desc}</div></div><div class="osg-page-status"><span class="osg-page-dot"></span>${pg.status}</div></div>`).join('')}
                 </div>
               </div>
               <div class="osg-section">
@@ -490,10 +642,10 @@ function generate(query){
         <div class="osg-section">
           <div class="osg-section-header"><h3>💬 Social Proof Templates</h3><span class="osg-section-badge">${social.testimonials.length} testimonials</span></div>
           <div class="osg-social-grid">
-            ${social.testimonials.map(t=>`<div class="osg-social-card"><div class="osg-social-head"><div class="osg-social-avatar" style="background:${t.color}22;color:${t.color}">${t.avatar}</div><div><div class="osg-social-name">${t.name}</div><div class="osg-social-role">${t.role}</div></div></div><div class="osg-social-text">"${t.text}"</div></div>`).join('')}
+            ${social.testimonials.map((t) => `<div class="osg-social-card"><div class="osg-social-head"><div class="osg-social-avatar" style="background:${t.color}22;color:${t.color}">${t.avatar}</div><div><div class="osg-social-name">${t.name}</div><div class="osg-social-role">${t.role}</div></div></div><div class="osg-social-text">"${t.text}"</div></div>`).join('')}
           </div>
           <div class="osg-social-stats">
-            ${social.stats.map(s=>`<div class="osg-social-stat"><div class="osg-social-stat-icon">${s.icon}</div><div class="osg-social-stat-val">${s.value}</div><div class="osg-social-stat-label">${s.label}</div></div>`).join('')}
+            ${social.stats.map((s) => `<div class="osg-social-stat"><div class="osg-social-stat-icon">${s.icon}</div><div class="osg-social-stat-val">${s.value}</div><div class="osg-social-stat-label">${s.label}</div></div>`).join('')}
           </div>
         </div>
 
@@ -508,53 +660,70 @@ function generate(query){
       </div>`;
 
     switchTab('product');
-    ['Product','Shipping','Legal','Email','Seo','Payments','Pages'].forEach(tab=>{
-      _section.querySelector('#osgTab'+tab)?.addEventListener('click',()=>switchTab(tab.toLowerCase()));
+    ['Product', 'Shipping', 'Legal', 'Email', 'Seo', 'Payments', 'Pages'].forEach((tab) => {
+      _section.querySelector('#osgTab' + tab)?.addEventListener('click', () => switchTab(tab.toLowerCase()));
     });
-    _section.querySelectorAll('.osg-legal-tab').forEach(tab=>{
-      tab.addEventListener('click',()=>{
-        _section.querySelectorAll('.osg-legal-tab').forEach(b=>b.classList.remove('active'));
+    _section.querySelectorAll('.osg-legal-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        _section.querySelectorAll('.osg-legal-tab').forEach((b) => b.classList.remove('active'));
         tab.classList.add('active');
-        _section.querySelectorAll('.osg-legal-content').forEach(c=>c.classList.remove('active'));
+        _section.querySelectorAll('.osg-legal-content').forEach((c) => c.classList.remove('active'));
         const legal = tab.dataset.legal || '';
-        const t=_section.querySelector('#osgLegal'+legal.charAt(0).toUpperCase()+legal.slice(1));
-        if(t) t.classList.add('active');
+        const t = _section.querySelector('#osgLegal' + legal.charAt(0).toUpperCase() + legal.slice(1));
+        if (t) t.classList.add('active');
       });
     });
-    _section.querySelectorAll('.osg-device-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        _section.querySelectorAll('.osg-device-btn').forEach(b=>b.classList.remove('osg-device-active'));
+    _section.querySelectorAll('.osg-device-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        _section.querySelectorAll('.osg-device-btn').forEach((b) => b.classList.remove('osg-device-active'));
         btn.classList.add('osg-device-active');
-        const frame=_section.querySelector('#osgPreviewFrame');
-        if(frame){
-          if(btn.dataset.device==='mobile'){frame.classList.add('osg-frame-mobile');}
-          else{frame.classList.remove('osg-frame-mobile');}
+        const frame = _section.querySelector('#osgPreviewFrame');
+        if (frame) {
+          if (btn.dataset.device === 'mobile') {
+            frame.classList.add('osg-frame-mobile');
+          } else {
+            frame.classList.remove('osg-frame-mobile');
+          }
         }
       });
     });
-    _section.querySelector('#osgCopyConfig')?.addEventListener('click',()=>{
-      const config={brand:brand.name,domain:brand.domain,palette:brand.palette.name,pricing,seo,platform:_state.platform};
-      navigator.clipboard?.writeText(JSON.stringify(config,null,2));
-      const btn=_section.querySelector('#osgCopyConfig span');
-      if(btn){btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy Config',2000);}
+    _section.querySelector('#osgCopyConfig')?.addEventListener('click', () => {
+      const config = {
+        brand: brand.name,
+        domain: brand.domain,
+        palette: brand.palette.name,
+        pricing,
+        seo,
+        platform: _state.platform,
+      };
+      navigator.clipboard?.writeText(JSON.stringify(config, null, 2));
+      const btn = _section.querySelector('#osgCopyConfig span');
+      if (btn) {
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = 'Copy Config'), 2000);
+      }
     });
-    el.scrollIntoView({behavior:'smooth',block:'start'});
-}
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
-const StoreGeneratorPlugin={
-  id:'store-generator',name:'Store Builder',version:'4.0.0',
-  description:'Generate a complete branded Shopify store in 60 seconds',
-  dependencies:['search-engine'],
+  const StoreGeneratorPlugin = {
+    id: 'store-generator',
+    name: 'Store Builder',
+    version: '4.0.0',
+    description: 'Generate a complete branded Shopify store in 60 seconds',
+    dependencies: ['search-engine'],
 
-  init(_ctx){Config.defaults('storeGenerator',{enabled:true});},
+    init(_ctx) {
+      Config.defaults('storeGenerator', { enabled: true });
+    },
 
-  mount(_ctx){
-    const container=UI.$('sections-container');
-    if(!container) return;
-    const section=document.createElement('section');
-    section.className='section section-store-gen';
-    section.id='section-store-gen';
-    section.innerHTML=`
+    mount(_ctx) {
+      const container = UI.$('sections-container');
+      if (!container) return;
+      const section = document.createElement('section');
+      section.className = 'section section-store-gen';
+      section.id = 'section-store-gen';
+      section.innerHTML = `
       <div class="section-inner">
 
         <!-- Hero Section -->
@@ -660,15 +829,17 @@ const StoreGeneratorPlugin={
             <div><h3 class="osg-panel-title">Choose Your Platform</h3><p class="osg-panel-desc">Select the ecommerce platform for your store</p></div>
           </div>
           <div class="osg-platform-grid">
-            ${Platforms.map((p,i)=>`
-              <button class="osg-platform-card ${i===0?'osg-platform-active':''}" data-platform="${p.id}">
+            ${Platforms.map(
+              (p, i) => `
+              <button class="osg-platform-card ${i === 0 ? 'osg-platform-active' : ''}" data-platform="${p.id}">
                 <div class="osg-platform-icon">${p.icon}</div>
                 <div class="osg-platform-name">${p.name}</div>
                 <div class="osg-platform-check">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               </button>
-            `).join('')}
+            `
+            ).join('')}
           </div>
           <div class="osg-panel-actions">
             <button class="osg-btn-ghost" id="osgBack2">
@@ -689,8 +860,9 @@ const StoreGeneratorPlugin={
             <div><h3 class="osg-panel-title">Select Your Theme</h3><p class="osg-panel-desc">Pick a design template that matches your brand vibe</p></div>
           </div>
           <div class="osg-theme-grid">
-            ${ThemeTemplates.map((t,i)=>`
-              <button class="osg-theme-card ${i===0?'osg-theme-active':''}" data-theme="${t.id}">
+            ${ThemeTemplates.map(
+              (t, i) => `
+              <button class="osg-theme-card ${i === 0 ? 'osg-theme-active' : ''}" data-theme="${t.id}">
                 <div class="osg-theme-preview">
                   <div class="osg-theme-mock-header"></div>
                   <div class="osg-theme-mock-hero"></div>
@@ -709,7 +881,8 @@ const StoreGeneratorPlugin={
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               </button>
-            `).join('')}
+            `
+            ).join('')}
           </div>
           <div class="osg-panel-actions">
             <button class="osg-btn-ghost" id="osgBack3">
@@ -727,54 +900,90 @@ const StoreGeneratorPlugin={
         <div id="sgResults"></div>
 
         ${window.HuntDrop.renderRelatedTools([
-          { section:'section-supplier-hub', name:'Supplier Hub', desc:'Find verified suppliers', icon:'🏢', color:'#06b6d4' },
-          { section:'section-profit-lab', name:'Profit Calculator', desc:'Calculate margins', icon:'💰', color:'#00ff88' },
-          { section:'section-budget', name:'Ad Budget Allocator', desc:'Plan ad spend', icon:'📊', color:'#a855f7' },
-          { section:'section-calendar', name:'Content Calendar', desc:'Plan launch content', icon:'📅', color:'#f97316' }
+          {
+            section: 'section-supplier-hub',
+            name: 'Supplier Hub',
+            desc: 'Find verified suppliers',
+            icon: '🏢',
+            color: '#06b6d4',
+          },
+          {
+            section: 'section-profit-lab',
+            name: 'Profit Calculator',
+            desc: 'Calculate margins',
+            icon: '💰',
+            color: '#00ff88',
+          },
+          {
+            section: 'section-budget',
+            name: 'Ad Budget Allocator',
+            desc: 'Plan ad spend',
+            icon: '📊',
+            color: '#a855f7',
+          },
+          {
+            section: 'section-calendar',
+            name: 'Content Calendar',
+            desc: 'Plan launch content',
+            icon: '📅',
+            color: '#f97316',
+          },
         ])}
       </div>`;
-    container.appendChild(section);
-    _section=section;
+      container.appendChild(section);
+      _section = section;
 
-    const input=section.querySelector('#sgInput');
+      const input = section.querySelector('#sgInput');
 
-    section.querySelectorAll('.osg-quick-btn').forEach(b=>{
-      b.addEventListener('click',()=>{input.value=b.dataset.q;});
-    });
-
-    section.querySelector('#sgNextBtn1')?.addEventListener('click',()=>{
-      if(!input.value.trim()){input.focus();return;}
-      goToStep(2);
-    });
-    input?.addEventListener('keypress',e=>{if(e.key==='Enter'){if(input.value.trim())goToStep(2);}});
-
-    section.querySelector('#sgNextBtn2')?.addEventListener('click',()=>goToStep(3));
-    section.querySelector('#osgBack2')?.addEventListener('click',()=>goToStep(1));
-
-    section.querySelectorAll('.osg-platform-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        section.querySelectorAll('.osg-platform-card').forEach(c=>c.classList.remove('osg-platform-active'));
-        card.classList.add('osg-platform-active');
-        _state.platform=card.dataset.platform;
+      section.querySelectorAll('.osg-quick-btn').forEach((b) => {
+        b.addEventListener('click', () => {
+          input.value = b.dataset.q;
+        });
       });
-    });
 
-    section.querySelector('#sgGenerateBtn')?.addEventListener('click',()=>generate(input?.value||''));
-    section.querySelector('#osgBack3')?.addEventListener('click',()=>goToStep(2));
-
-    section.querySelectorAll('.osg-theme-card').forEach(card=>{
-      card.addEventListener('click',()=>{
-        section.querySelectorAll('.osg-theme-card').forEach(c=>c.classList.remove('osg-theme-active'));
-        card.classList.add('osg-theme-active');
-        _state.theme=card.dataset.theme;
+      section.querySelector('#sgNextBtn1')?.addEventListener('click', () => {
+        if (!input.value.trim()) {
+          input.focus();
+          return;
+        }
+        goToStep(2);
       });
-    });
-  },
+      input?.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          if (input.value.trim()) goToStep(2);
+        }
+      });
 
-  unmount(_ctx){
-    if(_section){_section.remove();_section=null;}
-  }
-};
+      section.querySelector('#sgNextBtn2')?.addEventListener('click', () => goToStep(3));
+      section.querySelector('#osgBack2')?.addEventListener('click', () => goToStep(1));
 
-PluginRegistry.register('store-generator',StoreGeneratorPlugin);
+      section.querySelectorAll('.osg-platform-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          section.querySelectorAll('.osg-platform-card').forEach((c) => c.classList.remove('osg-platform-active'));
+          card.classList.add('osg-platform-active');
+          _state.platform = card.dataset.platform;
+        });
+      });
+
+      section.querySelector('#sgGenerateBtn')?.addEventListener('click', () => generate(input?.value || ''));
+      section.querySelector('#osgBack3')?.addEventListener('click', () => goToStep(2));
+
+      section.querySelectorAll('.osg-theme-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          section.querySelectorAll('.osg-theme-card').forEach((c) => c.classList.remove('osg-theme-active'));
+          card.classList.add('osg-theme-active');
+          _state.theme = card.dataset.theme;
+        });
+      });
+    },
+
+    unmount(_ctx) {
+      if (_section) {
+        _section.remove();
+        _section = null;
+      }
+    },
+  };
+
+  PluginRegistry.register('store-generator', StoreGeneratorPlugin);
 })();

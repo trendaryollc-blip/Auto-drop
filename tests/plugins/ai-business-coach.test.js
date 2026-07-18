@@ -40,7 +40,9 @@ describe('ai-business-coach plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('ai-business-coach');
-      try { await HuntDrop.PluginRegistry.mount('ai-business-coach'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-business-coach');
+      } catch (e) {}
       const section = document.getElementById('section-coach');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-coach');
@@ -49,7 +51,9 @@ describe('ai-business-coach plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('ai-business-coach');
-      try { await HuntDrop.PluginRegistry.mount('ai-business-coach'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-business-coach');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -57,11 +61,11 @@ describe('ai-business-coach plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('ai-business-coach');
-      try { await HuntDrop.PluginRegistry.mount('ai-business-coach'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-business-coach');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('ai-business-coach');
       expect(document.getElementById('section-coach')).toBeNull();
     });
   });
-
-
 });

@@ -28,7 +28,9 @@ describe('ai-settings plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('ai-settings');
-      try { await HuntDrop.PluginRegistry.mount('ai-settings'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-settings');
+      } catch (e) {}
       const section = document.getElementById('section-ai-settings');
       expect(section).toBeDefined();
       expect(section.id).toBe('section-ai-settings');
@@ -36,7 +38,9 @@ describe('ai-settings plugin', () => {
 
     it('should contain provider dropdown and key input', async () => {
       await HuntDrop.PluginRegistry.init('ai-settings');
-      try { await HuntDrop.PluginRegistry.mount('ai-settings'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-settings');
+      } catch (e) {}
       expect(document.getElementById('aiProviderSelect')).toBeDefined();
       expect(document.getElementById('aiModelSelect')).toBeDefined();
       expect(document.getElementById('aiApiKey')).toBeDefined();
@@ -45,7 +49,9 @@ describe('ai-settings plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('ai-settings');
-      try { await HuntDrop.PluginRegistry.mount('ai-settings'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-settings');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -53,7 +59,9 @@ describe('ai-settings plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('ai-settings');
-      try { await HuntDrop.PluginRegistry.mount('ai-settings'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ai-settings');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('ai-settings');
       expect(document.getElementById('section-ai-settings')).toBeNull();
     });

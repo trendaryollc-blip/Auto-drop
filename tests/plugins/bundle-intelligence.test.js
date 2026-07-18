@@ -36,7 +36,9 @@ describe('bundle-intelligence plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('bundle-intelligence');
-      try { await HuntDrop.PluginRegistry.mount('bundle-intelligence'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('bundle-intelligence');
+      } catch (e) {}
       const section = document.getElementById('section-bundles');
       expect(section).toBeDefined();
     });
@@ -44,7 +46,9 @@ describe('bundle-intelligence plugin', () => {
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('bundle-intelligence');
-      try { await HuntDrop.PluginRegistry.mount('bundle-intelligence'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('bundle-intelligence');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -52,7 +56,9 @@ describe('bundle-intelligence plugin', () => {
   describe('unmount()', () => {
     it('should clean up section', async () => {
       await HuntDrop.PluginRegistry.init('bundle-intelligence');
-      try { await HuntDrop.PluginRegistry.mount('bundle-intelligence'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('bundle-intelligence');
+      } catch (e) {}
       await HuntDrop.PluginRegistry.unmount('bundle-intelligence');
       expect(document.getElementById('section-bundles')).toBeNull();
     });

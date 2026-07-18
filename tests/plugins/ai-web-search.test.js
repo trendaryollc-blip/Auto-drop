@@ -111,7 +111,7 @@ describe('ai-web-search plugin', () => {
     it('should format results as text string', () => {
       const results = {
         answer: 'Test answer',
-        results: [{ title: 'Result 1', url: 'https://example.com', content: 'Content 1' }]
+        results: [{ title: 'Result 1', url: 'https://example.com', content: 'Content 1' }],
       };
       const formatted = plugin.formatResultsForAI(results);
       expect(typeof formatted).toBe('string');

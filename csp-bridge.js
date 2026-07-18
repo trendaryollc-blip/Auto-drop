@@ -23,7 +23,9 @@ function upgradeInlineHandlers(element) {
     const inlineFn = element[attr.name];
     element.removeAttribute(attr.name);
     if (typeof inlineFn === 'function') {
-      element.addEventListener(eventName, function(e) { inlineFn.call(element, e); });
+      element.addEventListener(eventName, function (e) {
+        inlineFn.call(element, e);
+      });
     }
   });
 }
@@ -66,12 +68,12 @@ function installCspNonceBridge() {
           }
         }
         applyNonce(this);
-      }
+      },
     });
   }
 
   const originalCreateElement = document.createElement.bind(document);
-  document.createElement = function(tagName, options) {
+  document.createElement = function (tagName, options) {
     const element = originalCreateElement(tagName, options);
     if (element && typeof element.style !== 'undefined') {
       applyNonce(element);
@@ -80,7 +82,7 @@ function installCspNonceBridge() {
   };
 
   const originalSetAttribute = Element.prototype.setAttribute;
-  Element.prototype.setAttribute = function(name, value) {
+  Element.prototype.setAttribute = function (name, value) {
     const result = originalSetAttribute.call(this, name, value);
     if (name === 'style' || name === 'nonce') {
       applyNonce(this);
@@ -92,7 +94,7 @@ function installCspNonceBridge() {
   };
 
   const originalSetAttributeNS = Element.prototype.setAttributeNS;
-  Element.prototype.setAttributeNS = function(namespace, qualifiedName, value) {
+  Element.prototype.setAttributeNS = function (namespace, qualifiedName, value) {
     const result = originalSetAttributeNS.call(this, namespace, qualifiedName, value);
     if (qualifiedName === 'style' || qualifiedName === 'nonce') {
       applyNonce(this);
@@ -114,12 +116,12 @@ function installCspNonceBridge() {
         const result = originalInnerHTMLDescriptor.set.call(this, value);
         processElementTree(this);
         return result;
-      }
+      },
     });
   }
 
   const originalInsertAdjacentHTML = Element.prototype.insertAdjacentHTML;
-  Element.prototype.insertAdjacentHTML = function(position, html) {
+  Element.prototype.insertAdjacentHTML = function (position, html) {
     const result = originalInsertAdjacentHTML.call(this, position, html);
     processElementTree(this);
     return result;

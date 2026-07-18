@@ -7,10 +7,7 @@ describe('ad-budget-allocator plugin', () => {
 
   beforeEach(() => {
     setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/ad-budget-allocator.js',
-    ]));
+    ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ad-budget-allocator.js']));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
     plugin = HuntDrop.PluginRegistry.get('ad-budget-allocator');
   });
@@ -35,7 +32,9 @@ describe('ad-budget-allocator plugin', () => {
   describe('mount()', () => {
     it('should create section in sections-container', async () => {
       await HuntDrop.PluginRegistry.init('ad-budget-allocator');
-      try { await HuntDrop.PluginRegistry.mount('ad-budget-allocator'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-budget-allocator');
+      } catch (e) {}
       const section = document.getElementById('section-budget');
       expect(section).toBeDefined();
       expect(section.className).toContain('section-ad-budget-allocator');
@@ -43,14 +42,18 @@ describe('ad-budget-allocator plugin', () => {
 
     it('should contain budget input and allocate button', async () => {
       await HuntDrop.PluginRegistry.init('ad-budget-allocator');
-      try { await HuntDrop.PluginRegistry.mount('ad-budget-allocator'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-budget-allocator');
+      } catch (e) {}
       expect(document.getElementById('budgetAllocateBtn')).toBeDefined();
     });
 
     it('should not mount if container missing', async () => {
       document.body.innerHTML = '';
       await HuntDrop.PluginRegistry.init('ad-budget-allocator');
-      try { await HuntDrop.PluginRegistry.mount('ad-budget-allocator'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-budget-allocator');
+      } catch (e) {}
       expect(true).toBe(true);
     });
   });
@@ -58,7 +61,9 @@ describe('ad-budget-allocator plugin', () => {
   describe('unmount()', () => {
     it('should clean up section and charts', async () => {
       await HuntDrop.PluginRegistry.init('ad-budget-allocator');
-      try { await HuntDrop.PluginRegistry.mount('ad-budget-allocator'); } catch (e) {}
+      try {
+        await HuntDrop.PluginRegistry.mount('ad-budget-allocator');
+      } catch (e) {}
       const el = document.getElementById('section-budget');
       if (el) el.remove();
       expect(document.getElementById('section-budget')).toBeNull();

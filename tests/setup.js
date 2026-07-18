@@ -36,7 +36,14 @@ Element.prototype.scrollIntoView = vi.fn();
 
 // getBoundingClientRect
 Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
-  top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0, x: 0, y: 0,
+  top: 0,
+  left: 0,
+  bottom: 0,
+  right: 0,
+  width: 0,
+  height: 0,
+  x: 0,
+  y: 0,
 });
 
 // ===== 2. CHART.JS MOCK =====
@@ -50,7 +57,9 @@ class MockChart {
     this.options = config?.options;
     this.destroyed = false;
   }
-  destroy() { this.destroyed = true; }
+  destroy() {
+    this.destroyed = true;
+  }
   update() {}
   resize() {}
   render() {}
@@ -154,12 +163,23 @@ global.fetch = vi.fn().mockImplementation((url, opts) => {
 // Always ensure localStorage has proper methods
 const _store = new Map();
 const _localStorageImpl = {
-  getItem: (key) => _store.has(key) ? _store.get(key) : null,
-  setItem: (key, value) => { _store.set(key, String(value)); },
-  removeItem: (key) => { _store.delete(key); },
-  clear: () => { _store.clear(); },
-  key: (index) => { const keys = [..._store.keys()]; return keys[index] || null; },
-  get length() { return _store.size; },
+  getItem: (key) => (_store.has(key) ? _store.get(key) : null),
+  setItem: (key, value) => {
+    _store.set(key, String(value));
+  },
+  removeItem: (key) => {
+    _store.delete(key);
+  },
+  clear: () => {
+    _store.clear();
+  },
+  key: (index) => {
+    const keys = [..._store.keys()];
+    return keys[index] || null;
+  },
+  get length() {
+    return _store.size;
+  },
 };
 // Patch localStorage to ensure methods exist
 if (!window.localStorage || typeof window.localStorage.getItem !== 'function') {
@@ -214,7 +234,7 @@ const ROOT = resolve(__dirname, '..');
 export function loadScript(relativePath) {
   const filePath = resolve(ROOT, relativePath);
   const code = readFileSync(filePath, 'utf-8');
-  // eslint-disable-next-line no-new-func
+
   const fn = new Function(code);
   fn.call(window);
 }
@@ -222,8 +242,8 @@ export function loadScript(relativePath) {
 // Polyfill CSS.escape for jsdom (used by plugins for canvas IDs)
 if (!window.CSS || typeof window.CSS.escape !== 'function') {
   window.CSS = window.CSS || {};
-  window.CSS.escape = function(value) {
-    return String(value).replace(/([\x00-\x1f\x7f]|^-?\d|^-|^$|[^\w-])/g, function(ch, asCodePoint) {
+  window.CSS.escape = function (value) {
+    return String(value).replace(/([\x00-\x1f\x7f]|^-?\d|^-|^$|[^\w-])/g, function (ch, asCodePoint) {
       if (asCodePoint === 0) return '\ufffd';
       if (asCodePoint < 0) return '\ufffd';
       return '\\' + ch.charCodeAt(0).toString(16) + ' ';
@@ -242,11 +262,17 @@ export function loadCore() {
   loadScript('mock-products.js');
   // Provide default renderRelatedTools (set by app.js in production)
   if (!window.HuntDrop.renderRelatedTools) {
-    window.HuntDrop.renderRelatedTools = function(tools) {
+    window.HuntDrop.renderRelatedTools = function (tools) {
       if (!tools || !tools.length) return '';
-      return '<div class="related-tools">' + tools.map(function(t) {
-        return '<div class="related-tool-card">' + (t.name || '') + '</div>';
-      }).join('') + '</div>';
+      return (
+        '<div class="related-tools">' +
+        tools
+          .map(function (t) {
+            return '<div class="related-tool-card">' + (t.name || '') + '</div>';
+          })
+          .join('') +
+        '</div>'
+      );
     };
   }
   return window.HuntDrop;
@@ -386,7 +412,14 @@ export function createSampleProduct(overrides = {}) {
     category: 'Electronics',
     keywords: ['test', 'product', 'sample'],
     suppliers: [
-      { name: 'Test Supplier', location: 'Shenzhen, CN', rating: 4.8, orders: '50K', responseTime: '< 2h', verified: true },
+      {
+        name: 'Test Supplier',
+        location: 'Shenzhen, CN',
+        rating: 4.8,
+        orders: '50K',
+        responseTime: '< 2h',
+        verified: true,
+      },
     ],
     platformPrices: { aliexpress: 9.99, amazon: 29.99, shopify: 34.99 },
     trendData: [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200],

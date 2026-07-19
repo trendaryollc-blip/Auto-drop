@@ -26,7 +26,7 @@
   let _charts = {};
   let _chartsInit = false;
 
-  function _getFilteredGaps() {
+  function getFilteredGaps() {
     let gaps = [...DATA.gaps];
     const f = _filters;
     if (f.search) {
@@ -50,7 +50,7 @@
     return gaps;
   }
 
-  function _getFilteredArbitrage() {
+  function getFilteredArbitrage() {
     let arb = [...DATA.arb];
     const f = _filters;
     if (f.search) {
@@ -66,7 +66,7 @@
     return arb;
   }
 
-  function _getFilteredEmerging() {
+  function getFilteredEmerging() {
     let em = [...DATA.emerging];
     const f = _filters;
     if (f.search) {
@@ -541,7 +541,7 @@
     el.querySelector('#mgCalcBtn')?.addEventListener('click', () => calculate());
   }
 
-  function _calculate() {
+  function calculate() {
     const budget = parseInt(document.querySelector('#mgCalcBudget')?.value) || 500;
     const exp = document.querySelector('#mgCalcExp')?.value || 'beginner';
     const risk = document.querySelector('#mgCalcRisk')?.value || 'low';
@@ -707,35 +707,118 @@
     UI.toast('Report exported successfully', 'success');
   }
 
-  function _render() {
-    if (typeof DATA === 'undefined') return;
-    const self = this;
-    const r = (n) => {
-      try {
-        self[n]();
-      } catch (e) {
-        console.error('[MG] ' + n + ':', e);
-      }
-    };
-    [
-      'renderAIScan',
-      'renderDataMeta',
-      'renderFilters',
-      'renderStats',
-      'renderInsights',
-      'renderCharts',
-      'renderCategories',
-      'renderTabs',
-      'renderBattlefield',
-      'renderNicheRadar',
-      'renderLifecycle',
-      'renderProductHunt',
-      'renderActionZone',
-      'renderCalculator',
-    ].forEach(r);
+  function renderStats() {
+    const el = _section?.querySelector('#mgStats');
+    if (!el) return;
+    const gaps = DATA.gaps;
+    const avgGap = Math.round(gaps.reduce((s, g) => s + g.gap, 0) / gaps.length);
+    const avgMargin = Math.round(gaps.reduce((s, g) => s + g.arbitrage.margin, 0) / gaps.length);
+    const avgRisk = Math.round(gaps.reduce((s, g) => s + g.riskScore, 0) / gaps.length);
+    const totalOpps = gaps.length + DATA.arb.length + DATA.emerging.length;
+    el.innerHTML = `<div class="mg-stats-grid">
+      <div class="mg-stat-card"><div class="mg-stat-val" style="color:var(--accent-cyan)">${gaps.length}</div><div class="mg-stat-lbl">Market Gaps</div></div>
+      <div class="mg-stat-card"><div class="mg-stat-val" style="color:var(--accent-green)">${avgGap}</div><div class="mg-stat-lbl">Avg Gap Score</div></div>
+      <div class="mg-stat-card"><div class="mg-stat-val" style="color:var(--accent-green)">${avgMargin}%</div><div class="mg-stat-lbl">Avg Margin</div></div>
+      <div class="mg-stat-card"><div class="mg-stat-val" style="color:${avgRisk < 25 ? 'var(--accent-green)' : avgRisk < 40 ? 'var(--accent-yellow)' : 'var(--accent-red)'}">${avgRisk}</div><div class="mg-stat-lbl">Avg Risk</div></div>
+      <div class="mg-stat-card"><div class="mg-stat-val" style="color:var(--accent-purple)">${totalOpps}</div><div class="mg-stat-lbl">Total Opportunities</div></div>
+    </div>`;
   }
 
-  function _refresh() {
+  function renderInsights() {
+    const el = _section?.querySelector('#mgInsights');
+    if (!el) return;
+    const topGap = DATA.gaps.reduce((a, b) => (a.gap > b.gap ? a : b));
+    const topMargin = DATA.gaps.reduce((a, b) => (a.arbitrage.margin > b.arbitrage.margin ? a : b));
+    const rising = DATA.gaps.filter((g) => g.trend === 'rising');
+    el.innerHTML = `<div class="mg-insights-section">
+      <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4A1; AI Insights</h3></div>
+      <div class="mg-insight-cards">
+        <div class="mg-insight-card"><div class="mg-insight-icon" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">&#x1F3AF;</div><div class="mg-insight-text"><strong>Top Opportunity:</strong> ${esc(topGap.category)} (Gap: ${topGap.gap})</div></div>
+        <div class="mg-insight-card"><div class="mg-insight-icon" style="background:var(--accent-green-dim);color:var(--accent-green)">&#x1F4B0;</div><div class="mg-insight-text"><strong>Highest Margin:</strong> ${esc(topMargin.category)} (${topMargin.arbitrage.margin}%)</div></div>
+        <div class="mg-insight-card"><div class="mg-insight-icon" style="background:var(--accent-purple-dim);color:var(--accent-purple)">&#x1F680;</div><div class="mg-insight-text"><strong>Rising Trends:</strong> ${rising.length} niches trending upward</div></div>
+      </div>
+    </div>`;
+  }
+
+  function renderCharts() {
+    const el = _section?.querySelector('#mgCharts');
+    if (!el || typeof Chart === 'undefined') return;
+    el.innerHTML = `<div class="mg-charts-section">
+      <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4CA; Gap vs Demand</h3></div>
+      <div class="mg-chart-wrap"><canvas id="mgMainChart" height="200"></canvas></div>
+    </div>`;
+    setTimeout(() => {
+      const c = el.querySelector('#mgMainChart');
+      if (!c) return;
+      if (_charts.main) try { _charts.main.destroy(); } catch (e) {}
+      _charts.main = new Chart(c, {
+        type: 'bar',
+        data: {
+          labels: DATA.gaps.map((g) => g.category.split(' ').slice(0, 2).join(' ')),
+          datasets: [
+            { label: 'Gap Score', data: DATA.gaps.map((g) => g.gap), backgroundColor: 'rgba(0,229,255,0.6)' },
+            { label: 'Demand', data: DATA.gaps.map((g) => g.demandScore), backgroundColor: 'rgba(0,255,136,0.6)' },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: 'var(--text-secondary)' } } },
+          scales: {
+            x: { ticks: { color: 'var(--text-muted)', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { ticks: { color: 'var(--text-muted)' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+          },
+        },
+      });
+    }, 100);
+  }
+
+  function renderCategories() {
+    const el = _section?.querySelector('#mgCategories');
+    if (!el) return;
+    el.innerHTML = `<div class="mg-categories-section">
+      <div class="mg-section-header"><h3 class="mg-section-title">&#x1F4C1; Categories</h3></div>
+      <div class="mg-cat-grid">${DATA.categories
+        .map((c) => {
+          const count = DATA.gaps.filter((g) => g.category === c.name).length;
+          return `<div class="mg-cat-card" style="cursor:pointer" onclick="document.querySelector('#mgCategoryFilter').value='${c.name}';document.querySelector('#mgCategoryFilter').dispatchEvent(new Event('change'))">
+            <div class="mg-cat-emoji" style="background:${c.color}15;color:${c.color}">${c.emoji}</div>
+            <div class="mg-cat-name">${c.name}</div>
+            <div class="mg-cat-count">${count} gaps</div>
+          </div>`;
+        })
+        .join('')}</div>
+    </div>`;
+  }
+
+  function _render() {
+    if (typeof DATA === 'undefined') return;
+    const fns = [
+      renderAIScan,
+      renderDataMeta,
+      renderFilters,
+      renderStats,
+      renderInsights,
+      renderCharts,
+      renderCategories,
+      renderTabs,
+      renderBattlefield,
+      renderNicheRadar,
+      renderLifecycle,
+      renderProductHunt,
+      renderActionZone,
+      renderCalculator,
+    ];
+    fns.forEach(function (fn) {
+      try {
+        fn();
+      } catch (e) {
+        console.error('[MG] render error:', e);
+      }
+    });
+  }
+
+  function refresh() {
     renderStats();
     renderCharts();
     renderCategories();
@@ -815,7 +898,7 @@
       ${rTools}</div>`;
       container.appendChild(s);
       _section = s;
-      render();
+      _render();
     },
 
     unmount(_ctx) {

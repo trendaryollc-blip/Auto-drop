@@ -2446,6 +2446,16 @@
     const settingsBtn = document.getElementById('navSettingsBtn');
     if (settingsBtn) settingsBtn.addEventListener('click', () => window.HuntDrop.navigateTo('section-settings'));
 
+    // Global click handler for all related-tool-card elements across every page
+    document.addEventListener('click', function (e) {
+      var card = e.target.closest('.related-tool-card[data-section]');
+      if (card) {
+        e.preventDefault();
+        var section = card.getAttribute('data-section');
+        if (section) window.HuntDrop.navigateTo(section);
+      }
+    });
+
     // 1b. Setup all new dashboard features
     setupThemeToggle(); // #15: Dark/Light Mode Toggle
     setupErrorBoundaries(); // #16: Error Boundaries

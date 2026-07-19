@@ -152,6 +152,15 @@
       'cjdropshipping',
       'dhgate',
       'wish',
+      'walmart',
+      'bestbuy',
+      'alibaba',
+      'rakuten',
+      'newegg',
+      'google_shopping',
+      'reddit',
+      'pinterest',
+      'amazon_sp',
     ];
     if (filters.platform && typeof filters.platform === 'string' && validPlatforms.indexOf(filters.platform) !== -1) {
       validated.platform = filters.platform;
@@ -424,6 +433,16 @@
     'cjdropshipping',
     'dhgate',
     'wish',
+    // NEW PLATFORMS
+    'walmart',
+    'bestbuy',
+    'alibaba',
+    'rakuten',
+    'newegg',
+    'google_shopping',
+    'reddit',
+    'pinterest',
+    'amazon_sp',
   ];
   platforms.forEach((p) => DataLayer.registerAdapter(p, createAdapter(p)));
 

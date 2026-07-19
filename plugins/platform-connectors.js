@@ -16,11 +16,14 @@
   const KM = window.HuntDrop.APIKeyManager;
 
   // ===== Platform API Configurations =====
+  // Categories: ecommerce, wholesale, discovery, research
   const PLATFORM_CONFIGS = {
+    // === E-COMMERCE MARKETPLACES ===
     aliexpress: {
       name: 'AliExpress',
       icon: '🔴',
       color: '#e43225',
+      category: 'ecommerce',
       keyUrl: 'https://portals.aliexpress.com',
       keyHint: 'Register as affiliate at portals.aliexpress.com. Free tier available.',
       requiresKey: true,
@@ -36,6 +39,7 @@
       name: 'Amazon',
       icon: '📦',
       color: '#ff9900',
+      category: 'ecommerce',
       keyUrl: 'https://affiliate-program.amazon.com/assoc_dashboard/home',
       keyHint: 'Requires Amazon Associate account + 3 sales in 30 days for PA-API. Use Rainforest API as alternative.',
       requiresKey: true,
@@ -58,11 +62,11 @@
       name: 'Shopify',
       icon: '🟢',
       color: '#96bf48',
+      category: 'ecommerce',
       keyUrl: 'https://www.shopify.com/admin/apps/develop',
       keyHint: 'Create a Shopify Partner account or use your own store. Free dev stores available.',
       requiresKey: false, // Can use public products.json
       publicEndpoints: {
-        // Any Shopify store's products.json (no auth needed, 250 product cap)
         search: (storeUrl) => storeUrl + '/products.json?limit=250',
       },
       endpoints: {
@@ -76,6 +80,7 @@
       name: 'eBay',
       icon: '🔵',
       color: '#e53238',
+      category: 'ecommerce',
       keyUrl: 'https://developer.ebay.com/join/',
       keyHint: 'Free developer account. Register app → get OAuth credentials → sandbox testing.',
       requiresKey: true,
@@ -90,6 +95,7 @@
       name: 'Temu',
       icon: '🟡',
       color: '#fb7701',
+      category: 'ecommerce',
       keyUrl: 'https://partner.temu.com',
       keyHint: 'Register as developer at partner.temu.com. Approval required for API access.',
       requiresKey: true,
@@ -103,6 +109,7 @@
       name: 'TikTok Shop',
       icon: '🎵',
       color: '#00f2ea',
+      category: 'ecommerce',
       keyUrl: 'https://seller.tiktok.com',
       keyHint: 'Register as TikTok Shop seller. API access opened to third parties in April 2026.',
       requiresKey: true,
@@ -117,6 +124,7 @@
       name: 'Etsy',
       icon: '🟠',
       color: '#f56400',
+      category: 'ecommerce',
       keyUrl: 'https://www.etsy.com/developers/your-apps',
       keyHint: 'Free registration. Open API v3 with OAuth 2.0. Personal access for up to 5 shops.',
       requiresKey: true,
@@ -131,6 +139,7 @@
       name: 'CJ Dropshipping',
       icon: '🟣',
       color: '#7c3aed',
+      category: 'ecommerce',
       keyUrl: 'https://developers.cjdropshipping.com',
       keyHint: 'Free CJ account required. Full REST API for products, orders, inventory.',
       requiresKey: true,
@@ -145,6 +154,7 @@
       name: 'DHgate',
       icon: '🟤',
       color: '#e43225',
+      category: 'ecommerce',
       keyUrl: 'https://open.dhgate.com',
       keyHint: 'Register developer account at open.dhgate.com. OAuth 2.0 authentication.',
       requiresKey: true,
@@ -158,6 +168,7 @@
       name: 'Wish',
       icon: '⭐',
       color: '#2fb7ec',
+      category: 'ecommerce',
       keyUrl: 'https://merchant.wish.com',
       keyHint: 'Merchant account required. API access for product management and order fulfillment.',
       requiresKey: true,
@@ -166,6 +177,142 @@
       },
       authType: 'bearer',
       docsUrl: 'https://merchant.wish.com/documentation',
+    },
+    // === NEW: RETAIL & MARKETPLACE PLATFORMS ===
+    walmart: {
+      name: 'Walmart',
+      icon: '🏪',
+      color: '#0071dc',
+      category: 'ecommerce',
+      keyUrl: 'https://developer.walmart.com/signup',
+      keyHint: 'Free developer account. Walmart Open API for product search, pricing, and inventory data.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://developer.api.walmart.com/api-proxy/service/affil/v2/search',
+        product: 'https://developer.api.walmart.com/api-proxy/service/affil/v2/items',
+      },
+      authType: 'bearer',
+      docsUrl: 'https://developer.walmart.com/doc/us-marketplace/us-mp-items/',
+    },
+    bestbuy: {
+      name: 'Best Buy',
+      icon: '🏬',
+      color: '#0046be',
+      category: 'ecommerce',
+      keyUrl: 'https://developer.bestbuy.com/registration',
+      keyHint: 'Free API access. Products API with pricing, availability, and reviews data.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://api.bestbuy.com/v1/products(search)',
+        product: 'https://api.bestbuy.com/v1/products',
+      },
+      authType: 'apikey',
+      docsUrl: 'https://developer.bestbuy.com/documentation',
+    },
+    alibaba: {
+      name: 'Alibaba',
+      icon: '🌐',
+      color: '#ff6a00',
+      category: 'wholesale',
+      keyUrl: 'https://developers.alibaba.com',
+      keyHint: 'B2B wholesale platform. Full product catalog API for supplier comparison and bulk pricing.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://gw.open.alibaba.com/openapi/param2/1/com.alibaba.product/alibaba.product.search',
+        product: 'https://gw.open.alibaba.com/openapi/param2/1/com.alibaba.product/alibaba.product.get',
+      },
+      authType: 'oauth',
+      docsUrl: 'https://developers.alibaba.com/home.htm',
+    },
+    rakuten: {
+      name: 'Rakuten',
+      icon: '🔴',
+      color: '#bf0000',
+      category: 'ecommerce',
+      keyUrl: 'https://affiliate.rakuten.com/registration',
+      keyHint: 'Major Japanese marketplace with global reach. Affiliate API for product search and pricing.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601',
+        product: 'https://app.rakuten.co.jp/services/api/IchibaItem/Get/20220601',
+      },
+      authType: 'apikey',
+      docsUrl: 'https://webservice.rakuten.co.jp/en/tdaku/item/search/',
+    },
+    newegg: {
+      name: 'Newegg',
+      icon: '🥚',
+      color: '#d85c11',
+      category: 'ecommerce',
+      keyUrl: 'https://developer.newegg.com/signup',
+      keyHint: 'Tech-focused marketplace. API for product search, pricing, and inventory management.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://api.newegg.com/marketplace/v1.1.0/item',
+        product: 'https://api.newegg.com/marketplace/v1.1.0/item/{ItemId}',
+      },
+      authType: 'hmac',
+      docsUrl: 'https://developer.newegg.com/doc/marketplace/seller/',
+    },
+    // === NEW: RESEARCH & DISCOVERY PLATFORMS ===
+    google_shopping: {
+      name: 'Google Shopping',
+      icon: '🔍',
+      color: '#4285f4',
+      category: 'research',
+      keyUrl: 'https://serpapi.com/manage-api-key',
+      keyHint: 'Via SerpAPI. Real-time Google Shopping results with prices, ratings, and merchant data.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://serpapi.com/search.json?engine=google_shopping',
+      },
+      authType: 'apikey',
+      docsUrl: 'https://serpapi.com/google-shopping-api',
+    },
+    reddit: {
+      name: 'Reddit',
+      icon: '🗣️',
+      color: '#ff4500',
+      category: 'research',
+      keyUrl: 'https://www.reddit.com/prefs/apps',
+      keyHint: 'Product discussions, trending niches, and consumer sentiment from 100K+ subreddits.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://oauth.reddit.com/r/{subreddit}/search',
+        product: 'https://oauth.reddit.com/r/{subreddit}/comments/{id}',
+      },
+      authType: 'oauth',
+      docsUrl: 'https://www.reddit.com/dev/api',
+    },
+    pinterest: {
+      name: 'Pinterest',
+      icon: '📌',
+      color: '#e60023',
+      category: 'research',
+      keyUrl: 'https://developers.pinterest.com/apps/',
+      keyHint: 'Trend discovery platform. Search pins for product trends, visual search, and audience insights.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://api.pinterest.com/v5/search/pins',
+        product: 'https://api.pinterest.com/v5/pins/{pin_id}',
+      },
+      authType: 'bearer',
+      docsUrl: 'https://developers.pinterest.com/docs/getting-started/',
+    },
+    amazon_sp: {
+      name: 'Amazon SP-API',
+      icon: '📦',
+      color: '#ff9900',
+      category: 'research',
+      keyUrl: 'https://developer-docs.amazon.com/sp-api/',
+      keyHint: 'Amazon Selling Partner API. Full catalog, pricing, sales rank, and competitor data.',
+      requiresKey: true,
+      endpoints: {
+        search: 'https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items',
+        product: 'https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items/{asin}',
+      },
+      authType: 'oauth',
+      docsUrl: 'https://developer-docs.amazon.com/sp-api/',
     },
   };
 
@@ -678,6 +825,489 @@
     return null;
   }
 
+  // === NEW PLATFORM SEARCH FUNCTIONS ===
+
+  async function searchWalmart(query, filters) {
+    const key = await getPlatformKey('walmart');
+    if (!key) return null;
+    try {
+      const params = new URLSearchParams({ query: query, numItems: '20' });
+      const resp = await fetch('https://developer.api.walmart.com/api-proxy/service/affil/v2/search?' + params.toString(), {
+        headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      });
+      if (!resp.ok) throw new Error('Walmart API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.items) {
+        return data.items.slice(0, 20).map(normalizeWalmartProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Walmart search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeWalmartProduct(p) {
+    return {
+      id: 'wm_' + (p.itemId || Math.random().toString(36).substr(2, 9)),
+      title: p.name || '',
+      image: p.thumbnailImage || p.largeImage || '',
+      platform: 'walmart',
+      price: parseFloat(p.salePrice || p.regularPrice || 0),
+      originalPrice: parseFloat(p.regularPrice || p.salePrice || 0),
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 65,
+      badges: p.isTwoDayShipping ? ['2-Day Shipping'] : [],
+      salesVelocity: 0,
+      competition: 'high',
+      demand: 0,
+      rating: parseFloat(p.customerRating || 0),
+      reviews: parseInt(p.numReviews || 0),
+      orders: 0,
+      shipFrom: 'Walmart',
+      category: p.category || '',
+      keywords: [],
+      suppliers: [{ name: 'Walmart', location: 'US', rating: parseFloat(p.customerRating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { walmart: parseFloat(p.salePrice || p.regularPrice || 0) },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '25-65', gender: 'All', interests: [], countries: ['US'] },
+      riskScore: Math.floor(Math.random() * 15) + 5,
+      marketSaturation: Math.floor(Math.random() * 40) + 40,
+      adSpendAvg: Math.floor(Math.random() * 600) + 150,
+      cpaAvg: Math.floor(Math.random() * 15) + 4,
+      aiInsight: '',
+    };
+  }
+
+  async function searchBestBuy(query, filters) {
+    const key = await getPlatformKey('bestbuy');
+    if (!key) return null;
+    try {
+      const params = new URLSearchParams({ query: query, format: 'json', show: 'all', pageSize: '20' });
+      const resp = await fetch('https://api.bestbuy.com/v1/products(search)?' + params.toString() + '&apiKey=' + encodeURIComponent(key));
+      if (!resp.ok) throw new Error('Best Buy API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.products) {
+        return data.products.slice(0, 20).map(normalizeBestBuyProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Best Buy search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeBestBuyProduct(p) {
+    return {
+      id: 'bb_' + (p.sku || Math.random().toString(36).substr(2, 9)),
+      title: p.name || '',
+      image: p.image || '',
+      platform: 'bestbuy',
+      price: parseFloat(p.regularPrice || p.salePrice || 0),
+      originalPrice: parseFloat(p.regularPrice || p.salePrice || 0),
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 65,
+      badges: p.isPreOrder ? ['Pre-Order'] : [],
+      salesVelocity: 0,
+      competition: 'high',
+      demand: 0,
+      rating: parseFloat(p.customerReviewAverage || 0),
+      reviews: parseInt(p.customerReviewCount || 0),
+      orders: 0,
+      shipFrom: 'Best Buy',
+      category: p.categoryPath || '',
+      keywords: [],
+      suppliers: [{ name: 'Best Buy', location: 'US', rating: parseFloat(p.customerReviewAverage || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { bestbuy: parseFloat(p.regularPrice || p.salePrice || 0) },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '18-55', gender: 'All', interests: ['electronics', 'gadgets'], countries: ['US'] },
+      riskScore: Math.floor(Math.random() * 15) + 5,
+      marketSaturation: Math.floor(Math.random() * 40) + 40,
+      adSpendAvg: Math.floor(Math.random() * 800) + 200,
+      cpaAvg: Math.floor(Math.random() * 20) + 5,
+      aiInsight: '',
+    };
+  }
+
+  async function searchAlibaba(query, filters) {
+    const key = await getPlatformKey('alibaba');
+    if (!key) return null;
+    try {
+      const resp = await fetch('https://gw.open.alibaba.com/openapi/param2/1/com.alibaba.product/alibaba.product.search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+        body: JSON.stringify({ keyword: query, pageNo: 1, pageSize: 20 }),
+      });
+      if (!resp.ok) throw new Error('Alibaba API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.result && data.result.productList) {
+        return data.result.productList.map(normalizeAlibabaProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Alibaba search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeAlibabaProduct(p) {
+    const price = parseFloat(p.price || 0);
+    return {
+      id: 'al_' + (p.productId || Math.random().toString(36).substr(2, 9)),
+      title: p.subject || p.productTitle || '',
+      image: p.image || '',
+      platform: 'alibaba',
+      price: price,
+      originalPrice: price,
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 60,
+      badges: p.isTradeAssured ? ['Trade Assurance'] : [],
+      salesVelocity: 0,
+      competition: 'medium',
+      demand: parseInt(p.minOrderQuantity || 0),
+      rating: parseFloat(p.rating || 4.5),
+      reviews: parseInt(p.reviewCount || 0),
+      orders: 0,
+      shipFrom: p.country || 'China',
+      category: p.categoryName || '',
+      keywords: [],
+      suppliers: [{ name: p.companyName || 'Alibaba Supplier', location: p.country || 'China', rating: parseFloat(p.rating || 4.5), orders: parseInt(p.transactionsCount || 0), responseTime: p.responseTime || '24h', verified: true }],
+      platformPrices: { alibaba: price },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '25-60', gender: 'All', interests: ['wholesale', 'B2B'], countries: ['US', 'UK', 'AU'] },
+      riskScore: Math.floor(Math.random() * 25) + 10,
+      marketSaturation: Math.floor(Math.random() * 35) + 25,
+      adSpendAvg: Math.floor(Math.random() * 200) + 50,
+      cpaAvg: Math.floor(Math.random() * 8) + 2,
+      aiInsight: '',
+    };
+  }
+
+  async function searchRakuten(query, filters) {
+    const key = await getPlatformKey('rakuten');
+    if (!key) return null;
+    try {
+      const params = new URLSearchParams({
+        keyword: query,
+        applicationId: key,
+        hits: '20',
+        format: 'json',
+      });
+      const resp = await fetch('https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?' + params.toString());
+      if (!resp.ok) throw new Error('Rakuten API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.Items) {
+        return data.Items.map(function (item) { return normalizeRakutenProduct(item.Item); });
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Rakuten search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeRakutenProduct(p) {
+    const price = parseInt(p.itemPrice || 0);
+    return {
+      id: 'rk_' + (p.itemCode || Math.random().toString(36).substr(2, 9)),
+      title: p.itemName || '',
+      image: p.mediumImageUrls && p.mediumImageUrls[0] ? p.mediumImageUrls[0].imageUrl : '',
+      platform: 'rakuten',
+      price: price,
+      originalPrice: price,
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 65,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'medium',
+      demand: parseInt(p.reviewCount || 0),
+      rating: parseFloat(p.reviewAverage || 0),
+      reviews: parseInt(p.reviewCount || 0),
+      orders: 0,
+      shipFrom: 'Japan',
+      category: p.genreName || '',
+      keywords: [],
+      suppliers: [{ name: p.shopName || 'Rakuten Shop', location: 'Japan', rating: parseFloat(p.reviewAverage || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { rakuten: price },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '25-55', gender: 'All', interests: [], countries: ['JP', 'US'] },
+      riskScore: Math.floor(Math.random() * 20) + 8,
+      marketSaturation: Math.floor(Math.random() * 35) + 30,
+      adSpendAvg: Math.floor(Math.random() * 400) + 80,
+      cpaAvg: Math.floor(Math.random() * 12) + 3,
+      aiInsight: '',
+    };
+  }
+
+  async function searchNewegg(query, filters) {
+    const key = await getPlatformKey('newegg');
+    if (!key) return null;
+    try {
+      const resp = await fetch('https://api.newegg.com/marketplace/v1.1.0/item?Keyword=' + encodeURIComponent(query) + '&PageNumber=1&PageSize=20', {
+        headers: { Authorization: 'NEKey ' + key, 'Content-Type': 'application/json' },
+      });
+      if (!resp.ok) throw new Error('Newegg API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.IsSuccess && data.Result) {
+        return data.Result.ItemList.map(normalizeNeweggProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Newegg search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeNeweggProduct(p) {
+    const price = parseFloat(p.UnitPrice || 0);
+    return {
+      id: 'ne_' + (p.ItemNumber || Math.random().toString(36).substr(2, 9)),
+      title: p.Title || '',
+      image: p.ThumbnailImage || '',
+      platform: 'newegg',
+      price: price,
+      originalPrice: parseFloat(p.OriginalPrice || price),
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 65,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'medium',
+      demand: parseInt(p.TotalReviews || 0),
+      rating: parseFloat(p.avgRating || 0),
+      reviews: parseInt(p.TotalReviews || 0),
+      orders: 0,
+      shipFrom: 'Newegg',
+      category: p.Category || '',
+      keywords: [],
+      suppliers: [{ name: 'Newegg Marketplace', location: 'US', rating: parseFloat(p.avgRating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { newegg: price },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '18-45', gender: 'Male', interests: ['electronics', 'gaming', 'PC'], countries: ['US'] },
+      riskScore: Math.floor(Math.random() * 20) + 8,
+      marketSaturation: Math.floor(Math.random() * 40) + 35,
+      adSpendAvg: Math.floor(Math.random() * 600) + 150,
+      cpaAvg: Math.floor(Math.random() * 18) + 5,
+      aiInsight: '',
+    };
+  }
+
+  async function searchGoogleShopping(query, filters) {
+    const key = await getPlatformKey('google_shopping');
+    if (!key) return null;
+    try {
+      const params = new URLSearchParams({ q: query, engine: 'google_shopping', api_key: key, num: '20' });
+      const resp = await fetch('https://serpapi.com/search.json?' + params.toString());
+      if (!resp.ok) throw new Error('Google Shopping API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.shopping_results) {
+        return data.shopping_results.slice(0, 20).map(normalizeGoogleShoppingProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Google Shopping search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeGoogleShoppingProduct(p) {
+    const price = parseFloat(p.extracted_price || p.price_raw || 0);
+    return {
+      id: 'gs_' + (p.position || Math.random().toString(36).substr(2, 9)),
+      title: p.title || '',
+      image: p.thumbnail || '',
+      platform: 'google_shopping',
+      price: price,
+      originalPrice: price,
+      margin: 0,
+      score: Math.floor(Math.random() * 20) + 70,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'high',
+      demand: 0,
+      rating: parseFloat(p.rating || 0),
+      reviews: parseInt(p.reviews || 0),
+      orders: 0,
+      shipFrom: p.source || 'Multiple',
+      category: '',
+      keywords: [],
+      suppliers: [{ name: p.source || 'Google Shopping', location: 'Global', rating: parseFloat(p.rating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { google_shopping: price },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '18-65', gender: 'All', interests: [], countries: ['US', 'UK', 'CA', 'AU'] },
+      riskScore: Math.floor(Math.random() * 20) + 5,
+      marketSaturation: Math.floor(Math.random() * 40) + 35,
+      adSpendAvg: Math.floor(Math.random() * 700) + 200,
+      cpaAvg: Math.floor(Math.random() * 15) + 4,
+      aiInsight: '',
+    };
+  }
+
+  async function searchReddit(query, filters) {
+    const key = await getPlatformKey('reddit');
+    if (!key) return null;
+    try {
+      const resp = await fetch('https://oauth.reddit.com/search.json?q=' + encodeURIComponent(query) + '&limit=20&sort=relevance', {
+        headers: { Authorization: 'Bearer ' + key, 'User-Agent': 'HuntDropAI/1.0' },
+      });
+      if (!resp.ok) throw new Error('Reddit API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.data && data.data.children) {
+        return data.data.children.map(function (c) { return normalizeRedditPost(c.data); });
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Reddit search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeRedditPost(p) {
+    return {
+      id: 'rd_' + (p.id || Math.random().toString(36).substr(2, 9)),
+      title: p.title || '',
+      image: p.thumbnail && p.thumbnail.startsWith('http') ? p.thumbnail : '',
+      platform: 'reddit',
+      price: 0,
+      originalPrice: 0,
+      margin: 0,
+      score: Math.floor(Math.random() * 20) + 70,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'low',
+      demand: parseInt(p.num_comments || 0),
+      rating: 0,
+      reviews: 0,
+      orders: 0,
+      shipFrom: 'Discussion',
+      category: 'r/' + (p.subreddit || ''),
+      keywords: [],
+      suppliers: [{ name: 'Reddit Discussion', location: 'Global', rating: 4.5, orders: 0, responseTime: '24h', verified: false }],
+      platformPrices: { reddit: 0 },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '18-35', gender: 'Male', interests: ['tech', 'gaming', 'deals'], countries: ['US', 'UK', 'CA'] },
+      riskScore: 0,
+      marketSaturation: 0,
+      adSpendAvg: 0,
+      cpaAvg: 0,
+      aiInsight: 'Consumer sentiment: ' + (p.score || 0) + ' upvotes, ' + (p.num_comments || 0) + ' comments',
+    };
+  }
+
+  async function searchPinterest(query, filters) {
+    const key = await getPlatformKey('pinterest');
+    if (!key) return null;
+    try {
+      const params = new URLSearchParams({ query: query, page_size: '20' });
+      const resp = await fetch('https://api.pinterest.com/v5/search/pins?' + params.toString(), {
+        headers: { Authorization: 'Bearer ' + key },
+      });
+      if (!resp.ok) throw new Error('Pinterest API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.items) {
+        return data.items.map(normalizePinterestPin);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Pinterest search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizePinterestPin(p) {
+    const media = p.media || {};
+    return {
+      id: 'pt_' + (p.id || Math.random().toString(36).substr(2, 9)),
+      title: p.title || p.note || '',
+      image: media.images && media.images.orig && media.images.orig.url ? media.images.orig.url : '',
+      platform: 'pinterest',
+      price: 0,
+      originalPrice: 0,
+      margin: 0,
+      score: Math.floor(Math.random() * 20) + 70,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'medium',
+      demand: parseInt(p.pin_measurements && p.pin_measurements.closeup && p.pin_measurements.closeup.save || 0),
+      rating: 0,
+      reviews: 0,
+      orders: 0,
+      shipFrom: 'Pinterest',
+      category: p.board && p.board.name ? p.board.name : '',
+      keywords: [],
+      suppliers: [{ name: 'Pinterest Discovery', location: 'Global', rating: 4.5, orders: 0, responseTime: '24h', verified: false }],
+      platformPrices: { pinterest: 0 },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '25-45', gender: 'Female', interests: ['home', 'fashion', 'DIY'], countries: ['US', 'UK', 'CA'] },
+      riskScore: 0,
+      marketSaturation: 0,
+      adSpendAvg: 0,
+      cpaAvg: 0,
+      aiInsight: 'Visual trend signal from Pinterest',
+    };
+  }
+
+  async function searchAmazonSP(query, filters) {
+    const key = await getPlatformKey('amazon_sp');
+    if (!key) return null;
+    try {
+      const resp = await fetch('https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items?keywords=' + encodeURIComponent(query) + '&searchType=KEYWORDS&pageSize=20', {
+        headers: { Authorization: 'Bearer ' + key, 'x-amz-access-token': key },
+      });
+      if (!resp.ok) throw new Error('Amazon SP-API error: ' + resp.status);
+      const data = await resp.json();
+      if (data.items) {
+        return data.items.slice(0, 20).map(normalizeAmazonSPProduct);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[PlatformConnectors] Amazon SP-API search failed:', e.message);
+      return null;
+    }
+  }
+
+  function normalizeAmazonSPProduct(p) {
+    const summaries = p.summaries || [];
+    const summary = summaries[0] || {};
+    return {
+      id: 'asp_' + (p.asin || Math.random().toString(36).substr(2, 9)),
+      title: summary.itemName || '',
+      image: p.images && p.images[0] && p.images[0].images && p.images[0].images[0] ? p.images[0].images[0].link : '',
+      platform: 'amazon_sp',
+      price: 0,
+      originalPrice: 0,
+      margin: 0,
+      score: Math.floor(Math.random() * 25) + 65,
+      badges: [],
+      salesVelocity: 0,
+      competition: 'high',
+      demand: 0,
+      rating: parseFloat(summary.salesRank || 0),
+      reviews: 0,
+      orders: 0,
+      shipFrom: 'Amazon',
+      category: summary.productType || '',
+      keywords: [],
+      suppliers: [{ name: 'Amazon SP-API', location: 'US', rating: 4.5, orders: 0, responseTime: '24h', verified: true }],
+      platformPrices: { amazon_sp: 0 },
+      trendData: generateTrendData(),
+      seasonality: generateSeasonality(),
+      audience: { age: '18-65', gender: 'All', interests: [], countries: ['US'] },
+      riskScore: Math.floor(Math.random() * 20) + 5,
+      marketSaturation: Math.floor(Math.random() * 40) + 40,
+      adSpendAvg: Math.floor(Math.random() * 800) + 200,
+      cpaAvg: Math.floor(Math.random() * 20) + 5,
+      aiInsight: '',
+    };
+  }
+
   // ===== Helpers =====
 
   function generateTrendData() {
@@ -755,6 +1385,16 @@
     cjdropshipping: searchCJDropshipping,
     dhgate: searchDHgate,
     wish: searchWish,
+    // NEW PLATFORMS
+    walmart: searchWalmart,
+    bestbuy: searchBestBuy,
+    alibaba: searchAlibaba,
+    rakuten: searchRakuten,
+    newegg: searchNewegg,
+    google_shopping: searchGoogleShopping,
+    reddit: searchReddit,
+    pinterest: searchPinterest,
+    amazon_sp: searchAmazonSP,
   };
 
   async function searchPlatform(platform, query, filters) {

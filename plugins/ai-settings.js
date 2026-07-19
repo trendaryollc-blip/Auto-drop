@@ -284,7 +284,6 @@
       const PC = window.HuntDrop.PlatformConnectors;
       const configs = PC ? PC.configs : null;
       if (!configs) {
-        // Fallback: show a message that connectors are loading
         return (
           '<div class="ais-grid">' +
           '<div class="ais-card ais-full">' +
@@ -298,68 +297,96 @@
         );
       }
 
-      let platformCards = '';
-      let connectedCount = 0;
-      const totalCount = Object.keys(configs).length;
+      var platformCards = '';
+      var connectedCount = 0;
+      var totalCount = Object.keys(configs).length;
+
+      // Group platforms by category
+      var categories = {
+        ecommerce: { name: 'E-Commerce Marketplaces', icon: '🛒', platforms: [] },
+        wholesale: { name: 'Wholesale & B2B', icon: '🏭', platforms: [] },
+        research: { name: 'Research & Discovery', icon: '🔬', platforms: [] },
+      };
 
       Object.keys(configs).forEach(function (pid) {
-        const cfg = configs[pid];
-        const isConnected = PC.isConnected(pid);
-        if (isConnected) connectedCount++;
-        const statusDot = isConnected
-          ? '<span class="ais-fa-dot ais-fa-dot-live" title="Connected"></span>'
-          : '<span class="ais-fa-dot ais-fa-dot-off" title="Not connected"></span>';
-        const statusBadge = isConnected
-          ? '<span class="ais-conn-badge live" style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,255,136,0.15);color:var(--accent-green);border:1px solid rgba(0,255,136,0.3)">CONNECTED</span>'
-          : '<span class="ais-conn-badge off" style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border-subtle)">NO KEY</span>';
-
-        platformCards +=
-          '<div class="ais-platform-card" data-platform="' +
-          pid +
-          '" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg-elevated);border:1px solid ' +
-          (isConnected ? 'rgba(0,255,136,0.2)' : 'var(--border-subtle)') +
-          ';border-radius:10px;transition:all 0.2s">' +
-          '<span style="font-size:24px;flex-shrink:0">' +
-          cfg.icon +
-          '</span>' +
-          '<div style="flex:1;min-width:0">' +
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">' +
-          '<span style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary)">' +
-          esc(cfg.name) +
-          '</span>' +
-          statusDot +
-          statusBadge +
-          '</div>' +
-          '<div style="font-size:11px;color:var(--text-muted);line-height:1.4">' +
-          esc(cfg.keyHint) +
-          '</div>' +
-          '</div>' +
-          '<div style="flex-shrink:0;display:flex;gap:6px;align-items:center">' +
-          '<input type="password" class="ais-input ais-platform-key-input" data-platform="' +
-          pid +
-          '" placeholder="' +
-          (isConnected ? '••••••••' : 'Enter API key') +
-          '" style="width:180px;font-size:11px;padding:6px 10px">' +
-          '<button class="ais-btn ais-btn-primary ais-platform-save" data-platform="' +
-          pid +
-          '" style="font-size:11px;padding:6px 12px;white-space:nowrap">' +
-          (isConnected ? 'Update' : 'Save') +
-          '</button>' +
-          (isConnected
-            ? '<button class="ais-btn ais-btn-danger ais-platform-disconnect" data-platform="' +
-              pid +
-              '" style="font-size:11px;padding:6px 10px" title="Disconnect">✕</button>'
-            : '') +
-          '<a href="' +
-          esc(cfg.keyUrl) +
-          '" target="_blank" rel="noopener" class="ais-guide-btn" style="font-size:10px;padding:6px 10px;text-decoration:none;--gc:' +
-          (cfg.color || 'var(--accent-cyan)') +
-          '">Get Key ↗</a>' +
-          '</div>' +
-          '</div>';
+        var cfg = configs[pid];
+        var cat = cfg.category || 'ecommerce';
+        if (!categories[cat]) categories[cat] = { name: cat, icon: '🔗', platforms: [] };
+        categories[cat].platforms.push(pid);
       });
 
-      const summaryText =
+      Object.keys(categories).forEach(function (catKey) {
+        var cat = categories[catKey];
+        if (cat.platforms.length === 0) return;
+
+        platformCards += '<div class="ais-platform-category">' +
+          '<div class="ais-platform-cat-header">' +
+          '<span class="ais-platform-cat-icon">' + cat.icon + '</span>' +
+          '<span class="ais-platform-cat-name">' + cat.name + '</span>' +
+          '<span class="ais-platform-cat-count">' + cat.platforms.length + ' platforms</span>' +
+          '</div>';
+
+        cat.platforms.forEach(function (pid) {
+          var cfg = configs[pid];
+          var isConnected = PC.isConnected(pid);
+          if (isConnected) connectedCount++;
+          var statusDot = isConnected
+            ? '<span class="ais-fa-dot ais-fa-dot-live" title="Connected"></span>'
+            : '<span class="ais-fa-dot ais-fa-dot-off" title="Not connected"></span>';
+          var statusBadge = isConnected
+            ? '<span class="ais-conn-badge live" style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(0,255,136,0.15);color:var(--accent-green);border:1px solid rgba(0,255,136,0.3)">CONNECTED</span>'
+            : '<span class="ais-conn-badge off" style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,0.05);color:var(--text-muted);border:1px solid var(--border-subtle)">NO KEY</span>';
+
+          platformCards +=
+            '<div class="ais-platform-card" data-platform="' +
+            pid +
+            '" style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg-elevated);border:1px solid ' +
+            (isConnected ? 'rgba(0,255,136,0.2)' : 'var(--border-subtle)') +
+            ';border-radius:10px;transition:all 0.2s">' +
+            '<span style="font-size:24px;flex-shrink:0">' +
+            cfg.icon +
+            '</span>' +
+            '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">' +
+            '<span style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary)">' +
+            esc(cfg.name) +
+            '</span>' +
+            statusDot +
+            statusBadge +
+            '</div>' +
+            '<div style="font-size:11px;color:var(--text-muted);line-height:1.4">' +
+            esc(cfg.keyHint) +
+            '</div>' +
+            '</div>' +
+            '<div style="flex-shrink:0;display:flex;gap:6px;align-items:center">' +
+            '<input type="password" class="ais-input ais-platform-key-input" data-platform="' +
+            pid +
+            '" placeholder="' +
+            (isConnected ? '••••••••' : 'Enter API key') +
+            '" style="width:180px;font-size:11px;padding:6px 10px">' +
+            '<button class="ais-btn ais-btn-primary ais-platform-save" data-platform="' +
+            pid +
+            '" style="font-size:11px;padding:6px 12px;white-space:nowrap">' +
+            (isConnected ? 'Update' : 'Save') +
+            '</button>' +
+            (isConnected
+              ? '<button class="ais-btn ais-btn-danger ais-platform-disconnect" data-platform="' +
+                pid +
+                '" style="font-size:11px;padding:6px 10px" title="Disconnect">✕</button>'
+              : '') +
+            '<a href="' +
+            esc(cfg.keyUrl) +
+            '" target="_blank" rel="noopener" class="ais-guide-btn" style="font-size:10px;padding:6px 10px;text-decoration:none;--gc:' +
+            (cfg.color || 'var(--accent-cyan)') +
+            '">Get Key ↗</a>' +
+            '</div>' +
+            '</div>';
+        });
+
+        platformCards += '</div>';
+      });
+
+      var summaryText =
         connectedCount === 0
           ? 'No platform keys configured — using mock data for all platforms'
           : connectedCount === totalCount
@@ -377,7 +404,10 @@
         '</div>' +
         '<div class="ais-card-body">' +
         '<div class="ais-feature-notice">🔌 Add API keys for each platform to get real product data. Without keys, the app uses sample data. Add keys one at a time as you get them.</div>' +
-        '<div id="aisPlatformList" style="display:flex;flex-direction:column;gap:8px">' +
+        '<div class="ais-platform-search-wrap">' +
+        '<input type="text" class="ais-input ais-platform-search" id="aisPlatformSearch" placeholder="🔍 Search platforms...">' +
+        '</div>' +
+        '<div id="aisPlatformList" style="display:flex;flex-direction:column;gap:16px">' +
         platformCards +
         '</div>' +
         '</div>' +
@@ -392,12 +422,35 @@
       const PC = window.HuntDrop.PlatformConnectors;
       if (!PC) return;
 
+      // Platform search
+      var platformSearch = section.querySelector('#aisPlatformSearch');
+      if (platformSearch) {
+        platformSearch.addEventListener('input', function () {
+          var query = platformSearch.value.toLowerCase();
+          section.querySelectorAll('.ais-platform-card').forEach(function (card) {
+            var name = (card.querySelector('.ais-fa-dot') ? card.textContent : '').toLowerCase();
+            var pid = card.dataset.platform || '';
+            var match = query === '' || name.indexOf(query) !== -1 || pid.indexOf(query) !== -1;
+            card.style.display = match ? 'flex' : 'none';
+          });
+          // Show/hide category headers based on visible cards
+          section.querySelectorAll('.ais-platform-category').forEach(function (cat) {
+            var visibleCards = cat.querySelectorAll('.ais-platform-card[style*="flex"], .ais-platform-card:not([style*="none"])');
+            var hasVisible = false;
+            cat.querySelectorAll('.ais-platform-card').forEach(function (c) {
+              if (c.style.display !== 'none') hasVisible = true;
+            });
+            cat.style.display = hasVisible ? 'block' : 'none';
+          });
+        });
+      }
+
       // Save buttons
       section.querySelectorAll('.ais-platform-save').forEach(function (btn) {
         btn.addEventListener('click', async function () {
-          const pid = btn.dataset.platform;
-          const input = section.querySelector('.ais-platform-key-input[data-platform="' + pid + '"]');
-          const key = input ? input.value.trim() : '';
+          var pid = btn.dataset.platform;
+          var input = section.querySelector('.ais-platform-key-input[data-platform="' + pid + '"]');
+          var key = input ? input.value.trim() : '';
           if (!key) {
             AISettingsPlugin.showToast('Please enter an API key', 'error');
             return;
@@ -419,7 +472,7 @@
       // Disconnect buttons
       section.querySelectorAll('.ais-platform-disconnect').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          const pid = btn.dataset.platform;
+          var pid = btn.dataset.platform;
           PC.removePlatformKey(pid);
           AISettingsPlugin.showToast(PC.configs[pid].name + ' disconnected', 'info');
           AISettingsPlugin.refreshPlatformSection();
@@ -432,7 +485,7 @@
           if (input.value === '••••••••') input.value = '';
         });
         input.addEventListener('blur', function () {
-          const pid = input.dataset.platform;
+          var pid = input.dataset.platform;
           if (!input.value && PC.isConnected(pid)) {
             input.value = '••••••••';
           }

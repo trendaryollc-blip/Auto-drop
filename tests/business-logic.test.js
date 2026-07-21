@@ -293,9 +293,43 @@ describe('Business Logic — Profit Calculator Accuracy', () => {
 describe('Business Logic — Budget Allocator Scoring & Allocation', () => {
   let HuntDrop;
 
+  const SAMPLE_PRODUCTS = [
+    createSampleProduct({
+      id: 1,
+      platform: 'amazon',
+      title: 'Wireless Earbuds Pro',
+      price: 29.99,
+      score: 92,
+      competition: 'low',
+      margin: 75,
+      salesVelocity: 1500,
+    }),
+    createSampleProduct({
+      id: 2,
+      platform: 'aliexpress',
+      title: 'Bluetooth Speaker Mini',
+      price: 14.99,
+      score: 85,
+      competition: 'medium',
+      margin: 60,
+      salesVelocity: 800,
+    }),
+    createSampleProduct({
+      id: 3,
+      platform: 'shopify',
+      title: 'Pet Grooming Brush',
+      price: 15.99,
+      score: 82,
+      competition: 'low',
+      margin: 80,
+      salesVelocity: 600,
+    }),
+  ];
+
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ad-budget-allocator.js']));
+    HuntDrop.ALL_PRODUCTS = SAMPLE_PRODUCTS;
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
   });
 
@@ -495,7 +529,30 @@ describe('Business Logic — AI Chat Service Fallback Responses', () => {
   let HuntDrop;
   let chat;
 
-  beforeEach(() => {
+  const SAMPLE_PRODUCTS = [
+    createSampleProduct({
+      id: 1,
+      platform: 'amazon',
+      title: 'Wireless Earbuds Pro',
+      category: 'Electronics',
+      price: 29.99,
+      score: 92,
+      margin: 75,
+      competition: 'low',
+    }),
+    createSampleProduct({
+      id: 2,
+      platform: 'aliexpress',
+      title: 'Bluetooth Speaker Mini',
+      category: 'Electronics',
+      price: 14.99,
+      score: 85,
+      margin: 60,
+      competition: 'medium',
+    }),
+  ];
+
+  beforeEach(async () => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins([
       'plugins/data-adapters.js',
@@ -505,7 +562,13 @@ describe('Business Logic — AI Chat Service Fallback Responses', () => {
       'plugins/ai-web-search.js',
       'plugins/ai-chat-service.js',
     ]));
+    HuntDrop.ALL_PRODUCTS = SAMPLE_PRODUCTS;
     chat = HuntDrop.AIChatService;
+    await HuntDrop.PluginRegistry.init('ai-key-manager');
+    await HuntDrop.PluginRegistry.init('ai-context-builder');
+    await HuntDrop.PluginRegistry.init('ai-system-health');
+    await HuntDrop.PluginRegistry.init('ai-web-search');
+    await HuntDrop.PluginRegistry.init('ai-chat-service');
   });
 
   describe('needsWebSearch() — trigger detection', () => {
@@ -636,9 +699,43 @@ describe('Business Logic — Context Builder Data Integrity', () => {
   let HuntDrop;
   let ctx;
 
+  const SAMPLE_PRODUCTS = [
+    createSampleProduct({
+      id: 1,
+      platform: 'amazon',
+      title: 'Wireless Earbuds Pro',
+      category: 'Electronics',
+      price: 29.99,
+      score: 92,
+      margin: 75,
+      competition: 'low',
+    }),
+    createSampleProduct({
+      id: 2,
+      platform: 'aliexpress',
+      title: 'Bluetooth Speaker Mini',
+      category: 'Electronics',
+      price: 14.99,
+      score: 85,
+      margin: 60,
+      competition: 'medium',
+    }),
+    createSampleProduct({
+      id: 3,
+      platform: 'shopify',
+      title: 'Pet Grooming Brush',
+      category: 'Pet Supplies',
+      price: 15.99,
+      score: 82,
+      margin: 80,
+      competition: 'low',
+    }),
+  ];
+
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-context-builder.js']));
+    HuntDrop.ALL_PRODUCTS = SAMPLE_PRODUCTS;
     ctx = HuntDrop.AIContextBuilder;
   });
 

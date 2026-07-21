@@ -14,13 +14,11 @@ const CACHE_NAME = 'huntdrop-' + CACHE_VERSION;
 const MAX_CACHE_ITEMS = 100; // LRU limit to prevent unbounded cache growth
 
 // Only core files that are needed on every page load
-// FIX #19: Added mock-products.json for offline search support
 const CORE_ASSETS = [
   '/',
   '/index.html',
   '/core.js',
   '/app.js',
-  '/mock-products.json',
   '/css/base.css',
   '/css/components.css',
   '/css/navigation.css',

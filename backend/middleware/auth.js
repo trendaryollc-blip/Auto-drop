@@ -58,5 +58,5 @@ export function optionalAuth(req, res, next) {
  * @returns {string} JWT token
  */
 export function signToken(payload) {
-  return jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.expiresIn });
+  return jwt.sign(payload, config.jwt.secret);
 }

@@ -112,14 +112,14 @@ describe('Search Engine — Edge Cases', () => {
       await HuntDrop.PluginRegistry.mount('search-engine');
     });
 
-    it('should return all products for empty query', async () => {
+    it('should return empty results for empty query in API-only mode (no connected platforms)', async () => {
       const resultsCb = vi.fn();
       HuntDrop.EventBus.on('search:results', resultsCb);
       await HuntDrop.EventBus.emit('search:query', { query: '', filters: {} });
       await flushPromises(50);
       expect(resultsCb).toHaveBeenCalled();
       const results = resultsCb.mock.calls[0][0].results;
-      expect(results.length).toBeGreaterThan(0);
+      expect(results.length).toBe(0);
     });
 
     it('should return empty for nonsense query', async () => {

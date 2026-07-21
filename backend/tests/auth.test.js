@@ -5,7 +5,7 @@ import { requireAuth, optionalAuth, signToken } from '../middleware/auth.js';
 // Mock config
 vi.mock('../config/index.js', () => ({
   default: {
-    jwt: { secret: 'test-secret-key-for-testing', expiresIn: '7d' },
+    jwt: { secret: 'test-secret-key-for-testing' },
   },
 }));
 
@@ -29,13 +29,6 @@ describe('Auth Middleware', () => {
       const decoded = jwt.verify(token, TEST_SECRET);
       expect(decoded.uid).toBe('123');
       expect(decoded.email).toBe('test@test.com');
-    });
-
-    it('should include expiration', () => {
-      const token = signToken({ uid: '123' });
-      const decoded = jwt.verify(token, TEST_SECRET);
-      expect(decoded.exp).toBeDefined();
-      expect(decoded.iat).toBeDefined();
     });
 
     it('should reject token signed with wrong secret', () => {

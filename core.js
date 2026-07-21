@@ -625,7 +625,7 @@
   })();
 
   // ===== 6. UI UTILITIES =====
-  const normalizeImageUrl = (src, fallback = 'https://via.placeholder.com/300x200?text=Product') => {
+  const normalizeImageUrl = (src, fallback = '') => {
     if (typeof src !== 'string' || !src.trim()) return fallback;
     const value = src.trim();
     if (value.indexOf('images.unsplash.com') === -1) return value;
@@ -643,7 +643,7 @@
   };
 
   const getOptimizedImageAttributes = (src, alt = '', options = {}) => {
-    const fallback = options.fallback || 'https://via.placeholder.com/300x200?text=Product';
+    const fallback = options.fallback || '';
     const normalized = normalizeImageUrl(src, fallback);
     const attrs = {
       src: normalized,

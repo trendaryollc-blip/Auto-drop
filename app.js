@@ -1625,11 +1625,7 @@
           i * 0.05 +
           's">' +
           '<div class="trending-card-image"><img src="' +
-          escapeHtml(
-            UI.normalizeImageUrl
-              ? UI.normalizeImageUrl(item.image, 'https://via.placeholder.com/300x200?text=Product')
-              : item.image
-          ) +
+          escapeHtml(UI.normalizeImageUrl ? UI.normalizeImageUrl(item.image, '') : item.image) +
           '" alt="' +
           escapeHtml(item.title) +
           '" loading="lazy" decoding="async" fetchpriority="low"></div>' +

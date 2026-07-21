@@ -3,7 +3,7 @@
  *
  * Firestore collection: "products"
  *
- * Matches the frontend product object shape from mock-products.json.
+ * Matches the frontend product object shape.
  * Products are seeded once and queried by the search engine.
  */
 

@@ -264,9 +264,37 @@ describe('AI Context Builder — Data Accuracy', () => {
   let HuntDrop;
   let ctx;
 
+  const SAMPLE_PRODUCTS = [
+    createSampleProduct({
+      id: 1,
+      platform: 'amazon',
+      title: 'Wireless Earbuds Pro',
+      category: 'Electronics',
+      price: 29.99,
+      score: 92,
+    }),
+    createSampleProduct({
+      id: 2,
+      platform: 'aliexpress',
+      title: 'Bluetooth Speaker Mini',
+      category: 'Electronics',
+      price: 14.99,
+      score: 85,
+    }),
+    createSampleProduct({
+      id: 3,
+      platform: 'shopify',
+      title: 'Pet Grooming Brush',
+      category: 'Pet Supplies',
+      price: 15.99,
+      score: 82,
+    }),
+  ];
+
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/ai-context-builder.js']));
+    HuntDrop.ALL_PRODUCTS = SAMPLE_PRODUCTS;
     ctx = HuntDrop.AIContextBuilder;
   });
 
@@ -361,6 +389,33 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
   let HuntDrop;
   let chat;
 
+  const SAMPLE_PRODUCTS = [
+    createSampleProduct({
+      id: 1,
+      platform: 'amazon',
+      title: 'Wireless Earbuds Pro',
+      category: 'Electronics',
+      price: 29.99,
+      score: 92,
+    }),
+    createSampleProduct({
+      id: 2,
+      platform: 'aliexpress',
+      title: 'Bluetooth Speaker Mini',
+      category: 'Electronics',
+      price: 14.99,
+      score: 85,
+    }),
+    createSampleProduct({
+      id: 3,
+      platform: 'shopify',
+      title: 'Pet Grooming Brush',
+      category: 'Pet Supplies',
+      price: 15.99,
+      score: 82,
+    }),
+  ];
+
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins([
@@ -371,6 +426,7 @@ describe('AI Chat Service — Message Building & Fallbacks', () => {
       'plugins/ai-web-search.js',
       'plugins/ai-chat-service.js',
     ]));
+    HuntDrop.ALL_PRODUCTS = SAMPLE_PRODUCTS;
     chat = HuntDrop.AIChatService;
   });
 

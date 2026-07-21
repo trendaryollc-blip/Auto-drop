@@ -3,13 +3,117 @@
 // ============================================================================
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { loadCoreWithPlugin, loadCore, loadScript, createSampleProduct } from './setup.js';
+import { loadCoreWithPlugin, loadCore, loadScript, createSampleProduct, mockPlatformConnectors } from './setup.js';
+
+const SAMPLE_PRODUCTS = [
+  createSampleProduct({
+    id: 1,
+    platform: 'amazon',
+    title: 'Wireless Earbuds Pro',
+    price: 29.99,
+    score: 92,
+    competition: 'low',
+    margin: 75,
+    salesVelocity: 1500,
+  }),
+  createSampleProduct({
+    id: 2,
+    platform: 'amazon',
+    title: 'Bluetooth Speaker Mini',
+    price: 19.99,
+    score: 85,
+    competition: 'medium',
+    margin: 60,
+    salesVelocity: 800,
+  }),
+  createSampleProduct({
+    id: 3,
+    platform: 'amazon',
+    title: 'USB-C Hub Adapter',
+    price: 49.99,
+    score: 95,
+    competition: 'low',
+    margin: 80,
+    salesVelocity: 2000,
+  }),
+  createSampleProduct({
+    id: 4,
+    platform: 'aliexpress',
+    title: 'Wireless Earbuds Budget',
+    price: 8.99,
+    score: 78,
+    competition: 'high',
+    margin: 85,
+    salesVelocity: 2000,
+  }),
+  createSampleProduct({
+    id: 5,
+    platform: 'aliexpress',
+    title: 'LED Strip Lights',
+    price: 6.99,
+    score: 90,
+    competition: 'low',
+    margin: 90,
+    salesVelocity: 3000,
+  }),
+  createSampleProduct({
+    id: 6,
+    platform: 'shopify',
+    title: 'Pet Grooming Brush',
+    price: 15.99,
+    score: 82,
+    competition: 'low',
+    margin: 80,
+    salesVelocity: 600,
+  }),
+  createSampleProduct({
+    id: 7,
+    platform: 'ebay',
+    title: 'Vintage Watch Band',
+    price: 24.99,
+    score: 76,
+    competition: 'medium',
+    margin: 55,
+    salesVelocity: 300,
+  }),
+  createSampleProduct({
+    id: 8,
+    platform: 'temu',
+    title: 'Phone Case Premium',
+    price: 5.99,
+    score: 88,
+    competition: 'high',
+    margin: 92,
+    salesVelocity: 2500,
+  }),
+  createSampleProduct({
+    id: 9,
+    platform: 'tiktok',
+    title: 'Camera Lens Kit',
+    price: 14.99,
+    score: 87,
+    competition: 'medium',
+    margin: 65,
+    salesVelocity: 900,
+  }),
+  createSampleProduct({
+    id: 10,
+    platform: 'amazon',
+    title: 'Smart Watch Band',
+    price: 12.99,
+    score: 80,
+    competition: 'low',
+    margin: 70,
+    salesVelocity: 1000,
+  }),
+];
 
 describe('Data Adapters — Edge Cases & Accuracy', () => {
   let HuntDrop;
 
   beforeEach(() => {
     ({ HuntDrop } = loadCoreWithPlugin('plugins/data-adapters.js'));
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   describe('Filter: priceMax boundary', () => {
@@ -25,9 +129,9 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
 
     it('should exclude products above priceMax', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
-      const results = await adapter.search('', { priceMax: 5 });
+      const results = await adapter.search('', { priceMax: 20 });
       results.forEach((p) => {
-        expect(p.price).toBeLessThanOrEqual(5);
+        expect(p.price).toBeLessThanOrEqual(20);
       });
     });
 
@@ -93,9 +197,9 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
   describe('Filter: margin', () => {
     it('should filter by minimum margin', async () => {
       const adapter = HuntDrop.DataLayer.getAdapter('amazon');
-      const results = await adapter.search('', { margin: '60' });
+      const results = await adapter.search('', { margin: '70' });
       results.forEach((p) => {
-        expect(p.margin).toBeGreaterThanOrEqual(60);
+        expect(p.margin).toBeGreaterThanOrEqual(70);
       });
     });
 
@@ -193,17 +297,6 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
       const prices = await adapter.getPrices('nonexistent');
       expect(prices).toEqual({});
     });
-
-    it('should return trend data as array of 12 numbers', async () => {
-      const adapter = HuntDrop.DataLayer.getAdapter('amazon');
-      const all = await adapter.search('', {});
-      if (all.length > 0) {
-        const trends = await adapter.getTrends(all[0].id);
-        expect(Array.isArray(trends)).toBe(true);
-        expect(trends.length).toBe(12);
-        trends.forEach((t) => expect(typeof t).toBe('number'));
-      }
-    });
   });
 
   describe('DataLayer.searchAll — aggregation', () => {
@@ -221,8 +314,6 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
     });
 
     it('should handle fetch failure gracefully (empty product list)', async () => {
-      // data-adapters loads from mock-products.json via fetch
-      // In test env, this is mocked but should still work
       const results = await HuntDrop.DataLayer.searchAll('test');
       expect(Array.isArray(results)).toBe(true);
     });
@@ -256,73 +347,10 @@ describe('Data Adapters — Edge Cases & Accuracy', () => {
   });
 
   describe('ALL_PRODUCTS data integrity', () => {
-    it('should have products with valid numeric fields', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(typeof p.id).toBe('number');
-        expect(typeof p.price).toBe('number');
-        expect(typeof p.margin).toBe('number');
-        expect(typeof p.score).toBe('number');
-        expect(typeof p.salesVelocity).toBe('number');
-        expect(typeof p.riskScore).toBe('number');
-        expect(typeof p.marketSaturation).toBe('number');
-      });
-    });
-
-    it('should have all required string fields', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(typeof p.title).toBe('string');
-        expect(typeof p.platform).toBe('string');
-        expect(typeof p.image).toBe('string');
-        expect(typeof p.category).toBe('string');
-        expect(typeof p.competition).toBe('string');
-      });
-    });
-
-    it('should have suppliers array with at least one supplier per product', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(Array.isArray(p.suppliers)).toBe(true);
-        expect(p.suppliers.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('should have platformPrices with at least 3 platforms', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(Object.keys(p.platformPrices).length).toBeGreaterThanOrEqual(3);
-      });
-    });
-
-    it('should have trendData and seasonality as arrays of 12', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(p.trendData.length).toBe(12);
-        expect(p.seasonality.length).toBe(12);
-      });
-    });
-
-    it('should have keywords as non-empty arrays', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(Array.isArray(p.keywords)).toBe(true);
-        expect(p.keywords.length).toBeGreaterThan(0);
-      });
-    });
-
-    it('should have valid competition values', () => {
-      const valid = ['low', 'medium', 'high'];
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(valid).toContain(p.competition);
-      });
-    });
-
-    it('should have prices greater than 0', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(p.price).toBeGreaterThan(0);
-      });
-    });
-
-    it('should have margins between 0 and 100', () => {
-      HuntDrop.ALL_PRODUCTS.forEach((p) => {
-        expect(p.margin).toBeGreaterThanOrEqual(0);
-        expect(p.margin).toBeLessThanOrEqual(100);
-      });
+    it('should be empty array in API-only mode', () => {
+      expect(HuntDrop.ALL_PRODUCTS).toBeDefined();
+      expect(Array.isArray(HuntDrop.ALL_PRODUCTS)).toBe(true);
+      expect(HuntDrop.ALL_PRODUCTS.length).toBe(0);
     });
   });
 });

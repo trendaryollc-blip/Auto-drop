@@ -1,5 +1,55 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
-import { loadCore, loadScript, setupDashboardDOM, flushPromises } from './setup.js';
+import {
+  loadCore,
+  loadScript,
+  setupDashboardDOM,
+  createSampleProduct,
+  flushPromises,
+  mockPlatformConnectors,
+} from './setup.js';
+
+const SAMPLE_PRODUCTS = [
+  createSampleProduct({
+    id: 1,
+    platform: 'aliexpress',
+    title: 'Wireless Earbuds Pro',
+    price: 9.99,
+    score: 92,
+    competition: 'low',
+    margin: 75,
+    salesVelocity: 1500,
+  }),
+  createSampleProduct({
+    id: 2,
+    platform: 'aliexpress',
+    title: 'Bluetooth Speaker Mini',
+    price: 14.99,
+    score: 85,
+    competition: 'medium',
+    margin: 60,
+    salesVelocity: 800,
+  }),
+  createSampleProduct({
+    id: 3,
+    platform: 'amazon',
+    title: 'USB-C Hub Adapter',
+    price: 29.99,
+    score: 88,
+    competition: 'low',
+    margin: 70,
+    salesVelocity: 1200,
+  }),
+  createSampleProduct({
+    id: 4,
+    platform: 'amazon',
+    title: 'Pet Grooming Brush',
+    price: 19.99,
+    score: 82,
+    competition: 'low',
+    margin: 80,
+    salesVelocity: 600,
+  }),
+];
 
 describe('Feature: Search → Results Rendering', () => {
   let HuntDrop;
@@ -10,10 +60,12 @@ describe('Feature: Search → Results Rendering', () => {
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
     loadScript('plugins/product-grid.js');
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
-  it('should have products in ALL_PRODUCTS', () => {
-    expect(HuntDrop.ALL_PRODUCTS.length).toBeGreaterThan(0);
+  it('should have ALL_PRODUCTS as empty array in API-only mode', () => {
+    expect(HuntDrop.ALL_PRODUCTS).toBeDefined();
+    expect(HuntDrop.ALL_PRODUCTS.length).toBe(0);
   });
 
   it('should render product cards after search:results event', async () => {
@@ -21,7 +73,7 @@ describe('Feature: Search → Results Rendering', () => {
     await HuntDrop.PluginRegistry.init('product-grid');
     await HuntDrop.PluginRegistry.mount('product-grid');
 
-    const products = HuntDrop.ALL_PRODUCTS.slice(0, 4);
+    const products = SAMPLE_PRODUCTS.slice(0, 4);
     await HuntDrop.EventBus.emit('search:results', {
       query: '',
       results: products,
@@ -44,6 +96,7 @@ describe('Feature: Card Click → product:analyze', () => {
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
     loadScript('plugins/product-grid.js');
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
 
     await HuntDrop.PluginRegistry.init('product-grid');
     await HuntDrop.PluginRegistry.mount('product-grid');
@@ -51,7 +104,7 @@ describe('Feature: Card Click → product:analyze', () => {
     analyzeSpy = vi.fn();
     HuntDrop.EventBus.on('product:analyze', analyzeSpy);
 
-    const products = HuntDrop.ALL_PRODUCTS.slice(0, 2);
+    const products = SAMPLE_PRODUCTS.slice(0, 2);
     await HuntDrop.EventBus.emit('search:results', {
       query: '',
       results: products,
@@ -79,6 +132,7 @@ describe('Feature: Filter → Search Integration', () => {
     HuntDrop = loadCore();
     loadScript('plugins/data-adapters.js');
     loadScript('plugins/search-engine.js');
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should emit filter:changed and search:results', async () => {

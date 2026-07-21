@@ -145,20 +145,6 @@ if (typeof Blob === 'undefined') {
   };
 }
 
-// ===== 6b. FETCH MOCK for mock-products.json =====
-// data-adapters.js tries fetch('mock-products.json') which fails in jsdom.
-// We mock fetch so it returns window.HuntDrop.ALL_PRODUCTS as JSON when
-// the request URL ends with 'mock-products.json'.
-const _originalFetch = global.fetch;
-global.fetch = vi.fn().mockImplementation((url, opts) => {
-  if (typeof url === 'string' && url.includes('mock-products.json')) {
-    const products = (window.HuntDrop && window.HuntDrop.ALL_PRODUCTS) || [];
-    return Promise.resolve({ ok: true, json: () => Promise.resolve(products) });
-  }
-  if (_originalFetch) return _originalFetch(url, opts);
-  return Promise.reject(new Error('fetch not mocked for: ' + url));
-});
-
 // ===== 7. localStorage polyfill (jsdom 29+ may not provide it) =====
 // Always ensure localStorage has proper methods
 const _store = new Map();
@@ -205,13 +191,13 @@ beforeEach(() => {
 // We define them as globals so the reference doesn't throw ReferenceError.
 if (typeof window.normalizeImageUrl !== 'function') {
   window.normalizeImageUrl = (src, fallback) => {
-    if (typeof src !== 'string' || !src.trim()) return fallback || 'https://via.placeholder.com/300x200?text=Product';
+    if (typeof src !== 'string' || !src.trim()) return fallback || '';
     return src.trim();
   };
 }
 if (typeof window.getOptimizedImageAttributes !== 'function') {
   window.getOptimizedImageAttributes = (src, alt, options) => ({
-    src: src || 'https://via.placeholder.com/300x200?text=Product',
+    src: src || '',
     alt: alt || '',
     loading: 'lazy',
     decoding: 'async',
@@ -259,7 +245,7 @@ export function loadCore() {
   // Reset window.HuntDrop if it exists (for clean state between tests)
   delete window.HuntDrop;
   loadScript('core.js');
-  loadScript('mock-products.js');
+  window.HuntDrop.ALL_PRODUCTS = [];
   // Provide default renderRelatedTools (set by app.js in production)
   if (!window.HuntDrop.renderRelatedTools) {
     window.HuntDrop.renderRelatedTools = function (tools) {
@@ -434,6 +420,59 @@ export function createSampleProduct(overrides = {}) {
   };
 }
 
+/**
+ * Mock PlatformConnectors so adapters return real-looking data in API-only mode.
+ * Creates PlatformConnectors on window.HuntDrop if it doesn't already exist.
+ * @param {object[]} products - Array of product objects to return from searchPlatform
+ */
+export function mockPlatformConnectors(products) {
+  if (!window.HuntDrop) return;
+
+  // Create PlatformConnectors if it doesn't exist (core.js doesn't define it)
+  if (!window.HuntDrop.PlatformConnectors) {
+    window.HuntDrop.PlatformConnectors = {
+      configs: {},
+      isConnected: vi.fn().mockReturnValue(false),
+      searchPlatform: vi.fn().mockResolvedValue([]),
+      getPlatformKey: vi.fn().mockResolvedValue(null),
+      savePlatformKey: vi.fn().mockResolvedValue(undefined),
+      removePlatformKey: vi.fn(),
+      getKeyStatus: vi.fn().mockReturnValue({ configured: false }),
+      getAllStatus: vi.fn().mockReturnValue({}),
+    };
+  }
+
+  const PC = window.HuntDrop.PlatformConnectors;
+  const platforms = [...new Set(products.map((p) => p.platform))];
+  platforms.forEach((p) => {
+    PC.configs[p] = {};
+  });
+  PC.isConnected = vi.fn().mockReturnValue(true);
+  PC.searchPlatform = vi.fn().mockImplementation(async (platform, query, filters) => {
+    let results = products.filter((p) => p.platform === platform || platform === 'all');
+    if (query) {
+      const q = query.toLowerCase();
+      results = results.filter(
+        (p) =>
+          (p.title && p.title.toLowerCase().indexOf(q) !== -1) ||
+          (p.category && p.category.toLowerCase().indexOf(q) !== -1) ||
+          String(p.id) === query
+      );
+    }
+    if (filters) {
+      if (filters.priceMax) results = results.filter((p) => p.price <= filters.priceMax);
+      if (filters.minScore) results = results.filter((p) => p.score >= filters.minScore);
+      if (filters.competition && filters.competition !== 'all')
+        results = results.filter((p) => p.competition === filters.competition);
+      if (filters.margin && filters.margin !== 'all') {
+        const m = Number(filters.margin);
+        if (!isNaN(m)) results = results.filter((p) => p.margin >= m);
+      }
+    }
+    return results;
+  });
+}
+
 // Make helpers available globally for tests
 global.loadScript = loadScript;
 global.loadCore = loadCore;
@@ -443,3 +482,4 @@ global.createMockElement = createMockElement;
 global.setupDashboardDOM = setupDashboardDOM;
 global.flushPromises = flushPromises;
 global.createSampleProduct = createSampleProduct;
+global.mockPlatformConnectors = mockPlatformConnectors;

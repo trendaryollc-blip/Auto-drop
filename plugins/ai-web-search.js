@@ -246,11 +246,11 @@
     },
 
     fallbackImageSearch(query) {
-      var slug = encodeURIComponent(query.replace(/\s+/g, '+'));
       return {
-        images: [{ url: 'https://source.unsplash.com/400x300/?' + slug, source: 'unsplash-fallback' }],
+        images: [],
         provider: 'fallback',
         fallback: true,
+        message: 'Web search not configured. Add API key in AI Settings.',
       };
     },
 

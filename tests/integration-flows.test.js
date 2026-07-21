@@ -10,7 +10,51 @@ import {
   setupDashboardDOM,
   createSampleProduct,
   flushPromises,
+  mockPlatformConnectors,
 } from './setup.js';
+
+const SAMPLE_PRODUCTS = [
+  createSampleProduct({
+    id: 1,
+    platform: 'amazon',
+    title: 'Wireless Earbuds Pro',
+    price: 29.99,
+    score: 92,
+    competition: 'low',
+    margin: 75,
+    salesVelocity: 1500,
+  }),
+  createSampleProduct({
+    id: 2,
+    platform: 'amazon',
+    title: 'Bluetooth Speaker Mini',
+    price: 19.99,
+    score: 85,
+    competition: 'medium',
+    margin: 60,
+    salesVelocity: 800,
+  }),
+  createSampleProduct({
+    id: 3,
+    platform: 'aliexpress',
+    title: 'Wireless Earbuds Budget',
+    price: 8.99,
+    score: 78,
+    competition: 'high',
+    margin: 85,
+    salesVelocity: 2000,
+  }),
+  createSampleProduct({
+    id: 4,
+    platform: 'aliexpress',
+    title: 'USB-C Hub Adapter',
+    price: 12.99,
+    score: 88,
+    competition: 'low',
+    margin: 70,
+    salesVelocity: 1200,
+  }),
+];
 
 describe('Integration — Search → Grid Rendering', () => {
   let HuntDrop;
@@ -22,6 +66,7 @@ describe('Integration — Search → Grid Rendering', () => {
       'plugins/search-engine.js',
       'plugins/product-grid.js',
     ]));
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should render product cards after search', async () => {
@@ -65,6 +110,7 @@ describe('Integration — Filter Chain: platform + sort + price', () => {
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/search-engine.js']));
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should apply platform filter + sort together', async () => {
@@ -122,6 +168,7 @@ describe('Integration — Cross-Plugin EventBus Communication', () => {
       'plugins/profit-calculator.js',
     ]));
     HuntDrop.renderRelatedTools = vi.fn(() => '<div>Related Tools</div>');
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should propagate search:query through EventBus to multiple listeners', async () => {
@@ -151,8 +198,6 @@ describe('Integration — Cross-Plugin EventBus Communication', () => {
 
     HuntDrop.EventBus.emit('ai-analyst:run', { query: 'earbuds' });
     await flushPromises(100);
-    // The ai-analyst:run event should have been received
-    // (it triggers internal analysis, not necessarily a search:results event)
     expect(true).toBe(true);
   });
 });
@@ -205,7 +250,6 @@ describe('Integration — Config Persistence', () => {
     await HuntDrop.PluginRegistry.init('ai-key-manager');
     HuntDrop.APIKeyManager.setProvider('openai');
     expect(HuntDrop.Config.get('aiKeys.provider')).toBe('openai');
-    // Simulate session by reading back
     expect(HuntDrop.Config.get('aiKeys.provider')).toBe('openai');
   });
 
@@ -295,15 +339,14 @@ describe('Integration — Full Plugin Lifecycle (init → mount → use → unmo
 
   it('should handle double-init gracefully', async () => {
     await HuntDrop.PluginRegistry.init('profit-calculator');
-    await HuntDrop.PluginRegistry.init('profit-calculator'); // should not throw
+    await HuntDrop.PluginRegistry.init('profit-calculator');
     expect(HuntDrop.PluginRegistry.get('profit-calculator')._initialized).toBe(true);
   });
 
   it('should handle unmount when not mounted gracefully', async () => {
     await HuntDrop.PluginRegistry.init('profit-calculator');
-    // unmount without mount
     await HuntDrop.PluginRegistry.unmount('profit-calculator');
-    expect(true).toBe(true); // should not throw
+    expect(true).toBe(true);
   });
 });
 
@@ -313,6 +356,7 @@ describe('Integration — Error Recovery', () => {
   beforeEach(() => {
     setupDashboardDOM();
     ({ HuntDrop } = loadCoreWithPlugins(['plugins/data-adapters.js', 'plugins/search-engine.js']));
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should recover from EventBus listener errors', async () => {
@@ -337,7 +381,6 @@ describe('Integration — Error Recovery', () => {
 
   it('should handle search with no adapters gracefully', async () => {
     const core = loadCore();
-    // Don't load data-adapters, so no adapters registered
     loadScript('plugins/search-engine.js');
     await core.PluginRegistry.init('search-engine');
     await core.PluginRegistry.mount('search-engine');
@@ -364,6 +407,7 @@ describe('Integration — Product Grid Component', () => {
       'plugins/search-engine.js',
       'plugins/product-grid.js',
     ]));
+    mockPlatformConnectors(SAMPLE_PRODUCTS);
   });
 
   it('should render cards with product data', async () => {
@@ -377,7 +421,6 @@ describe('Integration — Product Grid Component', () => {
 
     const grid = document.getElementById('productsGrid');
     expect(grid.children.length).toBeGreaterThan(0);
-    // Check that cards have content
     const firstCard = grid.children[0];
     expect(firstCard.innerHTML.length).toBeGreaterThan(10);
   });

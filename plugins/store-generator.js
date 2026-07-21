@@ -101,50 +101,8 @@
     return {
       headline: `Introducing the ${product.title.split('—')[0].trim()}`,
       subheadline: `The #1 rated ${product.keywords[0] || 'product'} trusted by ${product.orders}+ customers`,
-      features: [
-        {
-          icon: '✨',
-          title: 'Premium Quality',
-          desc: 'Crafted with the finest materials for lasting durability and performance',
-        },
-        {
-          icon: '🚚',
-          title: 'Free Shipping',
-          desc: 'Free worldwide shipping on all orders. Delivered in 7-15 business days',
-        },
-        { icon: '💯', title: '100% Satisfaction', desc: '30-day money-back guarantee. No questions asked.' },
-        { icon: '🔒', title: 'Secure Checkout', desc: 'SSL encrypted payment. Your data is always protected.' },
-      ],
-      reviews: [
-        {
-          name: 'Sarah M.',
-          rating: 5,
-          text: 'Absolutely love this! The quality exceeded my expectations. Will definitely order again.',
-          verified: true,
-          date: '2 days ago',
-        },
-        {
-          name: 'James K.',
-          rating: 5,
-          text: 'Fast shipping and amazing product. My friends keep asking where I got it!',
-          verified: true,
-          date: '1 week ago',
-        },
-        {
-          name: 'Emily R.',
-          rating: 5,
-          text: "Best purchase I've made this year. Works exactly as described.",
-          verified: true,
-          date: '2 weeks ago',
-        },
-        {
-          name: 'Michael T.',
-          rating: 4,
-          text: 'Great product for the price. Very happy with my purchase.',
-          verified: true,
-          date: '3 weeks ago',
-        },
-      ],
+      features: [],
+      reviews: [],
       sellingPoints: product.keywords.slice(0, 4),
     };
   }

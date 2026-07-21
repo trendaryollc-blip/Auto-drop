@@ -316,37 +316,6 @@
     },
   };
 
-  // ===== Mock Data Fallback =====
-  let _mockProducts = null;
-  let _mockLoading = null;
-
-  function loadMockProducts() {
-    if (_mockProducts) return Promise.resolve(_mockProducts);
-    if (_mockLoading) return _mockLoading;
-    _mockLoading = new Promise(function (resolve) {
-      const inline = window.HuntDrop.ALL_PRODUCTS || [];
-      if (inline.length > 0) {
-        _mockProducts = inline;
-        resolve(inline);
-        return;
-      }
-      fetch('mock-products.json')
-        .then(function (r) {
-          return r.json();
-        })
-        .then(function (data) {
-          _mockProducts = Array.isArray(data) ? data : [];
-          window.HuntDrop.ALL_PRODUCTS = _mockProducts;
-          resolve(_mockProducts);
-        })
-        .catch(function () {
-          _mockProducts = [];
-          resolve([]);
-        });
-    });
-    return _mockLoading;
-  }
-
   // ===== Encryption (reuses AIKeyManager's AES-GCM if available) =====
   const _enc = new TextEncoder();
   const _dec = new TextDecoder();
@@ -1513,7 +1482,6 @@
     isConnected: isConnected,
     getKeyStatus: getKeyStatus,
     getAllStatus: getAllStatus,
-    loadMockProducts: loadMockProducts,
   };
 
   EventBus.emit('platform-connectors:ready', { platforms: Object.keys(PLATFORM_CONFIGS) });

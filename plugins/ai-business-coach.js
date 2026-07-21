@@ -217,43 +217,7 @@
     { text: 'GENERATING INSIGHTS', icon: '💡' },
   ];
 
-  const INTEL_FEED = [
-    {
-      badge: 'trend',
-      title: 'TikTok Viral: LED Sunset Lamps',
-      desc: 'Searches up 340% this week. Low competition, high margin potential.',
-      time: '2m',
-      action: 'Research this',
-    },
-    {
-      badge: 'opportunity',
-      title: 'Market Gap: Eco-Friendly Pet Products',
-      desc: 'Only 12 suppliers on AliExpress. Demand growing 25% MoM.',
-      time: '15m',
-      action: 'Explore niche',
-    },
-    {
-      badge: 'alert',
-      title: 'Price Drop: Bluetooth Speakers on DHgate',
-      desc: 'Average cost down 18%. Good time to stock inventory.',
-      time: '32m',
-      action: 'Check prices',
-    },
-    {
-      badge: 'info',
-      title: 'New Supplier: Verified 5-star in Shenzhen',
-      desc: 'Electronics specialist, 200K+ orders, <1h response time.',
-      time: '1h',
-      action: 'View supplier',
-    },
-    {
-      badge: 'trend',
-      title: 'Google Trends: "posture corrector" spiking',
-      desc: 'Search volume doubled in 7 days. WFH season peak.',
-      time: '2h',
-      action: 'Analyze trend',
-    },
-  ];
+  const INTEL_FEED = [];
 
   function getTrendingProducts() {
     const products = window.HuntDrop.ALL_PRODUCTS || [];

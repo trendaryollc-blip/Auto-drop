@@ -84,31 +84,21 @@
 
     function getDefaultData() {
       return {
-        cash: 2500,
-        dailyAdSpend: 85,
-        avgOrderValue: 24.99,
-        avgProductCost: 8.5,
-        avgShippingCost: 3.0,
-        ordersPerDay: 12,
+        cash: 0,
+        dailyAdSpend: 0,
+        avgOrderValue: 0,
+        avgProductCost: 0,
+        avgShippingCost: 0,
+        ordersPerDay: 0,
         platform: 'shopify',
         supplierPaymentTerms: 'prepaid',
-        monthlyFixedCosts: 150,
+        monthlyFixedCosts: 0,
         platformHoldAmount: 0,
-        reinvestPct: 60,
-        dailyRevenue: 299.88,
-        dailyCosts: { ads: 85, suppliers: 102, shipping: 36, platform_fees: 12, tools: 5, other: 0 },
-        payouts: [
-          { platform: 'shopify', date: getFutureDate(2), amount: 1850, status: 'pending' },
-          { platform: 'shopify', date: getFutureDate(3), amount: 2100, status: 'pending' },
-          { platform: 'tiktok', date: getFutureDate(5), amount: 980, status: 'pending' },
-          { platform: 'amazon', date: getFutureDate(10), amount: 3200, status: 'pending' },
-          { platform: 'etsy', date: getFutureDate(3), amount: 420, status: 'pending' },
-        ],
-        supplierPayments: [
-          { supplier: 'AliExpress A', date: getFutureDate(1), amount: 350, status: 'due' },
-          { supplier: 'CJ Dropshipping', date: getFutureDate(3), amount: 280, status: 'upcoming' },
-          { supplier: 'AliExpress B', date: getFutureDate(7), amount: 190, status: 'upcoming' },
-        ],
+        reinvestPct: 0,
+        dailyRevenue: 0,
+        dailyCosts: { ads: 0, suppliers: 0, shipping: 0, platform_fees: 0, tools: 0, other: 0 },
+        payouts: [],
+        supplierPayments: [],
       };
     }
 

@@ -46,11 +46,7 @@
       .join('');
     const supplierName = esc(p.suppliers && p.suppliers[0] ? p.suppliers[0].name : 'N/A');
     const supplierVerified = p.suppliers && p.suppliers[0] && p.suppliers[0].verified;
-    const img = esc(
-      UI.normalizeImageUrl
-        ? UI.normalizeImageUrl(p.image, 'https://via.placeholder.com/300x200?text=Product')
-        : p.image || 'https://via.placeholder.com/300x200?text=Product'
-    );
+    const img = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(p.image, '') : p.image || '');
     const title = esc(p.title || 'Unknown Product');
     const margin = p.margin || 0;
     const marginClass = margin >= 50 ? 'margin-high' : margin >= 30 ? 'margin-med' : 'margin-low';

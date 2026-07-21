@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const outDir = 'dist';
-const files = ['index.html', 'core.js', 'app.js', 'csp-bridge.js', 'runtime-module.js', 'mock-products.js'];
+const files = ['index.html', 'core.js', 'app.js', 'csp-bridge.js', 'runtime-module.js'];
 const dirs = ['css', 'plugins', 'data'];
 
 fs.mkdirSync(outDir, { recursive: true });

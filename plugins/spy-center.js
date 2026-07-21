@@ -9,288 +9,7 @@
   let _liveInterval = null;
   let _revenueChart = null;
 
-  const STORES = [
-    {
-      id: 's1',
-      name: 'PetLover',
-      url: 'petlover.myshopify.com',
-      avatar: 'P',
-      color: '#FF6B6B',
-      category: 'Pet Supplies',
-      revenue: 42800,
-      traffic: 89000,
-      convRate: 3.2,
-      products: 186,
-      ads: 24,
-      age: '2 years',
-      platform: 'Shopify',
-      theme: 'Debut',
-      pageSpeed: 88,
-      seoScore: 82,
-      bounceRate: 28,
-      avgSession: '4:32',
-      aov: 38.5,
-      refundRate: 2.1,
-      lastActive: '2 min ago',
-      socialFB: 24500,
-      socialIG: 67800,
-      socialTK: 134000,
-      trafficSources: { direct: 22, organic: 35, paid: 28, social: 10, referral: 5 },
-      apps: ['Klaviyo', 'Judge.me', 'Upsell Wizard', 'Loox'],
-    },
-    {
-      id: 's2',
-      name: 'FitGear Pro',
-      url: 'fitgearpro.myshopify.com',
-      avatar: 'F',
-      color: '#4ECDC4',
-      category: 'Fitness',
-      revenue: 38200,
-      traffic: 72000,
-      convRate: 2.8,
-      products: 124,
-      ads: 18,
-      age: '1 year',
-      platform: 'Shopify',
-      theme: 'Dawn',
-      pageSpeed: 92,
-      seoScore: 78,
-      bounceRate: 32,
-      avgSession: '3:48',
-      aov: 52.9,
-      refundRate: 3.5,
-      lastActive: '5 min ago',
-      socialFB: 18200,
-      socialIG: 45600,
-      socialTK: 98000,
-      trafficSources: { direct: 18, organic: 30, paid: 35, social: 12, referral: 5 },
-      apps: ['Omnisend', 'Loox', 'Vitals', 'PageFly'],
-    },
-    {
-      id: 's3',
-      name: 'BeautyGlow',
-      url: 'beautyglow.com',
-      avatar: 'B',
-      color: '#96CEB4',
-      category: 'Beauty',
-      revenue: 67500,
-      traffic: 145000,
-      convRate: 3.8,
-      products: 210,
-      ads: 32,
-      age: '3 years',
-      platform: 'Shopify',
-      theme: 'Impact',
-      pageSpeed: 78,
-      seoScore: 88,
-      bounceRate: 25,
-      avgSession: '5:12',
-      aov: 44.2,
-      refundRate: 1.8,
-      lastActive: 'Just now',
-      socialFB: 56000,
-      socialIG: 234000,
-      socialTK: 312000,
-      trafficSources: { direct: 25, organic: 32, paid: 25, social: 14, referral: 4 },
-      apps: ['Klaviyo', 'Yotpo', 'ReConvert', 'Searchspring'],
-    },
-    {
-      id: 's4',
-      name: 'TechNova',
-      url: 'technova.io',
-      avatar: 'T',
-      color: '#45B7D1',
-      category: 'Electronics',
-      revenue: 95000,
-      traffic: 210000,
-      convRate: 2.5,
-      products: 340,
-      ads: 45,
-      age: '4 years',
-      platform: 'Shopify',
-      theme: 'Turbo',
-      pageSpeed: 70,
-      seoScore: 72,
-      bounceRate: 38,
-      avgSession: '3:20',
-      aov: 89.99,
-      refundRate: 4.2,
-      lastActive: '1 min ago',
-      socialFB: 34000,
-      socialIG: 89000,
-      socialTK: 178000,
-      trafficSources: { direct: 20, organic: 28, paid: 32, social: 15, referral: 5 },
-      apps: ['Bold Upsell', 'Klaviyo', 'Stamped.io', 'Privy'],
-    },
-    {
-      id: 's5',
-      name: 'Kawaii Decor',
-      url: 'kawaiidecor.myshopify.com',
-      avatar: 'K',
-      color: '#FFD93D',
-      category: 'Home & Garden',
-      revenue: 28900,
-      traffic: 56000,
-      convRate: 3.5,
-      products: 95,
-      ads: 12,
-      age: '8 months',
-      platform: 'Shopify',
-      theme: 'Refresh',
-      pageSpeed: 95,
-      seoScore: 85,
-      bounceRate: 22,
-      avgSession: '5:45',
-      aov: 32.1,
-      refundRate: 1.2,
-      lastActive: '8 min ago',
-      socialFB: 12000,
-      socialIG: 89000,
-      socialTK: 245000,
-      trafficSources: { direct: 15, organic: 38, paid: 22, social: 20, referral: 5 },
-      apps: ['Judge.me', 'Klaviyo', 'In Cart Upsell', 'Product Options'],
-    },
-    {
-      id: 's6',
-      name: 'UrbanStyle',
-      url: 'urbanstyle.co',
-      avatar: 'U',
-      color: '#A855F7',
-      category: 'Fashion',
-      revenue: 54300,
-      traffic: 118000,
-      convRate: 2.9,
-      products: 280,
-      ads: 28,
-      age: '2 years',
-      platform: 'Shopify',
-      theme: 'Prestige',
-      pageSpeed: 75,
-      seoScore: 80,
-      bounceRate: 35,
-      avgSession: '3:55',
-      aov: 67.5,
-      refundRate: 5.8,
-      lastActive: '3 min ago',
-      socialFB: 42000,
-      socialIG: 178000,
-      socialTK: 290000,
-      trafficSources: { direct: 18, organic: 25, paid: 30, social: 22, referral: 5 },
-      apps: ['Loox', 'Klaviyo', 'Size Charts', 'Route'],
-    },
-    {
-      id: 's7',
-      name: 'BabyBliss',
-      url: 'babybliss.myshopify.com',
-      avatar: 'C',
-      color: '#F472B6',
-      category: 'Baby & Kids',
-      revenue: 31200,
-      traffic: 64000,
-      convRate: 3.6,
-      products: 130,
-      ads: 15,
-      age: '1 year',
-      platform: 'Shopify',
-      theme: 'Sense',
-      pageSpeed: 90,
-      seoScore: 76,
-      bounceRate: 30,
-      avgSession: '4:10',
-      aov: 41.8,
-      refundRate: 2.4,
-      lastActive: '12 min ago',
-      socialFB: 28000,
-      socialIG: 112000,
-      socialTK: 87000,
-      trafficSources: { direct: 20, organic: 33, paid: 27, social: 15, referral: 5 },
-      apps: ['Judge.me', 'Klaviyo', 'Gift Box', 'Upsell Master'],
-    },
-    {
-      id: 's8',
-      name: 'EcoLiving',
-      url: 'ecoliving.shop',
-      avatar: 'E',
-      color: '#22C55E',
-      category: 'Sustainable',
-      revenue: 19800,
-      traffic: 42000,
-      convRate: 3.1,
-      products: 78,
-      ads: 9,
-      age: '6 months',
-      platform: 'Shopify',
-      theme: 'Craft',
-      pageSpeed: 96,
-      seoScore: 90,
-      bounceRate: 20,
-      avgSession: '6:05',
-      aov: 29.9,
-      refundRate: 0.8,
-      lastActive: '20 min ago',
-      socialFB: 8500,
-      socialIG: 34000,
-      socialTK: 67000,
-      trafficSources: { direct: 12, organic: 42, paid: 18, social: 23, referral: 5 },
-      apps: ['Shopify Email', 'Judge.me', 'EcoCart', 'Privy'],
-    },
-    {
-      id: 's9',
-      name: 'PostureTech',
-      url: 'posturetech.com',
-      avatar: 'P',
-      color: '#EF4444',
-      category: 'Health',
-      revenue: 52000,
-      traffic: 98000,
-      convRate: 3.0,
-      products: 65,
-      ads: 22,
-      age: '18 months',
-      platform: 'Shopify',
-      theme: 'Crave',
-      pageSpeed: 82,
-      seoScore: 79,
-      bounceRate: 31,
-      avgSession: '3:40',
-      aov: 74.9,
-      refundRate: 3.8,
-      lastActive: '4 min ago',
-      socialFB: 15000,
-      socialIG: 56000,
-      socialTK: 210000,
-      trafficSources: { direct: 22, organic: 30, paid: 33, social: 10, referral: 5 },
-      apps: ['Klaviyo', 'Loox', 'Bold Subscriptions', 'PageFly'],
-    },
-    {
-      id: 's10',
-      name: 'StarLight',
-      url: 'starlight.store',
-      avatar: 'S',
-      color: '#F59E0B',
-      category: 'Jewelry',
-      revenue: 73000,
-      traffic: 155000,
-      convRate: 2.7,
-      products: 190,
-      ads: 35,
-      age: '3 years',
-      platform: 'Shopify',
-      theme: 'Dawn',
-      pageSpeed: 85,
-      seoScore: 86,
-      bounceRate: 26,
-      avgSession: '4:50',
-      aov: 96.4,
-      refundRate: 2.5,
-      lastActive: 'Just now',
-      socialFB: 38000,
-      socialIG: 145000,
-      socialTK: 267000,
-      trafficSources: { direct: 24, organic: 34, paid: 24, social: 13, referral: 5 },
-      apps: ['Klaviyo', 'Yotpo', 'Bold Upsell', 'Loox'],
-    },
-  ];
+  const STORES = [];
 
   const STORE_ADS = [
     {
@@ -818,6 +537,7 @@
   }
 
   function renderLeaderboard() {
+    if (!STORES.length) return '<div class="spy-empty-state">No store data available. Add stores to track.</div>';
     const ranked = STORES.map(function (s) {
       return { store: s, score: getStoreScore(s), health: getHealthGrade(getStoreScore(s)) };
     }).sort(function (a, b) {
@@ -1049,6 +769,7 @@
   }
 
   function renderTechStack() {
+    if (!STORES.length) return '<div class="spy-empty-state">No store data available.</div>';
     let h = '<div class="spy-tech-section">';
     STORES.forEach(function (s) {
       const psColor =
@@ -1116,6 +837,7 @@
   }
 
   function renderTraffic() {
+    if (!STORES.length) return '<div class="spy-empty-state">No store data available.</div>';
     let h = '<div class="spy-traffic-section">';
     h += '<h3 class="spy-section-title">&#127760; Traffic Sources &amp; Social Presence</h3>';
     h += '<div class="spy-traffic-grid">';
@@ -1197,6 +919,7 @@
   }
 
   function renderRevenue() {
+    if (!STORES.length) return '<div class="spy-empty-state">No store data available.</div>';
     let h =
       '<div class="spy-revenue-section">' +
       '<h3 class="spy-section-title">&#128200; Revenue Estimation</h3>' +
@@ -1233,6 +956,7 @@
   function drawRevenueChart() {
     const el = _section.querySelector('#spyRevenueChart');
     if (!el || typeof Chart === 'undefined' || Chart === window.Chart) return;
+    if (!STORES.length) return;
     if (_revenueChart)
       try {
         _revenueChart.destroy();
@@ -1561,11 +1285,13 @@
       const totalProducts = STORES.reduce(function (a, s) {
         return a + s.products;
       }, 0);
-      const avgConv = (
-        STORES.reduce(function (a, s) {
-          return a + s.convRate;
-        }, 0) / STORES.length
-      ).toFixed(1);
+      const avgConv = STORES.length
+        ? (
+            STORES.reduce(function (a, s) {
+              return a + s.convRate;
+            }, 0) / STORES.length
+          ).toFixed(1)
+        : '0.0';
 
       section.innerHTML =
         '' +

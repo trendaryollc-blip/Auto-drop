@@ -395,10 +395,10 @@
 
       var summaryText =
         connectedCount === 0
-          ? 'No platform keys configured — using mock data for all platforms'
+          ? 'No platform keys configured — connect platforms to see live data'
           : connectedCount === totalCount
             ? 'All ' + totalCount + ' platforms connected — live data for every search'
-            : connectedCount + ' of ' + totalCount + ' platforms connected — mix of live and mock data';
+            : connectedCount + ' of ' + totalCount + ' platforms connected';
 
       return (
         '<div class="ais-grid">' +
@@ -410,7 +410,7 @@
         '</div></div>' +
         '</div>' +
         '<div class="ais-card-body">' +
-        '<div class="ais-feature-notice">🔌 Add API keys for each platform to get real product data. Without keys, the app uses sample data. Add keys one at a time as you get them.</div>' +
+        '<div class="ais-feature-notice">🔌 Add API keys for each platform to get real product data. Without keys, no product data will be shown. Add keys one at a time as you get them.</div>' +
         '<div class="ais-platform-search-wrap">' +
         '<input type="text" class="ais-input ais-platform-search" id="aisPlatformSearch" placeholder="🔍 Search platforms...">' +
         '</div>' +

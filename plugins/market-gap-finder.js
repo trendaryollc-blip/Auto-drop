@@ -750,7 +750,10 @@
     setTimeout(() => {
       const c = el.querySelector('#mgMainChart');
       if (!c) return;
-      if (_charts.main) try { _charts.main.destroy(); } catch (e) {}
+      if (_charts.main)
+        try {
+          _charts.main.destroy();
+        } catch (e) {}
       _charts.main = new Chart(c, {
         type: 'bar',
         data: {

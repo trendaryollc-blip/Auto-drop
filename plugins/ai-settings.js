@@ -319,11 +319,18 @@
         var cat = categories[catKey];
         if (cat.platforms.length === 0) return;
 
-        platformCards += '<div class="ais-platform-category">' +
+        platformCards +=
+          '<div class="ais-platform-category">' +
           '<div class="ais-platform-cat-header">' +
-          '<span class="ais-platform-cat-icon">' + cat.icon + '</span>' +
-          '<span class="ais-platform-cat-name">' + cat.name + '</span>' +
-          '<span class="ais-platform-cat-count">' + cat.platforms.length + ' platforms</span>' +
+          '<span class="ais-platform-cat-icon">' +
+          cat.icon +
+          '</span>' +
+          '<span class="ais-platform-cat-name">' +
+          cat.name +
+          '</span>' +
+          '<span class="ais-platform-cat-count">' +
+          cat.platforms.length +
+          ' platforms</span>' +
           '</div>';
 
         cat.platforms.forEach(function (pid) {
@@ -435,7 +442,9 @@
           });
           // Show/hide category headers based on visible cards
           section.querySelectorAll('.ais-platform-category').forEach(function (cat) {
-            var visibleCards = cat.querySelectorAll('.ais-platform-card[style*="flex"], .ais-platform-card:not([style*="none"])');
+            var visibleCards = cat.querySelectorAll(
+              '.ais-platform-card[style*="flex"], .ais-platform-card:not([style*="none"])'
+            );
             var hasVisible = false;
             cat.querySelectorAll('.ais-platform-card').forEach(function (c) {
               if (c.style.display !== 'none') hasVisible = true;

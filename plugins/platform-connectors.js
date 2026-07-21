@@ -832,9 +832,12 @@
     if (!key) return null;
     try {
       const params = new URLSearchParams({ query: query, numItems: '20' });
-      const resp = await fetch('https://developer.api.walmart.com/api-proxy/service/affil/v2/search?' + params.toString(), {
-        headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
-      });
+      const resp = await fetch(
+        'https://developer.api.walmart.com/api-proxy/service/affil/v2/search?' + params.toString(),
+        {
+          headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+        }
+      );
       if (!resp.ok) throw new Error('Walmart API error: ' + resp.status);
       const data = await resp.json();
       if (data.items) {
@@ -867,7 +870,16 @@
       shipFrom: 'Walmart',
       category: p.category || '',
       keywords: [],
-      suppliers: [{ name: 'Walmart', location: 'US', rating: parseFloat(p.customerRating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        {
+          name: 'Walmart',
+          location: 'US',
+          rating: parseFloat(p.customerRating || 4.5),
+          orders: 0,
+          responseTime: '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { walmart: parseFloat(p.salePrice || p.regularPrice || 0) },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -885,7 +897,9 @@
     if (!key) return null;
     try {
       const params = new URLSearchParams({ query: query, format: 'json', show: 'all', pageSize: '20' });
-      const resp = await fetch('https://api.bestbuy.com/v1/products(search)?' + params.toString() + '&apiKey=' + encodeURIComponent(key));
+      const resp = await fetch(
+        'https://api.bestbuy.com/v1/products(search)?' + params.toString() + '&apiKey=' + encodeURIComponent(key)
+      );
       if (!resp.ok) throw new Error('Best Buy API error: ' + resp.status);
       const data = await resp.json();
       if (data.products) {
@@ -918,7 +932,16 @@
       shipFrom: 'Best Buy',
       category: p.categoryPath || '',
       keywords: [],
-      suppliers: [{ name: 'Best Buy', location: 'US', rating: parseFloat(p.customerReviewAverage || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        {
+          name: 'Best Buy',
+          location: 'US',
+          rating: parseFloat(p.customerReviewAverage || 4.5),
+          orders: 0,
+          responseTime: '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { bestbuy: parseFloat(p.regularPrice || p.salePrice || 0) },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -935,11 +958,14 @@
     const key = await getPlatformKey('alibaba');
     if (!key) return null;
     try {
-      const resp = await fetch('https://gw.open.alibaba.com/openapi/param2/1/com.alibaba.product/alibaba.product.search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
-        body: JSON.stringify({ keyword: query, pageNo: 1, pageSize: 20 }),
-      });
+      const resp = await fetch(
+        'https://gw.open.alibaba.com/openapi/param2/1/com.alibaba.product/alibaba.product.search',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
+          body: JSON.stringify({ keyword: query, pageNo: 1, pageSize: 20 }),
+        }
+      );
       if (!resp.ok) throw new Error('Alibaba API error: ' + resp.status);
       const data = await resp.json();
       if (data.result && data.result.productList) {
@@ -973,7 +999,16 @@
       shipFrom: p.country || 'China',
       category: p.categoryName || '',
       keywords: [],
-      suppliers: [{ name: p.companyName || 'Alibaba Supplier', location: p.country || 'China', rating: parseFloat(p.rating || 4.5), orders: parseInt(p.transactionsCount || 0), responseTime: p.responseTime || '24h', verified: true }],
+      suppliers: [
+        {
+          name: p.companyName || 'Alibaba Supplier',
+          location: p.country || 'China',
+          rating: parseFloat(p.rating || 4.5),
+          orders: parseInt(p.transactionsCount || 0),
+          responseTime: p.responseTime || '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { alibaba: price },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -996,11 +1031,15 @@
         hits: '20',
         format: 'json',
       });
-      const resp = await fetch('https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?' + params.toString());
+      const resp = await fetch(
+        'https://app.rakuten.co.jp/services/api/IchibaItem/Search/20220601?' + params.toString()
+      );
       if (!resp.ok) throw new Error('Rakuten API error: ' + resp.status);
       const data = await resp.json();
       if (data.Items) {
-        return data.Items.map(function (item) { return normalizeRakutenProduct(item.Item); });
+        return data.Items.map(function (item) {
+          return normalizeRakutenProduct(item.Item);
+        });
       }
       return null;
     } catch (e) {
@@ -1030,7 +1069,16 @@
       shipFrom: 'Japan',
       category: p.genreName || '',
       keywords: [],
-      suppliers: [{ name: p.shopName || 'Rakuten Shop', location: 'Japan', rating: parseFloat(p.reviewAverage || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        {
+          name: p.shopName || 'Rakuten Shop',
+          location: 'Japan',
+          rating: parseFloat(p.reviewAverage || 4.5),
+          orders: 0,
+          responseTime: '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { rakuten: price },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -1047,9 +1095,14 @@
     const key = await getPlatformKey('newegg');
     if (!key) return null;
     try {
-      const resp = await fetch('https://api.newegg.com/marketplace/v1.1.0/item?Keyword=' + encodeURIComponent(query) + '&PageNumber=1&PageSize=20', {
-        headers: { Authorization: 'NEKey ' + key, 'Content-Type': 'application/json' },
-      });
+      const resp = await fetch(
+        'https://api.newegg.com/marketplace/v1.1.0/item?Keyword=' +
+          encodeURIComponent(query) +
+          '&PageNumber=1&PageSize=20',
+        {
+          headers: { Authorization: 'NEKey ' + key, 'Content-Type': 'application/json' },
+        }
+      );
       if (!resp.ok) throw new Error('Newegg API error: ' + resp.status);
       const data = await resp.json();
       if (data.IsSuccess && data.Result) {
@@ -1083,7 +1136,16 @@
       shipFrom: 'Newegg',
       category: p.Category || '',
       keywords: [],
-      suppliers: [{ name: 'Newegg Marketplace', location: 'US', rating: parseFloat(p.avgRating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        {
+          name: 'Newegg Marketplace',
+          location: 'US',
+          rating: parseFloat(p.avgRating || 4.5),
+          orders: 0,
+          responseTime: '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { newegg: price },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -1135,7 +1197,16 @@
       shipFrom: p.source || 'Multiple',
       category: '',
       keywords: [],
-      suppliers: [{ name: p.source || 'Google Shopping', location: 'Global', rating: parseFloat(p.rating || 4.5), orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        {
+          name: p.source || 'Google Shopping',
+          location: 'Global',
+          rating: parseFloat(p.rating || 4.5),
+          orders: 0,
+          responseTime: '24h',
+          verified: true,
+        },
+      ],
       platformPrices: { google_shopping: price },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -1152,13 +1223,18 @@
     const key = await getPlatformKey('reddit');
     if (!key) return null;
     try {
-      const resp = await fetch('https://oauth.reddit.com/search.json?q=' + encodeURIComponent(query) + '&limit=20&sort=relevance', {
-        headers: { Authorization: 'Bearer ' + key, 'User-Agent': 'HuntDropAI/1.0' },
-      });
+      const resp = await fetch(
+        'https://oauth.reddit.com/search.json?q=' + encodeURIComponent(query) + '&limit=20&sort=relevance',
+        {
+          headers: { Authorization: 'Bearer ' + key, 'User-Agent': 'HuntDropAI/1.0' },
+        }
+      );
       if (!resp.ok) throw new Error('Reddit API error: ' + resp.status);
       const data = await resp.json();
       if (data.data && data.data.children) {
-        return data.data.children.map(function (c) { return normalizeRedditPost(c.data); });
+        return data.data.children.map(function (c) {
+          return normalizeRedditPost(c.data);
+        });
       }
       return null;
     } catch (e) {
@@ -1187,7 +1263,9 @@
       shipFrom: 'Discussion',
       category: 'r/' + (p.subreddit || ''),
       keywords: [],
-      suppliers: [{ name: 'Reddit Discussion', location: 'Global', rating: 4.5, orders: 0, responseTime: '24h', verified: false }],
+      suppliers: [
+        { name: 'Reddit Discussion', location: 'Global', rating: 4.5, orders: 0, responseTime: '24h', verified: false },
+      ],
       platformPrices: { reddit: 0 },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
@@ -1234,18 +1312,32 @@
       badges: [],
       salesVelocity: 0,
       competition: 'medium',
-      demand: parseInt(p.pin_measurements && p.pin_measurements.closeup && p.pin_measurements.closeup.save || 0),
+      demand: parseInt((p.pin_measurements && p.pin_measurements.closeup && p.pin_measurements.closeup.save) || 0),
       rating: 0,
       reviews: 0,
       orders: 0,
       shipFrom: 'Pinterest',
       category: p.board && p.board.name ? p.board.name : '',
       keywords: [],
-      suppliers: [{ name: 'Pinterest Discovery', location: 'Global', rating: 4.5, orders: 0, responseTime: '24h', verified: false }],
+      suppliers: [
+        {
+          name: 'Pinterest Discovery',
+          location: 'Global',
+          rating: 4.5,
+          orders: 0,
+          responseTime: '24h',
+          verified: false,
+        },
+      ],
       platformPrices: { pinterest: 0 },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),
-      audience: { age: '25-45', gender: 'Female', interests: ['home', 'fashion', 'DIY'], countries: ['US', 'UK', 'CA'] },
+      audience: {
+        age: '25-45',
+        gender: 'Female',
+        interests: ['home', 'fashion', 'DIY'],
+        countries: ['US', 'UK', 'CA'],
+      },
       riskScore: 0,
       marketSaturation: 0,
       adSpendAvg: 0,
@@ -1258,9 +1350,14 @@
     const key = await getPlatformKey('amazon_sp');
     if (!key) return null;
     try {
-      const resp = await fetch('https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items?keywords=' + encodeURIComponent(query) + '&searchType=KEYWORDS&pageSize=20', {
-        headers: { Authorization: 'Bearer ' + key, 'x-amz-access-token': key },
-      });
+      const resp = await fetch(
+        'https://sellingpartnerapi-na.amazon.com/catalog/2022-04-01/items?keywords=' +
+          encodeURIComponent(query) +
+          '&searchType=KEYWORDS&pageSize=20',
+        {
+          headers: { Authorization: 'Bearer ' + key, 'x-amz-access-token': key },
+        }
+      );
       if (!resp.ok) throw new Error('Amazon SP-API error: ' + resp.status);
       const data = await resp.json();
       if (data.items) {
@@ -1295,7 +1392,9 @@
       shipFrom: 'Amazon',
       category: summary.productType || '',
       keywords: [],
-      suppliers: [{ name: 'Amazon SP-API', location: 'US', rating: 4.5, orders: 0, responseTime: '24h', verified: true }],
+      suppliers: [
+        { name: 'Amazon SP-API', location: 'US', rating: 4.5, orders: 0, responseTime: '24h', verified: true },
+      ],
       platformPrices: { amazon_sp: 0 },
       trendData: generateTrendData(),
       seasonality: generateSeasonality(),

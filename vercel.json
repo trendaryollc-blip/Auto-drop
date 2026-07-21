@@ -3,8 +3,9 @@
     "frontend": {
       "root": ".",
       "framework": "vite",
-      "buildCommand": "echo 'Static site'",
-      "installCommand": "echo 'No install needed'"
+      "buildCommand": "node build-static.cjs",
+      "installCommand": "echo 'No install needed'",
+      "outputDirectory": "dist"
     },
     "backend": {
       "root": "backend",

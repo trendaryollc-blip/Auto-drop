@@ -171,6 +171,89 @@
       return await this.search(niche + ' dropshipping benchmarks CTR CPA conversion rate 2026', 5);
     },
 
+    async searchProductImages(productName, numResults) {
+      if (!this.hasKey()) return this.fallbackImageSearch(productName);
+      const provider = this.getProvider();
+      const key = this.getKey();
+      try {
+        switch (provider) {
+          case 'tavily':
+            return await this.searchImagesTavily(productName, key, numResults);
+          case 'serper':
+            return await this.searchImagesSerper(productName, key, numResults);
+          case 'brave':
+            return await this.searchImagesBrave(productName, key, numResults);
+          default:
+            return this.fallbackImageSearch(productName);
+        }
+      } catch (e) {
+        console.warn('[WebSearch] Image search error:', e);
+        return this.fallbackImageSearch(productName);
+      }
+    },
+
+    async searchImagesTavily(query, key, numResults) {
+      var resp = await fetch(SEARCH_PROVIDERS.tavily.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          api_key: key,
+          query: query + ' product image photo',
+          search_depth: 'basic',
+          max_results: numResults || 3,
+          include_images: true,
+        }),
+      });
+      var data = await resp.json();
+      var images = (data.images || []).map(function (url) {
+        return { url: url, source: 'tavily' };
+      });
+      (data.results || []).forEach(function (r) {
+        if (r.image) images.push({ url: r.image, source: 'tavily' });
+      });
+      return { images: images.slice(0, numResults || 3), provider: 'tavily' };
+    },
+
+    async searchImagesSerper(query, key, numResults) {
+      var resp = await fetch('https://api.serper.dev/images', {
+        method: 'POST',
+        headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: query + ' product buy', num: numResults || 5 }),
+      });
+      var data = await resp.json();
+      var images = (data.images || []).map(function (r) {
+        return { url: r.imageUrl || r.link, thumbnail: r.thumbnailUrl, title: r.title, source: 'serper' };
+      });
+      return { images: images.slice(0, numResults || 5), provider: 'serper' };
+    },
+
+    async searchImagesBrave(query, key, numResults) {
+      var resp = await fetch(
+        'https://api.search.brave.com/res/v1/images/search?q=' +
+          encodeURIComponent(query + ' product') +
+          '&count=' +
+          (numResults || 5),
+        {
+          method: 'GET',
+          headers: { Accept: 'application/json', 'Accept-Encoding': 'gzip', 'X-Subscription-Token': key },
+        }
+      );
+      var data = await resp.json();
+      var images = (data.results || []).map(function (r) {
+        return { url: r.properties?.url || r.url, thumbnail: r.thumbnail?.src, title: r.title, source: 'brave' };
+      });
+      return { images: images.slice(0, numResults || 5), provider: 'brave' };
+    },
+
+    fallbackImageSearch(query) {
+      var slug = encodeURIComponent(query.replace(/\s+/g, '+'));
+      return {
+        images: [{ url: 'https://source.unsplash.com/400x300/?' + slug, source: 'unsplash-fallback' }],
+        provider: 'fallback',
+        fallback: true,
+      };
+    },
+
     formatResultsForAI(searchData) {
       if (!searchData || !searchData.results || searchData.results.length === 0) {
         return 'No web search results available.';

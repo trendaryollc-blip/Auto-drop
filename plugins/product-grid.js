@@ -70,7 +70,12 @@
       img +
       '" alt="' +
       title +
+      '" data-product-id="' +
+      esc(String(p.id)) +
       '" loading="lazy" decoding="async" fetchpriority="low">' +
+      '<div class="card-img-loading" data-img-loading="' +
+      esc(String(p.id)) +
+      '"><div class="card-img-spinner"></div></div>' +
       '<div class="card-badges">' +
       badges +
       '</div>' +
@@ -429,6 +434,34 @@
           if (data) {
             updateActiveFilters(data.filters || {}, data.query || '');
           }
+        })
+      );
+
+      c.push(
+        EventBus.on('images:fetched', function (data) {
+          if (!data || !data.updated) return;
+          var grid = UI.$('productsGrid');
+          if (!grid) return;
+          Object.keys(data.updated).forEach(function (id) {
+            var imgUrl = data.updated[id];
+            var imgEl = grid.querySelector('img[data-product-id="' + id + '"]');
+            if (imgEl && imgUrl) {
+              imgEl.onerror = function () {
+                this.style.display = 'none';
+                var loading = grid.querySelector('[data-img-loading="' + id + '"]');
+                if (loading) loading.style.display = 'none';
+              };
+              imgEl.onload = function () {
+                var loading = grid.querySelector('[data-img-loading="' + id + '"]');
+                if (loading) loading.style.display = 'none';
+                this.style.opacity = '1';
+              };
+              imgEl.style.opacity = '0.5';
+              var loadingEl = grid.querySelector('[data-img-loading="' + id + '"]');
+              if (loadingEl) loadingEl.style.display = 'flex';
+              imgEl.src = imgUrl;
+            }
+          });
         })
       );
 

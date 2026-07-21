@@ -938,6 +938,36 @@
 .product-card:hover .card-image img {
   transform: scale(1.06);
 }
+.card-img-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 3;
+}
+.card-img-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--accent-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.card-image img {
+  transition:
+    opacity 0.4s ease,
+    transform 0.5s;
+}
 .card-badges {
   position: absolute;
   top: 8px;

@@ -2342,6 +2342,7 @@
     'plugins/search-engine.js',
     'plugins/product-grid.js',
     'plugins/product-detail.js',
+    'plugins/image-fetcher.js',
   ];
 
   function _loadScript(src) {

@@ -325,7 +325,7 @@
         Config.set('backend.connected', true);
         _searchMode = 'remote';
         Config.set('backend.searchMode', 'remote');
-        console.log('[BackendBridge] Connected to', API_BASE);
+        console.debug('[BackendBridge] Connected to', API_BASE);
 
         // Try to restore session
         await checkSession();

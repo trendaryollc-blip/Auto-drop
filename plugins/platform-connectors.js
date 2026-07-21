@@ -1,14 +1,14 @@
 // ============================================================================
-// PLUGIN: Platform Connectors — Real API adapters for 10 e-commerce platforms
+// PLUGIN: Platform Connectors — Real API adapters for e-commerce platforms
 // ============================================================================
-// Each platform adapter tries the real API first (if key is configured),
-// then falls back to mock data. Users add API keys one at a time over time.
+// Each platform adapter uses the real API (if key is configured).
+// Users add API keys one at a time over time.
 //
 // Architecture:
 //   PlatformConnectors.configs   — API endpoint/key config per platform
 //   PlatformConnectors.getKey(p) — Retrieve decrypted API key
 //   PlatformConnectors.saveKey(p,k) — Save encrypted API key
-//   PlatformConnectors.search(p,q,f) — Search via real API or mock fallback
+//   PlatformConnectors.search(p,q,f) — Search via real API
 //   PlatformConnectors.isConnected(p) — Check if platform has a valid key
 // ============================================================================
 (function () {
@@ -345,7 +345,7 @@
 
   async function searchAliExpress(query, filters) {
     const key = await getPlatformKey('aliexpress');
-    if (!key) return null; // fallback to mock
+    if (!key) return null;
 
     // AliExpress Affiliate API
     try {
@@ -769,28 +769,28 @@
   async function searchTemu(query, filters) {
     const key = await getPlatformKey('temu');
     if (!key) return null;
-    console.warn('[PlatformConnectors] Temu API requires partner approval. Using mock data.');
+    console.warn('[PlatformConnectors] Temu API requires partner approval. No API key configured.');
     return null;
   }
 
   async function searchTikTok(query, filters) {
     const key = await getPlatformKey('tiktok');
     if (!key) return null;
-    console.warn('[PlatformConnectors] TikTok Shop API requires seller account. Using mock data.');
+    console.warn('[PlatformConnectors] TikTok Shop API requires seller account. No API key configured.');
     return null;
   }
 
   async function searchDHgate(query, filters) {
     const key = await getPlatformKey('dhgate');
     if (!key) return null;
-    console.warn('[PlatformConnectors] DHgate API requires OAuth setup. Using mock data.');
+    console.warn('[PlatformConnectors] DHgate API requires OAuth setup. No API key configured.');
     return null;
   }
 
   async function searchWish(query, filters) {
     const key = await getPlatformKey('wish');
     if (!key) return null;
-    console.warn('[PlatformConnectors] Wish API requires merchant account. Using mock data.');
+    console.warn('[PlatformConnectors] Wish API requires merchant account. No API key configured.');
     return null;
   }
 

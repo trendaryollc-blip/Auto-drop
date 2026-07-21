@@ -1,31 +1,10 @@
 {
-  "services": {
-    "frontend": {
-      "root": ".",
-      "framework": "vite",
-      "buildCommand": "echo 'Static site'",
-      "installCommand": "echo 'No install'"
-    },
-    "backend": {
-      "root": "backend"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "backend"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "frontend"
-      }
-    }
-  ],
+  "framework": "vite",
+  "buildCommand": "echo 'Static site'",
+  "installCommand": "echo 'No install needed'",
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/plugins/(.*)",
@@ -43,5 +22,8 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

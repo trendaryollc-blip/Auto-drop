@@ -347,6 +347,28 @@
     if (_navSetup) return;
     _navSetup = true;
 
+    // Logo keyboard support (Enter/Space)
+    const logoEl = document.querySelector('.logo');
+    if (logoEl) {
+      logoEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.HuntDrop.navigateTo('section-dashboard');
+        }
+      });
+    }
+
+    // Credits badge keyboard support (Enter/Space)
+    const creditsEl = document.querySelector('.credits-badge');
+    if (creditsEl) {
+      creditsEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.HuntDrop.navigateTo('section-settings');
+        }
+      });
+    }
+
     // Sidebar navigation: click delegation on sidebar items
     const sidebarNav = document.getElementById('sidebarNav');
     if (sidebarNav) {

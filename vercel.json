@@ -7,7 +7,10 @@
       "installCommand": "echo 'No install needed'"
     },
     "backend": {
-      "root": "backend"
+      "root": "backend",
+      "framework": "express",
+      "buildCommand": "echo 'Backend'",
+      "installCommand": "npm install --production"
     }
   },
   "rewrites": [

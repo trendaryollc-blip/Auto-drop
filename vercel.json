@@ -2,7 +2,7 @@
   "services": {
     "frontend": {
       "root": ".",
-      "framework": null,
+      "framework": "vite",
       "buildCommand": "echo 'Static site'",
       "installCommand": "echo 'No install'"
     },

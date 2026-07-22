@@ -1,5 +1,5 @@
 // ============================================================================
-// PLUGIN: AI Chat Widget — Floating chat button + popup from any page
+// PLUGIN: AI Chat Widget — Floating chat button + popup (fully standalone)
 // ============================================================================
 (function () {
   const { PluginRegistry, EventBus, UI, Config } = window.HuntDrop;
@@ -29,8 +29,7 @@
 
   function saveHistory() {
     try {
-      const toSave = _state.history.slice(-50);
-      localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(toSave));
+      localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(_state.history.slice(-50)));
     } catch (e) {
       /* quota */
     }
@@ -74,8 +73,7 @@
         '<div class="cw-msg-body">' +
         '<div class="cw-msg-content">' +
         (isUser ? esc(msg.content) : renderMarkdown(msg.content)) +
-        '</div>' +
-        '</div></div>';
+        '</div></div></div>';
     });
     if (_state.sending) {
       html +=
@@ -88,6 +86,91 @@
     el.scrollTop = el.scrollHeight;
   }
 
+  function getApiKey() {
+    try {
+      if (window.HuntDrop.APIKeyManager && typeof window.HuntDrop.APIKeyManager.getFeatureKey === 'function') {
+        return window.HuntDrop.APIKeyManager.getFeatureKey('ai-chat-widget');
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return Promise.resolve({ provider: null, key: null });
+  }
+
+  function getSystemPrompt() {
+    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    var prompt = 'You are HuntDrop AI — an expert dropshipping business advisor. Be concise and actionable.\n\n';
+    if (products.length > 0) {
+      prompt += 'PRODUCTS (' + products.length + '):\n';
+      products.slice(0, 10).forEach(function (p) {
+        prompt +=
+          '- ' + p.title + ' (' + p.platform + ') Score:' + p.score + ' Margin:' + p.margin + '% $' + p.price + '\n';
+      });
+      prompt += '\n';
+    }
+    prompt +=
+      'RULES: Use markdown. Be concise. Give data-driven advice. Include PROCEED/CAUTION/RECONSIDER when evaluating products.';
+    return prompt;
+  }
+
+  async function callGroq(messages) {
+    var keyData = await getApiKey();
+    if (!keyData || !keyData.key) {
+      return getLocalResponse();
+    }
+    var provider = keyData.provider || 'groq';
+    var key = keyData.key;
+    var config = window.HuntDrop.APIKeyManager.providers && window.HuntDrop.APIKeyManager.providers[provider];
+    if (!config) return getLocalResponse();
+
+    var model = 'llama3-70b-8192';
+    try {
+      model = window.HuntDrop.APIKeyManager.getModel();
+    } catch (e) {
+      /* use default */
+    }
+
+    var headers = { 'Content-Type': 'application/json' };
+    if (provider === 'anthropic') {
+      headers = { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' };
+    } else {
+      headers = { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
+    }
+
+    var body;
+    if (provider === 'anthropic') {
+      var systemMsg = '';
+      var chatMsgs = [];
+      messages.forEach(function (m) {
+        if (m.role === 'system') systemMsg = m.content;
+        else chatMsgs.push(m);
+      });
+      body = JSON.stringify({ model: model, system: systemMsg, messages: chatMsgs, max_tokens: 2000 });
+    } else {
+      body = JSON.stringify({ model: model, messages: messages, temperature: 0.7, max_tokens: 2000 });
+    }
+
+    var resp = await fetch(config.endpoint, { method: 'POST', headers: headers, body: body });
+    if (!resp.ok) throw new Error('API returned ' + resp.status);
+    var data = await resp.json();
+
+    if (provider === 'anthropic') return data.content[0].text;
+    return data.choices[0].message.content;
+  }
+
+  function getLocalResponse() {
+    return (
+      '**AI is not configured.**\n\n' +
+      'To get AI-powered responses, add your API key in **Strategy → AI Settings**.\n\n' +
+      'I support: Groq (free), OpenAI, Anthropic, Google AI, and many more.\n\n' +
+      'In the meantime, try these tools:\n' +
+      '- 🔍 **Find Products** — Research trending products\n' +
+      '- 💰 **Profit Calculator** — Calculate margins\n' +
+      '- 📢 **Ad Studio** — Generate ad copy\n' +
+      '- 🏭 **Supplier Hub** — Find the best suppliers'
+    );
+  }
+
   async function sendMessage(text) {
     if (!text || _state.sending) return;
     _state.sending = true;
@@ -95,18 +178,24 @@
     saveHistory();
     renderMessages();
 
-    const input = document.getElementById('chatWidgetInput');
+    var input = document.getElementById('chatWidgetInput');
     if (input) input.value = '';
 
     try {
-      const result = await window.HuntDrop.AIChatService.sendMessage(text, _state.history.slice(0, -1));
-      const response = result.response || 'Sorry, something went wrong.';
+      var messages = [{ role: 'system', content: getSystemPrompt() }];
+      var recent = _state.history.slice(0, -1).slice(-10);
+      recent.forEach(function (m) {
+        messages.push({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content });
+      });
+      messages.push({ role: 'user', content: text });
+
+      var response = await callGroq(messages);
       _state.history.push({ role: 'assistant', content: response, ts: Date.now() });
       saveHistory();
     } catch (e) {
       _state.history.push({
         role: 'assistant',
-        content: 'Error: ' + (e.message || 'Unknown error') + '. Check your AI API key in Settings.',
+        content: 'Error: ' + (e.message || 'Unknown error') + '. Check your AI API key in Strategy → AI Settings.',
         ts: Date.now(),
       });
       saveHistory();
@@ -154,23 +243,22 @@
   }
 
   function bindEvents() {
-    const fab = document.getElementById('chatWidgetFab');
-    const panel = document.getElementById('chatWidgetPanel');
-    const input = document.getElementById('chatWidgetInput');
-    const sendBtn = document.getElementById('chatWidgetSend');
-    const clearBtn = document.getElementById('chatWidgetClear');
-    const closeBtn = document.getElementById('chatWidgetClose');
+    var fab = document.getElementById('chatWidgetFab');
+    var panel = document.getElementById('chatWidgetPanel');
+    var input = document.getElementById('chatWidgetInput');
+    var sendBtn = document.getElementById('chatWidgetSend');
+    var clearBtn = document.getElementById('chatWidgetClear');
+    var closeBtn = document.getElementById('chatWidgetClose');
 
     if (fab) {
       fab.addEventListener('click', function () {
         _state.open = !_state.open;
-        panel.classList.toggle('cw-open', _state.open);
-        fab.classList.toggle('cw-active', _state.open);
-        if (_state.open && input) {
+        if (panel) panel.classList.toggle('cw-open', _state.open);
+        if (fab) fab.classList.toggle('cw-active', _state.open);
+        if (_state.open && input)
           setTimeout(function () {
             input.focus();
           }, 200);
-        }
       });
       fab.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -179,15 +267,13 @@
         }
       });
     }
-
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
         _state.open = false;
-        panel.classList.remove('cw-open');
+        if (panel) panel.classList.remove('cw-open');
         if (fab) fab.classList.remove('cw-active');
       });
     }
-
     if (clearBtn) {
       clearBtn.addEventListener('click', function () {
         _state.history = [];
@@ -195,13 +281,11 @@
         renderMessages();
       });
     }
-
     if (sendBtn) {
       sendBtn.addEventListener('click', function () {
         sendMessage(input ? input.value.trim() : '');
       });
     }
-
     if (input) {
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -210,7 +294,6 @@
         }
       });
     }
-
     document.addEventListener('click', function (e) {
       if (!e.target.closest('.cw-panel') && !e.target.closest('.cw-fab') && _state.open) {
         _state.open = false;
@@ -218,12 +301,9 @@
         if (fab) fab.classList.remove('cw-active');
       }
     });
-
     document.addEventListener('click', function (e) {
       var qb = e.target.closest('.cw-quick-btn');
-      if (qb) {
-        sendMessage(qb.getAttribute('data-q'));
-      }
+      if (qb) sendMessage(qb.getAttribute('data-q'));
     });
   }
 
@@ -231,7 +311,7 @@
     id: 'ai-chat-widget',
     name: 'AI Chat Widget',
     version: '1.0.0',
-    dependencies: ['ai-chat-service'],
+    dependencies: [],
 
     init: function () {
       loadHistory();

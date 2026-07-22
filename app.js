@@ -2339,11 +2339,6 @@
     'plugins/product-grid.js',
     'plugins/product-detail.js',
     'plugins/image-fetcher.js',
-    'plugins/ai-key-manager.js',
-    'plugins/ai-context-builder.js',
-    'plugins/ai-system-health.js',
-    'plugins/ai-risk-analyzer.js',
-    'plugins/ai-chat-service.js',
     'plugins/ai-chat-widget.js',
   ];
 

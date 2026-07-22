@@ -1475,12 +1475,12 @@
     // 2. Check Config for backend URL
     try {
       const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
-      if (cfg) return cfg.replace(/\/?$/, '') + '/platform';
+      if (cfg) return cfg.replace(/\/?$/, '') + '/api/platform';
     } catch (e) {
       /* ignore */
     }
     // 3. Default to deployed backend
-    return 'https://auto-drop-backend-8tnmns4e3-trendaryo-s-projects.vercel.app/platform';
+    return 'https://auto-drop-backend-8tnmns4e3-trendaryo-s-projects.vercel.app/api/platform';
   }
 
   // Platforms that need proxy (CORS-blocked from browser)

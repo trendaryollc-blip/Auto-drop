@@ -37,6 +37,19 @@ app.use(express.urlencoded({ extended: true }));
 // ===== Request Logging =====
 app.use(requestLogger);
 
+// ===== Root Route =====
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      name: 'HuntDrop AI Backend',
+      version: '1.0.0',
+      health: '/api/health',
+      platform: '/api/platform/search',
+    },
+  });
+});
+
 // ===== Health Check =====
 app.get('/api/health', (req, res) => {
   res.json({

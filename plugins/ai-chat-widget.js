@@ -123,12 +123,7 @@
     var config = window.HuntDrop.APIKeyManager.providers && window.HuntDrop.APIKeyManager.providers[provider];
     if (!config) return getLocalResponse();
 
-    var model = 'llama3-70b-8192';
-    try {
-      model = window.HuntDrop.APIKeyManager.getModel();
-    } catch (e) {
-      /* use default */
-    }
+    var models = config.models || ['llama3-70b-8192'];
 
     var headers = { 'Content-Type': 'application/json' };
     if (provider === 'anthropic') {
@@ -137,25 +132,44 @@
       headers = { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
     }
 
-    var body;
-    if (provider === 'anthropic') {
-      var systemMsg = '';
-      var chatMsgs = [];
-      messages.forEach(function (m) {
-        if (m.role === 'system') systemMsg = m.content;
-        else chatMsgs.push(m);
-      });
-      body = JSON.stringify({ model: model, system: systemMsg, messages: chatMsgs, max_tokens: 2000 });
-    } else {
-      body = JSON.stringify({ model: model, messages: messages, temperature: 0.7, max_tokens: 2000 });
+    var lastError = null;
+    for (var i = 0; i < Math.min(models.length, 3); i++) {
+      var model = models[i];
+      var body;
+      if (provider === 'anthropic') {
+        var systemMsg = '';
+        var chatMsgs = [];
+        messages.forEach(function (m) {
+          if (m.role === 'system') systemMsg = m.content;
+          else chatMsgs.push(m);
+        });
+        body = JSON.stringify({ model: model, system: systemMsg, messages: chatMsgs, max_tokens: 2000 });
+      } else {
+        body = JSON.stringify({ model: model, messages: messages, temperature: 0.7, max_tokens: 2000 });
+      }
+
+      try {
+        var resp = await fetch(config.endpoint, { method: 'POST', headers: headers, body: body });
+        if (resp.ok) {
+          var data = await resp.json();
+          if (provider === 'anthropic') return data.content[0].text;
+          return data.choices[0].message.content;
+        }
+        var errBody = '';
+        try {
+          var errJson = await resp.json();
+          errBody = errJson.error && errJson.error.message ? errJson.error.message : JSON.stringify(errJson);
+        } catch (e) {
+          errBody = resp.statusText;
+        }
+        lastError = 'API ' + resp.status + ': ' + errBody;
+        if (resp.status === 401) break;
+      } catch (e) {
+        lastError = e.message || 'Network error';
+        break;
+      }
     }
-
-    var resp = await fetch(config.endpoint, { method: 'POST', headers: headers, body: body });
-    if (!resp.ok) throw new Error('API returned ' + resp.status);
-    var data = await resp.json();
-
-    if (provider === 'anthropic') return data.content[0].text;
-    return data.choices[0].message.content;
+    throw new Error(lastError || 'All models failed');
   }
 
   function getLocalResponse() {
@@ -193,9 +207,16 @@
       _state.history.push({ role: 'assistant', content: response, ts: Date.now() });
       saveHistory();
     } catch (e) {
+      var errMsg = e.message || 'Unknown error';
+      var hint = '';
+      if (errMsg.indexOf('401') !== -1) hint = ' Your API key may be invalid. Get a free key from console.groq.com.';
+      else if (errMsg.indexOf('400') !== -1)
+        hint = ' The model may be unavailable. Try a different provider in AI Settings.';
+      else if (errMsg.indexOf('429') !== -1) hint = ' Rate limited. Wait a moment and try again.';
+      else if (errMsg.indexOf('Failed to fetch') !== -1) hint = ' Network error. Check your connection.';
       _state.history.push({
         role: 'assistant',
-        content: 'Error: ' + (e.message || 'Unknown error') + '. Check your AI API key in Strategy → AI Settings.',
+        content: 'Error: ' + errMsg + hint,
         ts: Date.now(),
       });
       saveHistory();

@@ -90,22 +90,41 @@
     return new Promise(function (resolve) {
       try {
         var AKM = window.HuntDrop.APIKeyManager;
-        if (AKM && typeof AKM.getKey === 'function') {
-          var provider = (AKM.getProvider && AKM.getProvider()) || 'groq';
+        var HD = window.HuntDrop;
+        var hasAKM = !!(AKM && typeof AKM.getKey === 'function');
+        var provider = hasAKM && AKM.getProvider ? AKM.getProvider() : 'unknown';
+        var envKeys = (HD && HD._envKeys) || {};
+        var configKeys = {};
+        try {
+          configKeys = HD.Config.get('aiKeys.keys') || {};
+        } catch (e) {}
+        console.log(
+          '[Chat] AKM:',
+          hasAKM,
+          'provider:',
+          provider,
+          'envKeys:',
+          Object.keys(envKeys),
+          'configKeys:',
+          Object.keys(configKeys)
+        );
+        if (hasAKM) {
           var keyPromise = AKM.getKey(provider);
           if (keyPromise && typeof keyPromise.then === 'function') {
             keyPromise
               .then(function (key) {
+                console.log('[Chat] key result:', key ? key.substring(0, 8) + '...' : 'NULL');
                 resolve({ provider: provider, key: key });
               })
-              .catch(function () {
+              .catch(function (e) {
+                console.log('[Chat] getKey error:', e);
                 resolve({ provider: null, key: null });
               });
             return;
           }
         }
       } catch (e) {
-        /* ignore */
+        console.log('[Chat] exception:', e);
       }
       resolve({ provider: null, key: null });
     });

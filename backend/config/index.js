@@ -25,7 +25,7 @@ const config = {
   },
 
   cors: {
-    origins: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(',').map(s => s.trim()),
+    origins: (process.env.CORS_ORIGINS || 'http://localhost:5173,https://auto-drop-nine.vercel.app').split(',').map(s => s.trim()),
   },
 
   debug: process.env.DEBUG === 'true',

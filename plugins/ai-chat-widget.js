@@ -87,14 +87,28 @@
   }
 
   function getApiKey() {
-    try {
-      if (window.HuntDrop.APIKeyManager && typeof window.HuntDrop.APIKeyManager.getFeatureKey === 'function') {
-        return window.HuntDrop.APIKeyManager.getFeatureKey('ai-chat-widget');
+    return new Promise(function (resolve) {
+      try {
+        var AKM = window.HuntDrop.APIKeyManager;
+        if (AKM && typeof AKM.getKey === 'function') {
+          var provider = (AKM.getProvider && AKM.getProvider()) || 'groq';
+          var keyPromise = AKM.getKey(provider);
+          if (keyPromise && typeof keyPromise.then === 'function') {
+            keyPromise
+              .then(function (key) {
+                resolve({ provider: provider, key: key });
+              })
+              .catch(function () {
+                resolve({ provider: null, key: null });
+              });
+            return;
+          }
+        }
+      } catch (e) {
+        /* ignore */
       }
-    } catch (e) {
-      /* ignore */
-    }
-    return Promise.resolve({ provider: null, key: null });
+      resolve({ provider: null, key: null });
+    });
   }
 
   function getSystemPrompt() {

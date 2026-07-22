@@ -1227,74 +1227,7 @@
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
-  // ===== MOUNT CHAT SIDEBAR =====
-  function mountChatSidebar() {
-    if (UI.$('phChatSidebar')) return;
-
-    const sidebar = document.createElement('div');
-    sidebar.className = 'ph-chat';
-    sidebar.id = 'phChatSidebar';
-    sidebar.innerHTML = `
-    <div class="ph-chat-header">
-      <span class="ph-chat-title">AI Research Assistant</span>
-      <button class="ph-chat-clear" id="phChatClear">Clear</button>
-    </div>
-    <div class="ph-chat-messages" id="phChatMessages">
-      <div class="ph-chat-msg ai">Hi! I'm your product research assistant. Search for products first, then ask me anything about the results.</div>
-    </div>
-    <div class="ph-chat-quick" id="phChatQuick">
-      <button class="ph-chat-quick-btn" data-q="Show best suppliers for this">Best Suppliers</button>
-      <button class="ph-chat-quick-btn" data-q="Generate TikTok ad copy">TikTok Ads</button>
-      <button class="ph-chat-quick-btn" data-q="Find similar but lower competition">Alternatives</button>
-      <button class="ph-chat-quick-btn" data-q="What's the profit margin?">Profit Check</button>
-    </div>
-    <div class="ph-chat-input-wrap">
-      <input type="text" class="ph-chat-input" id="phChatInput" placeholder="Ask about any product...">
-      <button class="ph-chat-send" id="phChatSend">→</button>
-    </div>`;
-    document.body.appendChild(sidebar);
-
-    const toggle = document.createElement('button');
-    toggle.className = 'ph-chat-toggle';
-    toggle.id = 'phChatToggle';
-    toggle.innerHTML = '<span class="ph-chat-icon">💬</span><span class="ph-chat-close">✕</span>';
-    document.body.appendChild(toggle);
-
-    toggle.addEventListener('click', () => {
-      _chatOpen = !_chatOpen;
-      sidebar.classList.toggle('open', _chatOpen);
-    });
-
-    const sendBtn = UI.$('phChatSend');
-    const chatInput = UI.$('phChatInput');
-    const clearBtn = UI.$('phChatClear');
-
-    if (sendBtn && chatInput) {
-      sendBtn.addEventListener('click', () => sendChatMessage(chatInput.value));
-      chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatMessage(chatInput.value);
-      });
-    }
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        const msgs = UI.$('phChatMessages');
-        if (msgs)
-          msgs.innerHTML = '<div class="ph-chat-msg ai">Chat cleared. Ask me anything about your products!</div>';
-        _chatHistory = [];
-      });
-    }
-
-    const quickWrap = UI.$('phChatQuick');
-    if (quickWrap) {
-      quickWrap.addEventListener('click', (e) => {
-        const btn = e.target.closest('.ph-chat-quick-btn');
-        if (btn && chatInput) {
-          chatInput.value = btn.dataset.q;
-          sendChatMessage(btn.dataset.q);
-        }
-      });
-    }
-  }
+  // ===== CHAT SIDEBAR (removed — replaced by global AI Chat Widget) =====
 
   // ===== BIND EVENTS =====
   function bindEvents() {
@@ -1501,7 +1434,6 @@
       _section = section;
 
       bindEvents();
-      mountChatSidebar();
     },
 
     unmount(_ctx) {

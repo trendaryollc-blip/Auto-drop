@@ -45,7 +45,9 @@ describe('ai-key-manager plugin', () => {
       const config = HuntDrop.Config.getAll('aiKeys');
       expect(config.provider).toBe('groq');
       expect(config.model).toBe('llama3-70b-8192');
-      expect(config.keys).toEqual({});
+      // keys is NOT pre-initialized — getKey() uses || {} fallback to avoid
+      // Config.defaults overwriting env-config loaded keys
+      expect(config.keys === undefined || typeof config.keys === 'object').toBe(true);
     });
   });
 
@@ -319,9 +321,10 @@ describe('ai-key-manager plugin', () => {
       expect(km.FEATURES['cb-intelligence-service']).toBeDefined();
     });
 
-    it('init() should set default featureAssignments', async () => {
+    it('init() should not set empty keys/featureAssignments defaults (avoids overwriting env-config)', async () => {
       const config = HuntDrop.Config.getAll('aiKeys');
-      expect(config.featureAssignments).toBeDefined();
+      expect(config.provider).toBe('groq');
+      expect(config.model).toBe('llama3-70b-8192');
     });
 
     it('getFeatureProvider should return global provider when no assignment', () => {

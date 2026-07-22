@@ -515,8 +515,6 @@
       Config.defaults('aiKeys', {
         provider: 'groq',
         model: 'llama3-70b-8192',
-        keys: {},
-        featureAssignments: {},
       });
 
       // FIX #14: Check for crypto.subtle availability before initializing encryption

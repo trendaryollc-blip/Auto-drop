@@ -1523,13 +1523,49 @@
   }
 
   // Enhanced isConnected — checks localStorage OR proxy availability
+  let _proxyHealthy = null;
+  let _proxyHealthPromise = null;
+
+  async function checkProxyHealth() {
+    if (_proxyHealthy !== null) return _proxyHealthy;
+    if (_proxyHealthPromise) return _proxyHealthPromise;
+    _proxyHealthPromise = (async function () {
+      try {
+        const proxyUrl = getProxyUrl();
+        if (!proxyUrl) {
+          _proxyHealthy = false;
+          return false;
+        }
+        const ctrl = new AbortController();
+        const tid = setTimeout(function () {
+          ctrl.abort();
+        }, 5000);
+        const resp = await fetch(proxyUrl.replace(/\/search$/, '/status'), {
+          method: 'GET',
+          signal: ctrl.signal,
+        });
+        clearTimeout(tid);
+        _proxyHealthy = resp.ok;
+        return _proxyHealthy;
+      } catch (e) {
+        _proxyHealthy = false;
+        return false;
+      }
+    })();
+    return _proxyHealthPromise;
+  }
+
+  // Check proxy health on load (non-blocking)
+  checkProxyHealth();
+
   function isConnectedEnhanced(platform) {
     // Check localStorage first (user manually added key)
     if (isConnected(platform)) return true;
     // Check if backend proxy is available for this platform
     if (PROXY_PLATFORMS.indexOf(platform) !== -1) {
+      if (_proxyHealthy === false) return false;
       const proxyUrl = getProxyUrl();
-      if (proxyUrl) return true; // Proxy will handle auth server-side
+      if (proxyUrl && _proxyHealthy !== false) return true;
     }
     return false;
   }
@@ -1547,6 +1583,10 @@
     getKeyStatus: getKeyStatus,
     getAllStatus: getAllStatus,
     getProxyUrl: getProxyUrl,
+    checkProxyHealth: checkProxyHealth,
+    isProxyHealthy: function () {
+      return _proxyHealthy;
+    },
   };
 
   EventBus.emit('platform-connectors:ready', { platforms: Object.keys(PLATFORM_CONFIGS) });

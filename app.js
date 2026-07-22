@@ -799,8 +799,20 @@
   function showEmpty() {
     const empty = UI.$('productsEmpty');
     const grid = UI.$('productsGrid');
+    const notice = document.getElementById('srEmptyNotice');
     if (empty) empty.classList.add('visible');
     if (grid) grid.innerHTML = '';
+    // Show platform connection notice if no platforms are connected
+    if (notice) {
+      const PC = window.HuntDrop.PlatformConnectors;
+      let hasConnected = false;
+      if (PC) {
+        Object.keys(PC.configs).forEach(function (p) {
+          if (PC.isConnected(p)) hasConnected = true;
+        });
+      }
+      notice.style.display = hasConnected ? 'none' : 'block';
+    }
   }
 
   // Listen for search events to toggle skeleton/empty states

@@ -28,6 +28,11 @@
       _s.section = section;
       AISettingsPlugin.bindEvents();
       AISettingsPlugin.updateStatus();
+
+      // Delayed refresh to catch late-loading env keys (env-config.js timing)
+      setTimeout(function () {
+        AISettingsPlugin.updateStatus();
+      }, 500);
     },
 
     unmount(_ctx) {
@@ -49,13 +54,6 @@
         const p = providers[key];
         providerOptions +=
           '<option value="' + key + '"' + (key === status.provider ? ' selected' : '') + '>' + p.name + '</option>';
-      });
-
-      let modelOptions = '';
-      const currentModels = (providers[status.provider] && providers[status.provider].models) || [];
-      currentModels.forEach(function (m) {
-        modelOptions +=
-          '<option value="' + esc(m) + '"' + (m === status.model ? ' selected' : '') + '>' + esc(m) + '</option>';
       });
 
       let searchProviderOptions = '';
@@ -170,7 +168,7 @@
         '<div class="ais-card">' +
         '<div class="ais-card-header">' +
         '<div class="ais-card-icon cyan">🤖</div>' +
-        '<div class="ais-card-info"><div class="ais-card-title">AI Provider</div><div class="ais-card-sub">Choose your AI backend and model</div></div>' +
+        '<div class="ais-card-info"><div class="ais-card-title">AI Provider</div><div class="ais-card-sub">Choose your AI backend</div></div>' +
         '</div>' +
         '<div class="ais-card-body">' +
         '<div class="ais-form">' +
@@ -178,12 +176,6 @@
         '<label class="ais-label">Provider</label>' +
         '<select class="ais-select" id="aisProvider">' +
         providerOptions +
-        '</select>' +
-        '</div>' +
-        '<div class="ais-field">' +
-        '<label class="ais-label">Model</label>' +
-        '<select class="ais-select" id="aisModel">' +
-        modelOptions +
         '</select>' +
         '</div>' +
         '<div class="ais-field">' +
@@ -624,7 +616,6 @@
       if (!section) return;
 
       const providerSelect = section.querySelector('#aisProvider');
-      const modelSelect = section.querySelector('#aisModel');
       const keyInput = section.querySelector('#aisKeyInput');
       const keyToggle = section.querySelector('#aisKeyToggle');
       const verifyBtn = section.querySelector('#aisKeyVerify');
@@ -636,14 +627,7 @@
       if (providerSelect) {
         providerSelect.addEventListener('change', function () {
           window.HuntDrop.APIKeyManager.setProvider(providerSelect.value);
-          AISettingsPlugin.updateModelOptions();
           AISettingsPlugin.updateStatus();
-        });
-      }
-
-      if (modelSelect) {
-        modelSelect.addEventListener('change', function () {
-          window.HuntDrop.APIKeyManager.setModel(modelSelect.value);
         });
       }
 
@@ -720,23 +704,6 @@
 
       // Platform connector events
       AISettingsPlugin.bindPlatformEvents();
-    },
-
-    updateModelOptions() {
-      const section = _s.section;
-      if (!section) return;
-      const mgr = window.HuntDrop.APIKeyManager;
-      if (!mgr) return;
-      const provider = mgr.getProvider();
-      const models = (mgr.providers[provider] && mgr.providers[provider].models) || [];
-      const modelSelect = section.querySelector('#aisModel');
-      if (modelSelect) {
-        modelSelect.innerHTML = models
-          .map(function (m) {
-            return '<option value="' + esc(m) + '">' + esc(m) + '</option>';
-          })
-          .join('');
-      }
     },
 
     updateStatus() {

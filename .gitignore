@@ -45,6 +45,7 @@ backend/serviceAccountKey.json
 backend/**/serviceAccountKey.json
 *-service-account.json
 *-firebase-adminsdk-*.json
+backend/**/*.json
 
 # ── Coverage / Test ────────────────────────────────────────────────
 coverage/

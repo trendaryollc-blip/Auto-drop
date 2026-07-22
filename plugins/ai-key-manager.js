@@ -627,8 +627,21 @@
      * Returns plaintext key or null if not found.
      */
     getKey: async function (provider) {
+      var p = provider || this.getProvider();
       const keys = Config.get('aiKeys.keys') || {};
-      const encrypted = keys[provider];
+      var encrypted = keys[p];
+
+      // Fallback: check env-loaded global if not in Config yet
+      if (!encrypted) {
+        var envKeys = (window.HuntDrop && window.HuntDrop._envKeys) || {};
+        if (envKeys[p]) {
+          // Also set into Config so subsequent calls don't need fallback
+          keys[p] = 'plain:' + envKeys[p];
+          Config.set('aiKeys.keys', keys);
+          encrypted = keys[p];
+        }
+      }
+
       if (!encrypted) return null;
 
       // FIX #14: Handle plaintext keys stored in insecure mode
@@ -671,8 +684,12 @@
      * Does NOT decrypt — just checks if the encrypted blob is present.
      */
     hasKey: function (provider) {
-      const keys = Config.get('aiKeys.keys') || {};
-      return !!keys[provider || this.getProvider()];
+      var p = provider || this.getProvider();
+      var keys = Config.get('aiKeys.keys') || {};
+      if (keys[p]) return true;
+      // Fallback: check if key exists in env-loaded global
+      var envKeys = (window.HuntDrop && window.HuntDrop._envKeys) || {};
+      return !!envKeys[p];
     },
 
     /**

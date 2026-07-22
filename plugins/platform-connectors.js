@@ -1479,8 +1479,8 @@
     } catch (e) {
       /* ignore */
     }
-    // 3. Default to Trendaryo backend
-    return 'https://trendaryo-llc-backend.vercel.app/platform';
+    // 3. Default to deployed backend
+    return 'https://auto-drop-backend-nine.vercel.app/platform';
   }
 
   // Platforms that need proxy (CORS-blocked from browser)

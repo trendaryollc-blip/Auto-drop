@@ -59,22 +59,36 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ===== Start Server =====
+const isVercel = process.env.VERCEL === '1';
+
 async function start() {
   try {
-    // Connect to database
-    await connectDB();
-    console.log('[Server] Database connected');
+    // Connect to database (skip if no DB configured on Vercel)
+    try {
+      await connectDB();
+      console.log('[Server] Database connected');
+    } catch (dbErr) {
+      if (isVercel) {
+        console.warn('[Server] Database connection skipped on Vercel:', dbErr.message);
+      } else {
+        throw dbErr;
+      }
+    }
 
-    // Start listening
-    app.listen(config.port, () => {
-      console.log(`[Server] HuntDrop API running on http://localhost:${config.port}`);
-      console.log(`[Server] Environment: ${config.nodeEnv}`);
-      console.log(`[Server] CORS origins: ${config.cors.origins.join(', ')}`);
-      console.log(`[Server] API base: http://localhost:${config.port}/api`);
-    });
+    // Only listen on local dev (Vercel handles HTTP via serverless)
+    if (!isVercel) {
+      app.listen(config.port, () => {
+        console.log(`[Server] HuntDrop API running on http://localhost:${config.port}`);
+        console.log(`[Server] Environment: ${config.nodeEnv}`);
+        console.log(`[Server] CORS origins: ${config.cors.origins.join(', ')}`);
+        console.log(`[Server] API base: http://localhost:${config.port}/api`);
+      });
+    } else {
+      console.log('[Server] Running on Vercel serverless');
+    }
   } catch (err) {
     console.error('[Server] Failed to start:', err);
-    process.exit(1);
+    if (!isVercel) process.exit(1);
   }
 }
 

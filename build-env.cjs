@@ -107,7 +107,7 @@ const platformKeyMap = {
   RAINFOREST_API_KEY: 'amazon',
 };
 
-const backendUrl = vars.TRENDARYO_API_URL || vars.BACKEND_URL || '';
+const backendUrl = vars.BACKEND_URL || vars.TRENDARYO_API_URL || '';
 
 const js = [
   '(function() {',

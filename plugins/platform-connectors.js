@@ -1484,7 +1484,7 @@
   }
 
   // Platforms that need proxy (CORS-blocked from browser)
-  const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping'];
+  const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
 
   async function searchViaProxy(platform, query, filters) {
     const proxyUrl = getProxyUrl();

@@ -117,6 +117,7 @@ const js = [
   '',
   '  var HD = window.HuntDrop = window.HuntDrop || {};',
   '  HD._proxyUrl = ' + JSON.stringify(backendUrl ? backendUrl.replace(/\/?$/, '') + '/api/platform' : '') + ';',
+  '  HD.BACKEND_URL = ' + JSON.stringify(backendUrl ? backendUrl.replace(/\/?$/, '') + '/api' : '') + ';',
   '  HD._envLoaded = true;',
   '',
   '  var ALL_ENV = ' + JSON.stringify(vars) + ';',

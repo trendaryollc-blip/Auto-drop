@@ -1465,10 +1465,73 @@
     amazon_sp: searchAmazonSP,
   };
 
+  // ===== Backend Proxy Support =====
+  // When the backend is available, proxy platform API calls through it
+  // to bypass CORS restrictions. Falls back to direct browser calls.
+
+  function getProxyUrl() {
+    // 1. Check env-config.js injected URL
+    if (window.HuntDrop && window.HuntDrop._proxyUrl) return window.HuntDrop._proxyUrl;
+    // 2. Check Config for backend URL
+    try {
+      const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
+      if (cfg) return cfg.replace(/\/?$/, '') + '/platform';
+    } catch (e) {
+      /* ignore */
+    }
+    // 3. Default to Trendaryo backend
+    return 'https://trendaryo-llc-backend.vercel.app/platform';
+  }
+
+  // Platforms that need proxy (CORS-blocked from browser)
+  const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping'];
+
+  async function searchViaProxy(platform, query, filters) {
+    const proxyUrl = getProxyUrl();
+    if (!proxyUrl) return null;
+    try {
+      const resp = await fetch(proxyUrl + '/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, query, filters }),
+      });
+      if (!resp.ok) {
+        console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
+        return null;
+      }
+      const data = await resp.json();
+      if (data.results && data.results.length > 0) {
+        return data.results;
+      }
+      return null;
+    } catch (e) {
+      console.debug('[PlatformConnectors] Proxy failed for ' + platform + ':', e.message);
+      return null;
+    }
+  }
+
   async function searchPlatform(platform, query, filters) {
+    // For proxy-supported platforms, try proxy first (bypasses CORS)
+    if (PROXY_PLATFORMS.indexOf(platform) !== -1) {
+      const proxyResults = await searchViaProxy(platform, query, filters);
+      if (proxyResults) return proxyResults;
+    }
+    // Fall back to direct browser API call
     const adapter = SEARCH_ADAPTERS[platform];
     if (!adapter) return null;
     return adapter(query, filters);
+  }
+
+  // Enhanced isConnected — checks localStorage OR proxy availability
+  function isConnectedEnhanced(platform) {
+    // Check localStorage first (user manually added key)
+    if (isConnected(platform)) return true;
+    // Check if backend proxy is available for this platform
+    if (PROXY_PLATFORMS.indexOf(platform) !== -1) {
+      const proxyUrl = getProxyUrl();
+      if (proxyUrl) return true; // Proxy will handle auth server-side
+    }
+    return false;
   }
 
   // ===== Public API =====
@@ -1479,9 +1542,11 @@
     getPlatformKey: getPlatformKey,
     savePlatformKey: savePlatformKey,
     removePlatformKey: removePlatformKey,
-    isConnected: isConnected,
+    isConnected: isConnectedEnhanced,
+    isConnectedDirect: isConnected,
     getKeyStatus: getKeyStatus,
     getAllStatus: getAllStatus,
+    getProxyUrl: getProxyUrl,
   };
 
   EventBus.emit('platform-connectors:ready', { platforms: Object.keys(PLATFORM_CONFIGS) });

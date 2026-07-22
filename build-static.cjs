@@ -28,4 +28,17 @@ dirs.forEach((d) => {
   if (fs.existsSync(d)) copyDir(d, path.join(outDir, d));
 });
 
+// Generate env-config.js from .env
+try {
+  require('./build-env.cjs');
+} catch (e) {
+  console.warn('env-config generation skipped:', e.message);
+}
+
+// Copy env-config.js to dist if it was generated
+if (fs.existsSync('env-config.js')) {
+  fs.copyFileSync('env-config.js', path.join(outDir, 'env-config.js'));
+  console.log('env-config.js included in dist/');
+}
+
 console.log('Build complete: dist/');

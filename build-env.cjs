@@ -116,7 +116,7 @@ const js = [
   '  // NOTE: Only frontend-safe keys are included. Backend secrets are excluded.',
   '',
   '  var HD = window.HuntDrop = window.HuntDrop || {};',
-  '  HD._proxyUrl = ' + JSON.stringify(backendUrl ? backendUrl.replace(/\/?$/, '') + '/platform' : '') + ';',
+  '  HD._proxyUrl = ' + JSON.stringify(backendUrl ? backendUrl.replace(/\/?$/, '') + '/api/platform' : '') + ';',
   '  HD._envLoaded = true;',
   '',
   '  var ALL_ENV = ' + JSON.stringify(vars) + ';',

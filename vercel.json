@@ -1,5 +1,6 @@
 {
   "buildCommand": "node build-static.cjs",
   "outputDirectory": "dist",
-  "installCommand": "echo 'No install needed'"
+  "installCommand": "echo 'No install needed'",
+  "framework": null
 }

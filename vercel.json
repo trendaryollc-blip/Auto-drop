@@ -1,33 +1,5 @@
 {
-  "services": {
-    "frontend": {
-      "root": ".",
-      "framework": "vite",
-      "buildCommand": "node build-static.cjs",
-      "installCommand": "echo 'No install needed'",
-      "outputDirectory": "dist"
-    },
-    "backend": {
-      "root": "backend",
-      "framework": "express",
-      "buildCommand": "echo 'Backend'",
-      "installCommand": "npm install --production"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api(/.*)?",
-      "destination": {
-        "type": "service",
-        "service": "backend"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "type": "service",
-        "service": "frontend"
-      }
-    }
-  ]
+  "buildCommand": "node build-static.cjs",
+  "outputDirectory": "dist",
+  "installCommand": "echo 'No install needed'"
 }

@@ -92,39 +92,40 @@
         var AKM = window.HuntDrop.APIKeyManager;
         var HD = window.HuntDrop;
         var hasAKM = !!(AKM && typeof AKM.getKey === 'function');
-        var provider = hasAKM && AKM.getProvider ? AKM.getProvider() : 'unknown';
+        var provider = hasAKM && AKM.getProvider ? AKM.getProvider() : 'groq';
         var envKeys = (HD && HD._envKeys) || {};
-        var configKeys = {};
-        try {
-          configKeys = HD.Config.get('aiKeys.keys') || {};
-        } catch (e) {}
-        console.log(
-          '[Chat] AKM:',
-          hasAKM,
-          'provider:',
-          provider,
-          'envKeys:',
-          Object.keys(envKeys),
-          'configKeys:',
-          Object.keys(configKeys)
-        );
+
         if (hasAKM) {
           var keyPromise = AKM.getKey(provider);
           if (keyPromise && typeof keyPromise.then === 'function') {
             keyPromise
               .then(function (key) {
-                console.log('[Chat] key result:', key ? key.substring(0, 8) + '...' : 'NULL');
-                resolve({ provider: provider, key: key });
+                if (key) {
+                  resolve({ provider: provider, key: key });
+                } else if (envKeys[provider]) {
+                  resolve({ provider: provider, key: envKeys[provider] });
+                } else {
+                  resolve({ provider: null, key: null });
+                }
               })
               .catch(function (e) {
-                console.log('[Chat] getKey error:', e);
-                resolve({ provider: null, key: null });
+                if (envKeys[provider]) {
+                  resolve({ provider: provider, key: envKeys[provider] });
+                } else {
+                  resolve({ provider: null, key: null });
+                }
               });
             return;
           }
         }
+
+        // Fallback: read directly from env keys (no AKM needed)
+        if (envKeys[provider]) {
+          resolve({ provider: provider, key: envKeys[provider] });
+          return;
+        }
       } catch (e) {
-        console.log('[Chat] exception:', e);
+        console.warn('[Chat] getApiKey error:', e);
       }
       resolve({ provider: null, key: null });
     });

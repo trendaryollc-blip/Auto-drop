@@ -1095,17 +1095,25 @@
     if (scanText) scanText.textContent = 'AI analysis complete!';
     await sleep(400);
 
-    const allProducts = window.HuntDrop.ALL_PRODUCTS || [];
-    const queryLower = query.toLowerCase();
-    let matched = allProducts.filter(
-      (p) =>
-        p.title.toLowerCase().includes(queryLower) ||
-        p.keywords.some((k) => k.toLowerCase().includes(queryLower)) ||
-        (p.category && p.category.toLowerCase().includes(queryLower))
-    );
+    let matched = [];
+    try {
+      matched = await window.HuntDrop.DataLayer.searchAll(query, {});
+    } catch (e) {
+      console.warn('[ProductHunt] searchAll failed:', e.message);
+    }
 
-    if (matched.length < 3) {
-      matched = [...allProducts].sort((a, b) => b.score - a.score).slice(0, 8);
+    if (!matched || matched.length === 0) {
+      const allProducts = window.HuntDrop.ALL_PRODUCTS || [];
+      const queryLower = query.toLowerCase();
+      matched = allProducts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(queryLower) ||
+          p.keywords.some((k) => k.toLowerCase().includes(queryLower)) ||
+          (p.category && p.category.toLowerCase().includes(queryLower))
+      );
+      if (matched.length < 3) {
+        matched = [...allProducts].sort((a, b) => b.score - a.score).slice(0, 8);
+      }
     }
 
     _searchResults = matched.map((p) => enrichProduct(p));

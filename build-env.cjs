@@ -107,7 +107,8 @@ const platformKeyMap = {
   RAINFOREST_API_KEY: 'amazon',
 };
 
-const backendUrl = vars.BACKEND_URL || vars.TRENDARYO_API_URL || 'https://auto-drop-backend-3jhmeqd3z-trendaryo-s-projects.vercel.app';
+const backendUrl =
+  vars.BACKEND_URL || vars.TRENDARYO_API_URL || 'https://auto-drop-backend-3jhmeqd3z-trendaryo-s-projects.vercel.app';
 
 const js = [
   '(function() {',

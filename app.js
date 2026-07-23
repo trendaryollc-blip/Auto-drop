@@ -230,16 +230,20 @@
   // ===== Plugin Lifecycle on Navigation =====
   function _getPluginsForSection(sectionId) {
     const section = document.getElementById(sectionId);
+    const suffix = sectionId.replace('section-', '');
+    const isCritical = function (p) {
+      return CRITICAL_PLUGINS.indexOf('plugins/' + p.id + '.js') !== -1;
+    };
     if (!section) {
-      // Section may not exist in DOM yet (created dynamically by plugin mount).
-      // Find plugins whose ID matches the section suffix.
-      const suffix = sectionId.replace('section-', '');
       return PluginRegistry.getAll().filter(function (p) {
-        return p.id === suffix || sectionId === 'section-' + p.id;
+        return !isCritical(p) && (p.id === suffix || sectionId === 'section-' + p.id);
       });
     }
     return PluginRegistry.getAll().filter(function (p) {
-      return (p._mounted && section.querySelector('#' + p.id)) || section.id === 'section-' + p.id;
+      return (
+        !isCritical(p) &&
+        ((p._mounted && section.querySelector('#' + p.id)) || section.id === 'section-' + p.id)
+      );
     });
   }
 

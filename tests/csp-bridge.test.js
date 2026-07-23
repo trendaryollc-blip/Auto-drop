@@ -1,26 +1,23 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CSP_NONCE_VALUE, installCspNonceBridge } from '../csp-bridge.js';
+import { loadScript } from './setup.js';
 
 describe('CSP nonce bridge', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="inline-style" style="display:none"></div>';
+    loadScript('csp-bridge.js');
   });
 
   it('applies a nonce to existing elements with inline styles', () => {
-    installCspNonceBridge();
-
     const el = document.getElementById('inline-style');
-    expect(el.getAttribute('nonce')).toBe(CSP_NONCE_VALUE);
+    expect(el.getAttribute('nonce')).toBe(window.CSP_NONCE_VALUE);
   });
 
   it('adds a nonce to dynamically created elements with inline styles', () => {
-    installCspNonceBridge();
-
     const el = document.createElement('div');
     el.style.display = 'none';
-    expect(el.getAttribute('nonce')).toBe(CSP_NONCE_VALUE);
+    expect(el.getAttribute('nonce')).toBe(window.CSP_NONCE_VALUE);
   });
 
   it('keeps the CSP policy secure and avoids hardcoded nonces', () => {

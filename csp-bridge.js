@@ -139,5 +139,3 @@ if (typeof window !== 'undefined') {
   window.CSP_NONCE_VALUE = CSP_NONCE_VALUE;
   window.installCspNonceBridge = installCspNonceBridge;
 }
-
-export { CSP_NONCE_VALUE, installCspNonceBridge };

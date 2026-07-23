@@ -24,12 +24,16 @@ import { requestLogger } from './middleware/logger.js';
 const app = express();
 
 // ===== Security & Parsing =====
-app.use(helmet());
 app.use(cors({
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'CJ-Access-Token', 'x-api-key', 'x-amz-access-token'],
+}));
+app.use(helmet({
+  crossOriginOpenerPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));

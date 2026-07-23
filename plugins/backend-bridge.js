@@ -18,7 +18,9 @@
 (function () {
   const { EventBus, PluginRegistry, Config, Store, UI } = window.HuntDrop;
 
-  const API_BASE = window.HuntDrop.BACKEND_URL || 'http://localhost:3001/api';
+  const API_BASE = window.HuntDrop.BACKEND_URL
+    || (window.HuntDrop._proxyUrl ? window.HuntDrop._proxyUrl.replace(/\/api\/platform\/?$/, '/api') : '')
+    || 'http://localhost:3001/api';
   let _token = localStorage.getItem('huntdrop_token') || null;
   let _user = null;
   let _connected = false;

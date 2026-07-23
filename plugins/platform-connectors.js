@@ -1480,7 +1480,7 @@
       /* ignore */
     }
     // 3. Default to deployed backend
-    return 'https://auto-drop-backend-3jhmeqd3z-trendaryo-s-projects.vercel.app/api/platform';
+    return 'https://auto-drop-backend-dlhrd1h0p-trendaryo-s-projects.vercel.app/api/platform';
   }
 
   // Platforms that need proxy (CORS-blocked from browser)

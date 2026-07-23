@@ -108,7 +108,7 @@ const platformKeyMap = {
 };
 
 const backendUrl =
-  vars.BACKEND_URL || vars.TRENDARYO_API_URL || 'https://auto-drop-backend-3jhmeqd3z-trendaryo-s-projects.vercel.app';
+  vars.BACKEND_URL || vars.TRENDARYO_API_URL || 'https://auto-drop-backend-dlhrd1h0p-trendaryo-s-projects.vercel.app';
 
 const js = [
   '(function() {',
@@ -139,7 +139,7 @@ const js = [
   '    try {',
   '      var Config = window.HuntDrop && window.HuntDrop.Config;',
   '      if (!Config) {',
-  '        if (_envConfigAttempts < 20) {',
+  '        if (_envConfigAttempts < 100) {',
   '          setTimeout(initEnvConfig, 50);',
   '        }',
   '        return;',

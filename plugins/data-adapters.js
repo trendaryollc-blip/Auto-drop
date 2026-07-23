@@ -115,11 +115,25 @@
   }
 
   function createAdapter(platformName) {
+    const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
     return {
       search: async (rawQuery, rawFilters = {}) => {
         const query = validateQuery(rawQuery);
         const filters = validateFilters(rawFilters);
         const PC = window.HuntDrop.PlatformConnectors;
+
+        // For proxy platforms, always try the proxy (auth is server-side)
+        if (PC && platformName !== 'all' && PROXY_PLATFORMS.indexOf(platformName) !== -1) {
+          try {
+            const realResults = await PC.searchPlatform(platformName, query, filters);
+            if (realResults && realResults.length > 0) {
+              return sortResults(realResults, filters.sort);
+            }
+          } catch (e) {
+            console.warn('[DataAdapters] ' + platformName + ' API failed:', e.message);
+          }
+          return [];
+        }
 
         if (PC && platformName !== 'all' && PC.isConnected(platformName)) {
           try {

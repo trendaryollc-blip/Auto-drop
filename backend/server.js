@@ -13,7 +13,6 @@
 
 import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import config from './config/index.js';
 import { connectDB, disconnectDB } from './database/index.js';
@@ -23,18 +22,28 @@ import { requestLogger } from './middleware/logger.js';
 
 const app = express();
 
-// ===== Security & Parsing =====
-app.use(cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'CJ-Access-Token', 'x-api-key', 'x-amz-access-token'],
-}));
+// ===== CORS (manual — cors package unreliable on Vercel) =====
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, CJ-Access-Token, x-api-key, x-amz-access-token');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+// ===== Security =====
 app.use(helmet({
+  contentSecurityPolicy: false,
   crossOriginOpenerPolicy: false,
   crossOriginEmbedderPolicy: false,
   crossOriginResourcePolicy: false,
 }));
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 

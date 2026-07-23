@@ -1117,6 +1117,7 @@
     }
 
     _searchResults = matched.map((p) => enrichProduct(p));
+    window.HuntDrop.ALL_PRODUCTS = _searchResults;
     if (scanCount) scanCount.textContent = _searchResults.length + ' found';
 
     if (scanningEl) scanningEl.classList.remove('active');
@@ -1421,7 +1422,7 @@
   // ===== PLUGIN REGISTRATION =====
   PluginRegistry.register('product-hunt', {
     id: 'product-hunt',
-    name: 'Find Products',
+    name: 'AI Hunt',
     version: '2.0.0',
     description: 'AI-powered product hunting with Kill Zone detection',
     dependencies: [],
@@ -1442,6 +1443,19 @@
       _section = section;
 
       bindEvents();
+
+      // Restore previous search results if navigating back
+      if (_searchResults.length > 0) {
+        renderStats();
+        renderInsights();
+        renderValidation();
+        renderKillZone();
+        renderArbitrage();
+        renderFilters();
+        renderExport();
+        renderProducts();
+        renderWatchlist();
+      }
     },
 
     unmount(_ctx) {
@@ -1458,8 +1472,6 @@
         _section = null;
       }
       _chatOpen = false;
-      _chatHistory = [];
-      _searchResults = [];
       _scanning = false;
     },
   });

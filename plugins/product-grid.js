@@ -157,7 +157,7 @@
       card.addEventListener('click', function (e) {
         if (e.target.closest('.card-action')) return;
         if (e.target.closest('.push-trendaryo-btn') || e.target.closest('.sc-select-cb')) return;
-        const id = parseInt(card.dataset.productId);
+        const id = card.dataset.productId;
         if (id) {
           window.HuntDrop._currentProductId = id;
           EventBus.emit('product:analyze', { id: id });
@@ -348,6 +348,7 @@
           // Store all results and reset visible count
           _allResults = data.results || [];
           _visibleCount = Math.min(PAGE_SIZE, _allResults.length);
+          window.HuntDrop.ALL_PRODUCTS = _allResults;
 
           let html = '';
           for (let i = 0; i < _visibleCount; i++) {

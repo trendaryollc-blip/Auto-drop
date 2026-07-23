@@ -51,6 +51,17 @@
   color: var(--accent-cyan);
   font-weight: 600;
 }
+.hero-ai-hunt-link {
+  color: var(--accent-green);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-green);
+  transition: all 0.2s;
+}
+.hero-ai-hunt-link:hover {
+  color: #00ff88;
+  border-bottom-color: #00ff88;
+}
 .search-container {
   max-width: 700px;
   margin: 0 auto;

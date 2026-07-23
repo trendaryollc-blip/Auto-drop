@@ -235,7 +235,7 @@
             type: 'select',
             options: [
               { value: 'dashboard', label: 'Dashboard' },
-              { value: 'product-hunt', label: 'Find Products' },
+              { value: 'product-hunt', label: 'AI Hunt' },
               { value: 'niche-radar', label: 'Niche Finder' },
               { value: 'profit-lab', label: 'Profit Calculator' },
               { value: 'ai-settings', label: 'AI Settings' },

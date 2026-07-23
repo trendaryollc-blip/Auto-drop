@@ -564,9 +564,9 @@
       c.push(
         EventBus.on('product:analyze', function (data) {
           const products = window.HuntDrop.ALL_PRODUCTS || [];
-          const pid = Number(data.id);
+          const pid = String(data.id);
           const p = products.find(function (x) {
-            return x.id === pid;
+            return String(x.id) === pid;
           });
           if (!p) return;
           const container = UI.$('productDetailContent');

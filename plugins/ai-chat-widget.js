@@ -253,7 +253,7 @@
       'To get AI-powered responses, add your API key in **Strategy → AI Settings**.\n\n' +
       'I support: Groq (free), OpenAI, Anthropic, Google AI, and many more.\n\n' +
       'In the meantime, try these tools:\n' +
-      '- 🔍 **Find Products** — Research trending products\n' +
+      '- 🔍 **AI Hunt** — Advanced product hunting with Kill Zone detection\n' +
       '- 💰 **Profit Calculator** — Calculate margins\n' +
       '- 📢 **Ad Studio** — Generate ad copy\n' +
       '- 🏭 **Supplier Hub** — Find the best suppliers'

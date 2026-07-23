@@ -18,9 +18,10 @@
 (function () {
   const { EventBus, PluginRegistry, Config, Store, UI } = window.HuntDrop;
 
+  const PRODUCTION_BACKEND = 'https://auto-drop-backend-3jhmeqd3z-trendaryo-s-projects.vercel.app/api';
   const API_BASE = window.HuntDrop.BACKEND_URL
     || (window.HuntDrop._proxyUrl ? window.HuntDrop._proxyUrl.replace(/\/api\/platform\/?$/, '/api') : '')
-    || 'http://localhost:3001/api';
+    || PRODUCTION_BACKEND;
   let _token = localStorage.getItem('huntdrop_token') || null;
   let _user = null;
   let _connected = false;

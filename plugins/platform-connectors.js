@@ -1540,7 +1540,8 @@
         const tid = setTimeout(function () {
           ctrl.abort();
         }, 5000);
-        const resp = await fetch(proxyUrl.replace(/\/search$/, '/status'), {
+        const statusUrl = proxyUrl.replace(/\/?$/, '') + '/status';
+        const resp = await fetch(statusUrl, {
           method: 'GET',
           signal: ctrl.signal,
         });

@@ -147,7 +147,7 @@ describe('product-grid plugin', () => {
 
       const card = document.querySelector('.product-card');
       card.click();
-      expect(analyzeCb).toHaveBeenCalledWith({ id: 42 });
+      expect(analyzeCb).toHaveBeenCalledWith({ id: '42' });
     });
   });
 });

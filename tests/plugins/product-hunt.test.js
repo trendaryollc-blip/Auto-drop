@@ -15,7 +15,7 @@ describe('product-hunt plugin', () => {
       const plugin = HuntDrop.PluginRegistry.get('product-hunt');
       expect(plugin).toBeDefined();
       expect(plugin.id).toBe('product-hunt');
-      expect(plugin.name).toBe('Find Products');
+      expect(plugin.name).toBe('AI Hunt');
     });
 
     it('should have init method', () => {

@@ -18,7 +18,7 @@
 (function () {
   const { EventBus, PluginRegistry, Config, Store, UI } = window.HuntDrop;
 
-  const PRODUCTION_BACKEND = 'https://auto-drop-backend-dlhrd1h0p-trendaryo-s-projects.vercel.app/api';
+  const PRODUCTION_BACKEND = 'https://backend-psi-five-60.vercel.app/api';
   const API_BASE =
     window.HuntDrop.BACKEND_URL ||
     (window.HuntDrop._proxyUrl ? window.HuntDrop._proxyUrl.replace(/\/api\/platform\/?$/, '/api') : '') ||

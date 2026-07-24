@@ -12,7 +12,7 @@
     window.HuntDrop.BACKEND_URL ||
     (window.HuntDrop._proxyUrl
       ? window.HuntDrop._proxyUrl.replace(/\/api\/platform\/?$/, '/api')
-      : 'https://auto-drop-backend-dlhrd1h0p-trendaryo-s-projects.vercel.app/api');
+      : 'https://backend-psi-five-60.vercel.app/api');
 
   function computeScore(s) {
     if (!s) return 0;
@@ -746,7 +746,15 @@
     } catch (e) {
       console.error('[SupplierHub] Search error:', e);
       if (statusEl) {
-        statusEl.innerHTML = '<span class="sh-search-error">Error: ' + esc(e.message) + '</span>';
+        let msg = 'Search failed';
+        if (e instanceof Error) {
+          msg = e.message;
+        } else if (typeof e === 'object' && e !== null) {
+          msg = e.error || e.message || JSON.stringify(e);
+        } else if (typeof e === 'string') {
+          msg = e;
+        }
+        statusEl.innerHTML = '<span class="sh-search-error">Error: ' + esc(String(msg)) + '</span>';
       }
     } finally {
       _searching = false;

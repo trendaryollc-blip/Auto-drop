@@ -80,23 +80,6 @@ app.get('/api/health', (req, res) => {
 // ===== API Routes =====
 app.use('/api', apiRoutes);
 
-// ===== Debug: Test if supplier route loads =====
-app.get('/api/debug/routes', (req, res) => {
-  const routes = [];
-  apiRoutes.stack.forEach((layer) => {
-    if (layer.route) {
-      routes.push({ path: layer.route.path, methods: Object.keys(layer.route.methods) });
-    } else if (layer.name === 'router') {
-      const subRoutes = [];
-      layer.handle.stack?.forEach((sub) => {
-        if (sub.route) subRoutes.push(sub.route.path);
-      });
-      routes.push({ path: layer.regexp.toString(), subRoutes });
-    }
-  });
-  res.json({ routes });
-});
-
 // ===== 404 & Error Handling =====
 app.use(notFoundHandler);
 app.use(errorHandler);

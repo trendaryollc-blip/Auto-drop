@@ -240,10 +240,7 @@
       });
     }
     return PluginRegistry.getAll().filter(function (p) {
-      return (
-        !isCritical(p) &&
-        ((p._mounted && section.querySelector('#' + p.id)) || section.id === 'section-' + p.id)
-      );
+      return !isCritical(p) && ((p._mounted && section.querySelector('#' + p.id)) || section.id === 'section-' + p.id);
     });
   }
 

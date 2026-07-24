@@ -1881,6 +1881,124 @@
 
 /* Card Grade & Footer (already in plugin-research.css — kept for backward compat) */
 
+/* Supplier Search Hero */
+.sh-search-hero {
+  padding: 2rem 0 1rem;
+  text-align: center;
+}
+.sh-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 2px solid var(--border-primary);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+.sh-search-bar:focus-within {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 0 4px rgba(0, 210, 211, 0.15), 0 8px 32px rgba(0, 210, 211, 0.12);
+}
+.sh-search-icon {
+  padding: 0 0 0 20px;
+  font-size: 24px;
+  opacity: 0.6;
+}
+.sh-search-input {
+  flex: 1;
+  padding: 20px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 17px;
+  outline: none;
+  min-width: 0;
+}
+.sh-search-input::placeholder {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+.sh-search-btn {
+  padding: 20px 40px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-cyan), #0ea5e9);
+  color: var(--bg-primary);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+.sh-search-btn:hover {
+  background: linear-gradient(135deg, #00d4d4, #0284c7);
+  box-shadow: 0 4px 20px rgba(0, 210, 211, 0.4);
+  transform: scale(1.02);
+}
+.sh-search-btn:active {
+  transform: scale(0.98);
+}
+.sh-search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.sh-search-status {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+  min-height: 22px;
+}
+.sh-search-status strong {
+  color: var(--accent-cyan);
+}
+.sh-search-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid var(--text-muted);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: sh-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes sh-spin {
+  to { transform: rotate(360deg); }
+}
+.sh-search-error {
+  color: var(--accent-red);
+}
+.sh-search-results {
+  max-width: 100%;
+}
+.sf-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-primary);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.sf-platform {
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+  opacity: 0.8;
+}
+.sf-platform:hover {
+  opacity: 1;
+}
+.sh-empty {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
 /* Supplier Detail Panel */
 .sh-detail-panel {
   position: fixed;

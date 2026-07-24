@@ -297,6 +297,23 @@
   }
 
   /* Sourcing mobile */
+  .sh-search-bar {
+    flex-direction: column;
+    border-radius: 14px;
+  }
+  .sh-search-icon {
+    display: none;
+  }
+  .sh-search-input {
+    padding: 16px 16px;
+    text-align: center;
+    font-size: 16px;
+  }
+  .sh-search-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+  }
   .sci-table-wrap {
     overflow-x: auto;
   }

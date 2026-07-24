@@ -570,6 +570,7 @@
             return String(x.id) === pid;
           });
           if (!p) return;
+          window.HuntDrop._currentProductId = pid;
           const container = UI.$('productDetailContent');
           if (!container) return;
           destroyCharts();

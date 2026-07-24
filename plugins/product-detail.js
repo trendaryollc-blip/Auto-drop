@@ -673,7 +673,10 @@
                 var prod = products.find(function (x) {
                   return String(x.id) === String(pid);
                 });
-                if (!prod) { resetBtn(); return; }
+                if (!prod) {
+                  resetBtn();
+                  return;
+                }
                 window.HuntDrop.StoreConnect.pushProduct(prod, 'active')
                   .then(function (result) {
                     if (result && result.success !== false) {
@@ -688,15 +691,21 @@
                       setTimeout(resetBtn, 3000);
                     }
                   })
-                  .catch(function () { resetBtn(); });
+                  .catch(function () {
+                    resetBtn();
+                  });
               }
               if (window.HuntDrop.StoreConnect) {
                 doPush();
               } else {
                 var scScript = document.createElement('script');
                 scScript.src = 'plugins/store-connect.js';
-                scScript.onload = function () { doPush(); };
-                scScript.onerror = function () { resetBtn(); };
+                scScript.onload = function () {
+                  doPush();
+                };
+                scScript.onerror = function () {
+                  resetBtn();
+                };
                 document.head.appendChild(scScript);
               }
               return;

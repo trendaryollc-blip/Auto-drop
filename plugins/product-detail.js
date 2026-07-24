@@ -657,46 +657,48 @@
             // Push to Trendaryo button
             if (e.target.closest('#pdPushTrendaryo')) {
               const pid = window.HuntDrop._currentProductId;
-              if (!pid || !window.HuntDrop.StoreConnect) return;
-              const products = window.HuntDrop.ALL_PRODUCTS || [];
-              const prod = products.find(function (x) {
-                return String(x.id) === String(pid);
-              });
-              if (!prod) return;
+              if (!pid) return;
               const btn = e.target.closest('#pdPushTrendaryo');
               btn.disabled = true;
               btn.innerHTML = '<span class="pd-push-spinner"></span> Pushing...';
-              window.HuntDrop.StoreConnect.pushProduct(prod, 'active')
-                .then(function (result) {
-                  if (result && result.success !== false) {
-                    btn.innerHTML = '&#10003; Pushed!';
-                    btn.style.borderColor = 'var(--accent-green)';
-                    btn.style.color = 'var(--accent-green)';
-                    setTimeout(function () {
-                      btn.innerHTML =
-                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Trendaryo';
-                      btn.style.borderColor = '';
-                      btn.style.color = '';
-                      btn.disabled = false;
-                    }, 3000);
-                  } else {
-                    btn.innerHTML = '&#10007; Failed';
-                    btn.style.borderColor = 'var(--accent-red)';
-                    btn.style.color = 'var(--accent-red)';
-                    setTimeout(function () {
-                      btn.innerHTML =
-                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Trendaryo';
-                      btn.style.borderColor = '';
-                      btn.style.color = '';
-                      btn.disabled = false;
-                    }, 3000);
-                  }
-                })
-                .catch(function () {
-                  btn.disabled = false;
-                  btn.innerHTML =
-                    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Trendaryo';
+              function resetBtn() {
+                btn.disabled = false;
+                btn.innerHTML =
+                  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Trendaryo';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+              }
+              function doPush() {
+                var products = window.HuntDrop.ALL_PRODUCTS || [];
+                var prod = products.find(function (x) {
+                  return String(x.id) === String(pid);
                 });
+                if (!prod) { resetBtn(); return; }
+                window.HuntDrop.StoreConnect.pushProduct(prod, 'active')
+                  .then(function (result) {
+                    if (result && result.success !== false) {
+                      btn.innerHTML = '&#10003; Pushed!';
+                      btn.style.borderColor = 'var(--accent-green)';
+                      btn.style.color = 'var(--accent-green)';
+                      setTimeout(resetBtn, 3000);
+                    } else {
+                      btn.innerHTML = '&#10007; Failed';
+                      btn.style.borderColor = 'var(--accent-red)';
+                      btn.style.color = 'var(--accent-red)';
+                      setTimeout(resetBtn, 3000);
+                    }
+                  })
+                  .catch(function () { resetBtn(); });
+              }
+              if (window.HuntDrop.StoreConnect) {
+                doPush();
+              } else {
+                var scScript = document.createElement('script');
+                scScript.src = 'plugins/store-connect.js';
+                scScript.onload = function () { doPush(); };
+                scScript.onerror = function () { resetBtn(); };
+                document.head.appendChild(scScript);
+              }
               return;
             }
             // AI Insight tags → Search

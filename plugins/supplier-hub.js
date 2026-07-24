@@ -53,14 +53,14 @@
     grid.innerHTML = suppliers
       .map((s, i) => {
         try {
-        const score = computeScore(s);
-        const risk = getRiskLevel(s);
-        const grade = getGrade(score);
-        const name = s.name || 'Unknown Supplier';
-        const platform = s.platform || 'Unknown';
-        const location = s.location || '';
-        const color = s.color || '#667eea';
-        return `<div class="supplier-hub-card" tabindex="0" role="button" aria-label="View ${esc(name)} details" data-idx="${i}" data-verified="${s.verified}" data-response="${esc(s.responseTime || '')}" data-rating="${s.rating || 0}" data-platform="${esc(platform)}">
+          const score = computeScore(s);
+          const risk = getRiskLevel(s);
+          const grade = getGrade(score);
+          const name = s.name || 'Unknown Supplier';
+          const platform = s.platform || 'Unknown';
+          const location = s.location || '';
+          const color = s.color || '#667eea';
+          return `<div class="supplier-hub-card" tabindex="0" role="button" aria-label="View ${esc(name)} details" data-idx="${i}" data-verified="${s.verified}" data-response="${esc(s.responseTime || '')}" data-rating="${s.rating || 0}" data-platform="${esc(platform)}">
       <div class="supplier-hub-header">
         <div class="supplier-hub-avatar" style="background:${esc(color)}22;color:${esc(color)}">${esc(name.charAt(0))}</div>
         <div><div class="supplier-hub-name">${esc(name)}</div><div class="supplier-hub-platform">${esc(platform)} \u2022 ${esc(location)}</div></div>
@@ -106,22 +106,22 @@
     const panel = _section?.querySelector('#supplierDetailPanel');
     if (!panel) return;
     try {
-    const score = computeScore(supplier);
-    const risk = getRiskLevel(supplier);
-    const grade = getGrade(score);
-    const name = supplier.name || 'Unknown Supplier';
-    const platform = supplier.platform || 'Unknown';
-    const location = supplier.location || 'N/A';
-    const specialty = supplier.specialty || 'General';
-    const color = supplier.color || '#667eea';
-    const quality = supplier.quality || 0;
-    const communication = supplier.communication || 0;
-    const value = supplier.value || 0;
-    const responseRate = supplier.responseRate || 0;
-    const fulfillmentRate = supplier.fulfillmentRate || 0;
-    const disputeRate = supplier.disputeRate || 0;
+      const score = computeScore(supplier);
+      const risk = getRiskLevel(supplier);
+      const grade = getGrade(score);
+      const name = supplier.name || 'Unknown Supplier';
+      const platform = supplier.platform || 'Unknown';
+      const location = supplier.location || 'N/A';
+      const specialty = supplier.specialty || 'General';
+      const color = supplier.color || '#667eea';
+      const quality = supplier.quality || 0;
+      const communication = supplier.communication || 0;
+      const value = supplier.value || 0;
+      const responseRate = supplier.responseRate || 0;
+      const fulfillmentRate = supplier.fulfillmentRate || 0;
+      const disputeRate = supplier.disputeRate || 0;
 
-    panel.innerHTML = `
+      panel.innerHTML = `
     <div class="sh-detail-overlay" id="shDetailClose"></div>
     <div class="sh-detail-content">
       <button class="sh-detail-close" id="shDetailCloseBtn" aria-label="Close detail panel">
@@ -210,50 +210,50 @@
         <button class="sh-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-ad-studio')">\uD83C\uDFAC Create Ads</button>
       </div>
     </div>`;
-    panel.classList.add('sh-detail-open');
-    document.body.style.overflow = 'hidden';
+      panel.classList.add('sh-detail-open');
+      document.body.style.overflow = 'hidden';
 
-    const closeBtn = panel.querySelector('#shDetailCloseBtn');
-    const overlay = panel.querySelector('#shDetailClose');
-    const closeDetail = () => {
-      panel.classList.remove('sh-detail-open');
-      panel.innerHTML = '';
-      document.body.style.overflow = '';
-    };
-    if (closeBtn) closeBtn.addEventListener('click', closeDetail);
-    if (overlay) overlay.addEventListener('click', closeDetail);
+      const closeBtn = panel.querySelector('#shDetailCloseBtn');
+      const overlay = panel.querySelector('#shDetailClose');
+      const closeDetail = () => {
+        panel.classList.remove('sh-detail-open');
+        panel.innerHTML = '';
+        document.body.style.overflow = '';
+      };
+      if (closeBtn) closeBtn.addEventListener('click', closeDetail);
+      if (overlay) overlay.addEventListener('click', closeDetail);
 
-    const onEsc = (e) => {
-      if (e.key === 'Escape') {
-        closeDetail();
-        document.removeEventListener('keydown', onEsc);
-      }
-    };
-    document.addEventListener('keydown', onEsc);
-
-    panel.querySelectorAll('.sh-detail-product-chip').forEach((chip) => {
-      const handler = () => {
-        const productName = chip.dataset.product;
-        if (productName && window.HuntDrop.navigateTo) {
+      const onEsc = (e) => {
+        if (e.key === 'Escape') {
           closeDetail();
-          setTimeout(() => {
-            const searchInput = document.querySelector('.search-input, #searchInput');
-            if (searchInput) {
-              searchInput.value = productName;
-              searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            window.HuntDrop.navigateTo('section-product-hunt');
-          }, 350);
+          document.removeEventListener('keydown', onEsc);
         }
       };
-      chip.addEventListener('click', handler);
-      chip.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handler();
-        }
+      document.addEventListener('keydown', onEsc);
+
+      panel.querySelectorAll('.sh-detail-product-chip').forEach((chip) => {
+        const handler = () => {
+          const productName = chip.dataset.product;
+          if (productName && window.HuntDrop.navigateTo) {
+            closeDetail();
+            setTimeout(() => {
+              const searchInput = document.querySelector('.search-input, #searchInput');
+              if (searchInput) {
+                searchInput.value = productName;
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+              window.HuntDrop.navigateTo('section-product-hunt');
+            }, 350);
+          }
+        };
+        chip.addEventListener('click', handler);
+        chip.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handler();
+          }
+        });
       });
-    });
     } catch (err) {
       console.error('[SupplierHub] showDetail error:', err);
     }
@@ -450,16 +450,76 @@
     if (!checklist) return;
     const checked = getCheckedItems();
     const items = [
-      { id: 'verify-license', icon: '\uD83D\uDD0D', title: 'Verify Business License', desc: 'Confirm the supplier has valid business registration and import/export licenses', priority: 'Critical' },
-      { id: 'request-samples', icon: '\uD83D\uDCCB', title: 'Request Product Samples', desc: 'Always order 2-3 samples before committing to bulk orders', priority: 'Critical' },
-      { id: 'test-response', icon: '\uD83D\uDCAC', title: 'Test Response Time', desc: 'Send inquiries at different hours to verify claimed response times', priority: 'High' },
-      { id: 'check-orders', icon: '\uD83D\uDCCA', title: 'Check Order History', desc: 'Look for consistent order volume and positive feedback trends over 6+ months', priority: 'High' },
-      { id: 'review-return', icon: '\uD83D\uDD04', title: 'Review Return Policy', desc: 'Understand refund terms, restocking fees, and dispute resolution process', priority: 'High' },
-      { id: 'verify-photos', icon: '\uD83D\uDCF7', title: 'Verify Product Photos', desc: 'Request actual product photos, not just stock images', priority: 'Medium' },
-      { id: 'compare-pricing', icon: '\uD83C\uDFF7\uFE0F', title: 'Compare Unit Pricing', desc: 'Get quotes for different quantities to understand volume discounts', priority: 'Medium' },
-      { id: 'confirm-shipping', icon: '\uD83D\uDE9A', title: 'Confirm Shipping Methods', desc: 'Verify available carriers, tracking options, and insurance coverage', priority: 'Medium' },
-      { id: 'read-reviews', icon: '\uD83D\uDCDD', title: 'Read Sample Reviews', desc: 'Check reviews from other dropshippers who use this supplier', priority: 'Low' },
-      { id: 'negotiate-terms', icon: '\uD83E\uDD1D', title: 'Negotiate Terms', desc: 'Discuss payment terms, exclusivity options, and custom packaging availability', priority: 'Low' },
+      {
+        id: 'verify-license',
+        icon: '\uD83D\uDD0D',
+        title: 'Verify Business License',
+        desc: 'Confirm the supplier has valid business registration and import/export licenses',
+        priority: 'Critical',
+      },
+      {
+        id: 'request-samples',
+        icon: '\uD83D\uDCCB',
+        title: 'Request Product Samples',
+        desc: 'Always order 2-3 samples before committing to bulk orders',
+        priority: 'Critical',
+      },
+      {
+        id: 'test-response',
+        icon: '\uD83D\uDCAC',
+        title: 'Test Response Time',
+        desc: 'Send inquiries at different hours to verify claimed response times',
+        priority: 'High',
+      },
+      {
+        id: 'check-orders',
+        icon: '\uD83D\uDCCA',
+        title: 'Check Order History',
+        desc: 'Look for consistent order volume and positive feedback trends over 6+ months',
+        priority: 'High',
+      },
+      {
+        id: 'review-return',
+        icon: '\uD83D\uDD04',
+        title: 'Review Return Policy',
+        desc: 'Understand refund terms, restocking fees, and dispute resolution process',
+        priority: 'High',
+      },
+      {
+        id: 'verify-photos',
+        icon: '\uD83D\uDCF7',
+        title: 'Verify Product Photos',
+        desc: 'Request actual product photos, not just stock images',
+        priority: 'Medium',
+      },
+      {
+        id: 'compare-pricing',
+        icon: '\uD83C\uDFF7\uFE0F',
+        title: 'Compare Unit Pricing',
+        desc: 'Get quotes for different quantities to understand volume discounts',
+        priority: 'Medium',
+      },
+      {
+        id: 'confirm-shipping',
+        icon: '\uD83D\uDE9A',
+        title: 'Confirm Shipping Methods',
+        desc: 'Verify available carriers, tracking options, and insurance coverage',
+        priority: 'Medium',
+      },
+      {
+        id: 'read-reviews',
+        icon: '\uD83D\uDCDD',
+        title: 'Read Sample Reviews',
+        desc: 'Check reviews from other dropshippers who use this supplier',
+        priority: 'Low',
+      },
+      {
+        id: 'negotiate-terms',
+        icon: '\uD83E\uDD1D',
+        title: 'Negotiate Terms',
+        desc: 'Discuss payment terms, exclusivity options, and custom packaging availability',
+        priority: 'Low',
+      },
     ];
     const priColors = {
       Critical: 'var(--accent-red)',
@@ -481,7 +541,9 @@
           <span class="sh-check-progress-count" id="shChecklistCount">${done}/${total}</span>
         </div>
       </div>
-      ${items.map((i) => `
+      ${items
+        .map(
+          (i) => `
     <div class="sh-check-item${checked[i.id] ? ' sh-check-done' : ''}" data-check-id="${i.id}" tabindex="0" role="checkbox" aria-checked="${checked[i.id] ? 'true' : 'false'}" aria-label="${i.title}">
       <div class="sh-check-box">${checked[i.id] ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}</div>
       <div class="sh-check-icon">${i.icon}</div>
@@ -491,7 +553,9 @@
       </div>
       <div class="sh-check-priority" style="color:${priColors[i.priority]}">${i.priority}</div>
     </div>
-  `).join('')}`;
+  `
+        )
+        .join('')}`;
 
     checklist.querySelectorAll('.sh-check-item').forEach((item) => {
       const handler = () => {
@@ -499,7 +563,9 @@
         const isChecked = item.classList.toggle('sh-check-done');
         const box = item.querySelector('.sh-check-box');
         item.setAttribute('aria-checked', isChecked);
-        box.innerHTML = isChecked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '';
+        box.innerHTML = isChecked
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+          : '';
         setCheckedItem(id, isChecked);
       };
       item.addEventListener('click', handler);
@@ -533,12 +599,42 @@
     const bestBeginner = list.find((s) => s.verified && (s.minOrder || '').includes('1')) || highestRated;
 
     const picks = [
-      { use: '\uD83D\uDE80 Fastest Shipping', s: fastestShip, reason: (fastestShip?.shipTime || '?') + ' day delivery', color: 'var(--accent-green)' },
-      { use: '\uD83D\uDCB0 Best Value', s: bestValue, reason: 'Score: ' + (bestValue?.value || 0) + '/100 value rating', color: 'var(--accent-cyan)' },
-      { use: '\u2B50 Highest Rated', s: highestRated, reason: (highestRated?.rating || 0) + '\u2605 with ' + (highestRated?.orders || 0) + ' orders', color: 'var(--accent-yellow)' },
-      { use: '\uD83D\uDCE6 Most Orders', s: mostOrders, reason: (mostOrders?.orders || 0) + ' total orders', color: 'var(--accent-pink)' },
-      { use: '\uD83D\uDEE1\uFE0F Lowest Risk', s: lowestRisk, reason: (lowestRisk?.disputeRate || 0) + '% dispute rate', color: 'var(--accent-purple)' },
-      { use: '\uD83C\uDFAF Best for Beginners', s: bestBeginner, reason: bestBeginner?.verified ? 'Verified supplier' : 'Top rated', color: 'var(--accent-orange)' },
+      {
+        use: '\uD83D\uDE80 Fastest Shipping',
+        s: fastestShip,
+        reason: (fastestShip?.shipTime || '?') + ' day delivery',
+        color: 'var(--accent-green)',
+      },
+      {
+        use: '\uD83D\uDCB0 Best Value',
+        s: bestValue,
+        reason: 'Score: ' + (bestValue?.value || 0) + '/100 value rating',
+        color: 'var(--accent-cyan)',
+      },
+      {
+        use: '\u2B50 Highest Rated',
+        s: highestRated,
+        reason: (highestRated?.rating || 0) + '\u2605 with ' + (highestRated?.orders || 0) + ' orders',
+        color: 'var(--accent-yellow)',
+      },
+      {
+        use: '\uD83D\uDCE6 Most Orders',
+        s: mostOrders,
+        reason: (mostOrders?.orders || 0) + ' total orders',
+        color: 'var(--accent-pink)',
+      },
+      {
+        use: '\uD83D\uDEE1\uFE0F Lowest Risk',
+        s: lowestRisk,
+        reason: (lowestRisk?.disputeRate || 0) + '% dispute rate',
+        color: 'var(--accent-purple)',
+      },
+      {
+        use: '\uD83C\uDFAF Best for Beginners',
+        s: bestBeginner,
+        reason: bestBeginner?.verified ? 'Verified supplier' : 'Top rated',
+        color: 'var(--accent-orange)',
+      },
     ].filter((p) => p.s);
 
     picksGrid.innerHTML = picks
@@ -601,7 +697,8 @@
 
     if (searchBtn) searchBtn.disabled = true;
     if (searchInput) searchInput.disabled = true;
-    if (statusEl) statusEl.innerHTML = '<span class="sh-search-spinner"></span> Searching web + platforms for suppliers...';
+    if (statusEl)
+      statusEl.innerHTML = '<span class="sh-search-spinner"></span> Searching web + platforms for suppliers...';
     if (resultsEl) resultsEl.innerHTML = '';
 
     try {
@@ -641,9 +738,8 @@
 
       const webLabel = data.webProvider ? `Web: ${data.webProvider}` : 'Web: none';
       const aiLabel = data.aiProvider ? `AI: ${data.aiProvider}` : 'AI: regex';
-      const platformsSearched = data.searchedPlatforms && data.searchedPlatforms.length > 0
-        ? data.searchedPlatforms.join(', ')
-        : 'none';
+      const platformsSearched =
+        data.searchedPlatforms && data.searchedPlatforms.length > 0 ? data.searchedPlatforms.join(', ') : 'none';
       if (statusEl) {
         statusEl.innerHTML = `Found <strong>${_suppliers.length}</strong> suppliers for "${esc(query)}" — ${webLabel}, ${aiLabel}, Searched: ${platformsSearched}, Platforms: ${data.platformCount || 0}`;
       }

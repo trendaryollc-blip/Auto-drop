@@ -17,42 +17,46 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --prefer-offline
       - run: npm run lint
 
   format:
     name: Format Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --prefer-offline
       - run: npm run format:check
 
   test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --prefer-offline
       - run: npm test
 
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [lint, format, test]
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +64,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --prefer-offline
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:

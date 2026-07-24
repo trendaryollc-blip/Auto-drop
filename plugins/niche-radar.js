@@ -52,15 +52,18 @@
   }
 
   function renderCompetitionBar(saturation) {
-    const color = saturation < 30 ? 'var(--accent-green)' : saturation < 55 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+    const color =
+      saturation < 30 ? 'var(--accent-green)' : saturation < 55 ? 'var(--accent-yellow)' : 'var(--accent-red)';
     return `<div class="nr-comp-bar"><div class="nr-comp-fill" style="width:${saturation}%;background:${color}"></div><span class="nr-comp-pct">${saturation}%</span></div>`;
   }
 
   function renderPlatformChips(platforms) {
-    return `<div class="nr-platforms">${platforms.map((p) => {
-      const c = p.sellers < 8 ? 'var(--accent-green)' : p.sellers < 20 ? 'var(--accent-yellow)' : 'var(--accent-red)';
-      return `<span class="nr-plat-chip"><span class="nr-plat-dot" style="background:${c}"></span>${esc(p.name)} <span class="nr-plat-count">${p.sellers}</span></span>`;
-    }).join('')}</div>`;
+    return `<div class="nr-platforms">${platforms
+      .map((p) => {
+        const c = p.sellers < 8 ? 'var(--accent-green)' : p.sellers < 20 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+        return `<span class="nr-plat-chip"><span class="nr-plat-dot" style="background:${c}"></span>${esc(p.name)} <span class="nr-plat-count">${p.sellers}</span></span>`;
+      })
+      .join('')}</div>`;
   }
 
   function computeMetrics(products) {
@@ -106,21 +109,36 @@
       totalReviews,
       platformDistribution,
       topProducts: [...products].sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 8),
-      priceRange: prices.length > 1 ? `$${min(prices).toFixed(2)} - $${max(prices).toFixed(2)}` : `$${(prices[0] || 0).toFixed(2)}`,
+      priceRange:
+        prices.length > 1
+          ? `$${min(prices).toFixed(2)} - $${max(prices).toFixed(2)}`
+          : `$${(prices[0] || 0).toFixed(2)}`,
       competitionLevel: products.length > 30 ? 'high' : products.length > 10 ? 'medium' : 'low',
       competitionPct: Math.min(100, Math.round((products.length / 50) * 100)),
     };
   }
 
   function computeScore(metrics, webData) {
-    if (!metrics) return { score: 0, demand: 0, margin: 0, competition: 0, trend: 0, verdict: 'SKIP', verdictReason: 'No data found' };
+    if (!metrics)
+      return {
+        score: 0,
+        demand: 0,
+        margin: 0,
+        competition: 0,
+        trend: 0,
+        verdict: 'SKIP',
+        verdictReason: 'No data found',
+      };
 
-    const demand = Math.min(100, Math.round(
-      (metrics.totalProducts * 2) +
-      (metrics.totalOrders / 100) +
-      (metrics.totalReviews / 50) +
-      (parseFloat(metrics.avgRating) * 10)
-    ));
+    const demand = Math.min(
+      100,
+      Math.round(
+        metrics.totalProducts * 2 +
+          metrics.totalOrders / 100 +
+          metrics.totalReviews / 50 +
+          parseFloat(metrics.avgRating) * 10
+      )
+    );
 
     const margin = Math.min(100, Math.round(parseFloat(metrics.avgMargin) * 1.2 || 40));
 
@@ -142,7 +160,15 @@
       verdictReason = 'Weak signals. High competition or low demand makes this niche challenging.';
     }
 
-    return { score, demand: Math.min(100, demand), margin: Math.min(100, margin), competition, trend, verdict, verdictReason };
+    return {
+      score,
+      demand: Math.min(100, demand),
+      margin: Math.min(100, margin),
+      competition,
+      trend,
+      verdict,
+      verdictReason,
+    };
   }
 
   function buildSearchUI() {
@@ -164,25 +190,51 @@
       <div id="nicheLoading" class="nr-loading-state" style="display:none"></div>
       <div id="nicheResults"></div>
       ${window.HuntDrop.renderRelatedTools([
-        { section: 'section-product-hunt', name: 'Product Hunt', desc: 'Find winning products', icon: '🔥', color: '#FF6B6B' },
-        { section: 'section-market-gaps', name: 'Market Gaps', desc: 'Find underserved markets', icon: '🔍', color: '#4ECDC4' },
-        { section: 'section-battlefield', name: 'Competitor Check', desc: 'Map competitors', icon: '⚔️', color: '#45B7D1' },
-        { section: 'section-lifecycle', name: 'Product Lifecycle', desc: 'Track product stages', icon: '📈', color: '#96CEB4' },
+        {
+          section: 'section-product-hunt',
+          name: 'Product Hunt',
+          desc: 'Find winning products',
+          icon: '🔥',
+          color: '#FF6B6B',
+        },
+        {
+          section: 'section-market-gaps',
+          name: 'Market Gaps',
+          desc: 'Find underserved markets',
+          icon: '🔍',
+          color: '#4ECDC4',
+        },
+        {
+          section: 'section-battlefield',
+          name: 'Competitor Check',
+          desc: 'Map competitors',
+          icon: '⚔️',
+          color: '#45B7D1',
+        },
+        {
+          section: 'section-lifecycle',
+          name: 'Product Lifecycle',
+          desc: 'Track product stages',
+          icon: '📈',
+          color: '#96CEB4',
+        },
       ])}
     </div>`;
   }
 
   function buildLoadingUI(query) {
     const platforms = DataLayer.getAdapters();
-    const platDots = platforms.map(([name]) => {
-      const meta = PLATFORM_META[name] || { icon: '🏪', name };
-      return `<div class="nr-load-plat" data-platform="${name}">
+    const platDots = platforms
+      .map(([name]) => {
+        const meta = PLATFORM_META[name] || { icon: '🏪', name };
+        return `<div class="nr-load-plat" data-platform="${name}">
         <span class="nr-load-dot"></span>
         <span class="nr-load-icon">${meta.icon}</span>
         <span class="nr-load-name">${meta.name}</span>
         <span class="nr-load-status">Searching...</span>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     return `
     <div class="nr-load-card">
@@ -241,7 +293,12 @@
   }
 
   function buildVerdictSection(query, metrics, scoreData) {
-    const verdictClass = scoreData.verdict === 'GO' ? 'nr-verdict-go' : scoreData.verdict === 'MAYBE' ? 'nr-verdict-maybe' : 'nr-verdict-skip';
+    const verdictClass =
+      scoreData.verdict === 'GO'
+        ? 'nr-verdict-go'
+        : scoreData.verdict === 'MAYBE'
+          ? 'nr-verdict-maybe'
+          : 'nr-verdict-skip';
     const verdictIcon = scoreData.verdict === 'GO' ? '✅' : scoreData.verdict === 'MAYBE' ? '⚠️' : '❌';
     return `
     <div class="nr-verdict-card ${verdictClass}" style="animation:fadeUp 0.5s ease 0.1s both">
@@ -320,7 +377,9 @@
   }
 
   function buildTrendSection(metrics) {
-    const trendData = metrics.topProducts.slice(0, 12).map((p) => p.salesVelocity || p.orders || Math.floor(Math.random() * 50) + 10);
+    const trendData = metrics.topProducts
+      .slice(0, 12)
+      .map((p) => p.salesVelocity || p.orders || Math.floor(Math.random() * 50) + 10);
     if (trendData.length < 2) return '';
     return `
     <div class="nr-section" style="animation:fadeUp 0.5s ease 0.25s both">
@@ -330,13 +389,15 @@
   }
 
   function buildPlatformSection(metrics) {
-    const bars = metrics.platformDistribution.map((p) => {
-      const barW = Math.min((p.sellers / metrics.totalProducts) * 100, 100);
-      return `<div class="nr-plat-row">
+    const bars = metrics.platformDistribution
+      .map((p) => {
+        const barW = Math.min((p.sellers / metrics.totalProducts) * 100, 100);
+        return `<div class="nr-plat-row">
         <div class="nr-plat-header"><span class="nr-plat-name">${p.icon} ${esc(p.name)}</span><span class="nr-plat-count">${p.sellers} products (${p.pct}%)</span></div>
         <div class="nr-plat-bar-wrap"><div class="nr-plat-bar" style="width:${barW}%;background:${p.color}"></div></div>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     return `
     <div class="nr-section" style="animation:fadeUp 0.5s ease 0.3s both">
@@ -346,9 +407,14 @@
   }
 
   function buildTopProductsSection(metrics) {
-    const cards = metrics.topProducts.map((p, i) => {
-      const platform = PLATFORM_META[p._sourcePlatform || p.platform] || { icon: '🏪', name: p.platform || 'Unknown', color: '#888' };
-      return `<div class="nr-prod-card" style="animation-delay:${i * 0.05}s">
+    const cards = metrics.topProducts
+      .map((p, i) => {
+        const platform = PLATFORM_META[p._sourcePlatform || p.platform] || {
+          icon: '🏪',
+          name: p.platform || 'Unknown',
+          color: '#888',
+        };
+        return `<div class="nr-prod-card" style="animation-delay:${i * 0.05}s">
         <img src="${esc(p.image)}" class="nr-prod-img" alt="" onerror="this.style.display='none'">
         <div class="nr-prod-info">
           <span class="nr-prod-name">${esc(p.title)}</span>
@@ -360,7 +426,8 @@
           </div>
         </div>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     return `
     <div class="nr-section" style="animation:fadeUp 0.5s ease 0.35s both">
@@ -370,15 +437,18 @@
   }
 
   function buildCompetitorSection(webData) {
-    const items = webData.competitors.slice(0, 6).map((c, i) => {
-      return `<div class="nr-comp-item" style="animation-delay:${i * 0.05}s">
+    const items = webData.competitors
+      .slice(0, 6)
+      .map((c, i) => {
+        return `<div class="nr-comp-item" style="animation-delay:${i * 0.05}s">
         <a href="${esc(c.url)}" target="_blank" rel="noopener" class="nr-comp-link">
           <span class="nr-comp-title">${esc(c.title)}</span>
           <span class="nr-comp-url">${esc(c.url)}</span>
           <span class="nr-comp-snippet">${esc(c.content || c.snippet || '')}</span>
         </a>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     return `
     <div class="nr-section" style="animation:fadeUp 0.5s ease 0.4s both">
@@ -427,12 +497,15 @@
 
   function buildBenchmarksSection(webData) {
     if (!webData.benchmarks || webData.benchmarks.length === 0) return '';
-    const items = webData.benchmarks.slice(0, 4).map((b, i) => {
-      return `<div class="nr-bench-item" style="animation-delay:${i * 0.05}s">
+    const items = webData.benchmarks
+      .slice(0, 4)
+      .map((b, i) => {
+        return `<div class="nr-bench-item" style="animation-delay:${i * 0.05}s">
         <span class="nr-bench-title">${esc(b.title)}</span>
         <span class="nr-bench-content">${esc(b.content || b.snippet || '')}</span>
       </div>`;
-    }).join('');
+      })
+      .join('');
 
     return `
     <div class="nr-section" style="animation:fadeUp 0.5s ease 0.5s both">
@@ -486,7 +559,7 @@
     } else if (scoreData.competition > 40) {
       parts.push('Competition is moderate — differentiation will be key. ');
     } else {
-      parts.push('Competition is high — you\'ll need a unique angle to stand out. ');
+      parts.push("Competition is high — you'll need a unique angle to stand out. ");
     }
 
     if (webData && webData.hasTrend信号) {
@@ -532,7 +605,8 @@
     const el = _section.querySelector(`[data-platform="${platform}"] .nr-load-status`);
     if (el) {
       el.textContent = status;
-      el.className = 'nr-load-status nr-load-status-' + (status === 'Found!' ? 'ok' : status === 'No key' ? 'warn' : '');
+      el.className =
+        'nr-load-status nr-load-status-' + (status === 'Found!' ? 'ok' : status === 'No key' ? 'warn' : '');
     }
     const dot = _section.querySelector(`[data-platform="${platform}"] .nr-load-dot`);
     if (dot) {
@@ -566,48 +640,55 @@
       const platformKeys = DataLayer.getAdapters();
       const platformNames = platformKeys.map(([name]) => name);
 
-      const searchPromise = DataLayer.searchAll(query, {}).then((results) => {
-        platformNames.forEach((name) => {
-          const count = results.filter((r) => (r._sourcePlatform || r.platform) === name).length;
-          updatePlatformStatus(name, count > 0 ? 'Found!' : '0 results');
+      const searchPromise = DataLayer.searchAll(query, {})
+        .then((results) => {
+          platformNames.forEach((name) => {
+            const count = results.filter((r) => (r._sourcePlatform || r.platform) === name).length;
+            updatePlatformStatus(name, count > 0 ? 'Found!' : '0 results');
+          });
+          return results;
+        })
+        .catch((e) => {
+          console.warn('[NicheRadar] Platform search error:', e);
+          platformNames.forEach((name) => updatePlatformStatus(name, 'Error'));
+          return [];
         });
-        return results;
-      }).catch((e) => {
-        console.warn('[NicheRadar] Platform search error:', e);
-        platformNames.forEach((name) => updatePlatformStatus(name, 'Error'));
-        return [];
-      });
 
       const webSearchPromises = [];
       const WebSearch = window.HuntDrop.AIWebSearch;
       if (WebSearch && WebSearch.hasKey()) {
         webSearchPromises.push(
-          WebSearch.searchCompetitors(query).then((r) => {
-            webData.competitors = r.results || [];
-            return r;
-          }).catch(() => null)
+          WebSearch.searchCompetitors(query)
+            .then((r) => {
+              webData.competitors = r.results || [];
+              return r;
+            })
+            .catch(() => null)
         );
         webSearchPromises.push(
-          WebSearch.searchIndustryBenchmarks(query).then((r) => {
-            webData.benchmarks = r.results || [];
-            return r;
-          }).catch(() => null)
+          WebSearch.searchIndustryBenchmarks(query)
+            .then((r) => {
+              webData.benchmarks = r.results || [];
+              return r;
+            })
+            .catch(() => null)
         );
         webSearchPromises.push(
-          WebSearch.searchProductTrends(query).then((r) => {
-            const results = r.results || [];
-            if (results.length > 0) {
-              webData.hasTrend信号 = true;
-              webData.trendBoost = Math.min(30, results.length * 6);
-            }
-            return r;
-          }).catch(() => null)
+          WebSearch.searchProductTrends(query)
+            .then((r) => {
+              const results = r.results || [];
+              if (results.length > 0) {
+                webData.hasTrend信号 = true;
+                webData.trendBoost = Math.min(30, results.length * 6);
+              }
+              return r;
+            })
+            .catch(() => null)
         );
       }
 
       const [searchResults] = await Promise.all([searchPromise, Promise.all(webSearchPromises)]);
       products = searchResults || [];
-
     } catch (e) {
       console.error('[NicheRadar] Search error:', e);
     }
@@ -615,7 +696,17 @@
     window.HuntDrop.ALL_PRODUCTS = products;
 
     const metrics = computeMetrics(products);
-    const scoreData = metrics ? computeScore(metrics, webData) : { score: 0, demand: 0, margin: 0, competition: 0, trend: 0, verdict: 'SKIP', verdictReason: 'No products found. Try different keywords or connect platform API keys.' };
+    const scoreData = metrics
+      ? computeScore(metrics, webData)
+      : {
+          score: 0,
+          demand: 0,
+          margin: 0,
+          competition: 0,
+          trend: 0,
+          verdict: 'SKIP',
+          verdictReason: 'No products found. Try different keywords or connect platform API keys.',
+        };
 
     _results = { query, products, metrics, scoreData, webData };
 
@@ -661,10 +752,16 @@
       if (el) el.textContent = val;
     };
 
-    setVal('nrSimRevenue', '$' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+    setVal(
+      'nrSimRevenue',
+      '$' + revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    );
     setVal('nrSimCostVal', '-$' + totalCost.toFixed(2));
     setVal('nrSimAdVal', '-$' + adSpend.toFixed(2));
-    setVal('nrSimProfit', '$' + profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+    setVal(
+      'nrSimProfit',
+      '$' + profit.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+    );
     setVal('nrSimMarginPct', margin + '%');
 
     const profitEl = _section.querySelector('#nrSimProfit');

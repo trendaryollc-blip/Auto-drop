@@ -5120,7 +5120,9 @@
   flex-shrink: 0;
 }
 @keyframes nrSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 .nr-load-title {
   font-family: var(--font-display);
@@ -5180,8 +5182,13 @@
   animation: none;
 }
 @keyframes nrPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 .nr-load-icon {
   font-size: 14px;
@@ -5222,9 +5229,15 @@
   right: 0;
   height: 3px;
 }
-.nr-verdict-go::before { background: var(--accent-green); }
-.nr-verdict-maybe::before { background: var(--accent-yellow); }
-.nr-verdict-skip::before { background: var(--accent-red); }
+.nr-verdict-go::before {
+  background: var(--accent-green);
+}
+.nr-verdict-maybe::before {
+  background: var(--accent-yellow);
+}
+.nr-verdict-skip::before {
+  background: var(--accent-red);
+}
 
 .nr-verdict-left {
   display: flex;
@@ -5258,9 +5271,15 @@
   font-weight: 800;
   margin-bottom: 4px;
 }
-.nr-verdict-go .nr-verdict-verdict { color: var(--accent-green); }
-.nr-verdict-maybe .nr-verdict-verdict { color: var(--accent-yellow); }
-.nr-verdict-skip .nr-verdict-verdict { color: var(--accent-red); }
+.nr-verdict-go .nr-verdict-verdict {
+  color: var(--accent-green);
+}
+.nr-verdict-maybe .nr-verdict-verdict {
+  color: var(--accent-yellow);
+}
+.nr-verdict-skip .nr-verdict-verdict {
+  color: var(--accent-red);
+}
 
 .nr-verdict-reason {
   font-size: 13px;
@@ -5366,7 +5385,9 @@
   animation: nrBarGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes nrBarGrow {
-  from { width: 0 !important; }
+  from {
+    width: 0 !important;
+  }
 }
 .nr-score-val {
   font-family: var(--font-mono);

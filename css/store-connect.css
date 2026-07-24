@@ -367,11 +367,16 @@
 }
 
 /* Push button on product cards */
+.card-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .push-trendaryo-btn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
@@ -385,6 +390,7 @@
 .push-trendaryo-btn:hover {
   background: rgba(0, 200, 255, 0.18);
   border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 200, 255, 0.2);
 }
 .push-trendaryo-btn:disabled {
   opacity: 0.5;
@@ -394,6 +400,34 @@
   border-color: var(--accent-green);
   color: var(--accent-green);
   background: rgba(0, 255, 136, 0.1);
+}
+
+/* Push button on product detail page */
+.pd-action-btn.push-store {
+  border-color: rgba(0, 200, 255, 0.4);
+  background: rgba(0, 200, 255, 0.08);
+  color: var(--accent-cyan);
+}
+.pd-action-btn.push-store:hover {
+  background: rgba(0, 200, 255, 0.18);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.2);
+}
+.pd-push-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(0, 200, 255, 0.3);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: pdSpin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+@keyframes pdSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Bulk push floating bar */

@@ -136,12 +136,14 @@
       supplierName +
       (supplierVerified ? ' <span class="supplier-verified">&#10003;</span>' : '') +
       '</div>' +
+      '<div class="card-footer-actions">' +
       '<button class="push-trendaryo-btn" data-push-id="' +
       p.id +
-      '" title="Push to Trendaryo"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Store</button>' +
+      '" title="Push to Trendaryo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Store</button>' +
       '<button class="card-action" data-action="analyze" data-id="' +
       p.id +
       '">Full Analysis</button>' +
+      '</div>' +
       '</div>' +
       '</div>'
     );
@@ -179,21 +181,27 @@
           return String(x.id) === String(id);
         });
         if (!p) return;
-        this.disabled = true;
-        this.textContent = '...';
+        const btnEl = this;
+        btnEl.disabled = true;
+        btnEl.innerHTML =
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="31" stroke-dashoffset="31"><animate attributeName="stroke-dashoffset" values="31;0" dur="0.8s" repeatCount="indefinite"/></circle></svg> Pushing...';
         try {
           await window.HuntDrop.StoreConnect.pushProduct(p);
-          this.textContent = '✅';
+          btnEl.classList.add('push-success');
+          btnEl.innerHTML = '&#10003; Pushed!';
           setTimeout(function () {
-            btn.textContent = 'Store';
-            btn.disabled = false;
-          }, 2000);
+            btnEl.classList.remove('push-success');
+            btnEl.innerHTML =
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Store';
+            btnEl.disabled = false;
+          }, 2500);
         } catch (e) {
-          this.textContent = '❌';
+          btnEl.innerHTML = '&#10007; Failed';
           setTimeout(function () {
-            btn.textContent = 'Store';
-            btn.disabled = false;
-          }, 2000);
+            btnEl.innerHTML =
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Push to Store';
+            btnEl.disabled = false;
+          }, 2500);
         }
       });
     });

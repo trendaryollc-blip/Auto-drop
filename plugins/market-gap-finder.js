@@ -888,7 +888,7 @@
             ])
           : '';
       s.innerHTML = `<div class="section-inner">
-      ${renderHero()}
+      ${_renderHero()}
       <div id="mgAIScan"></div>
       <div id="mgDataMeta"></div>
       <div id="mgFilters"></div>

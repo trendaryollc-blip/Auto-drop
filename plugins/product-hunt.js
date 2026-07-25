@@ -80,106 +80,118 @@
     return `
     <div class="section-inner">
       <div class="ph-console">
-        <div class="ph-console-badge"><span class="ph-console-badge-dot"></span> AI-Powered</div>
-        <h1 class="ph-console-title">Hunt Winning Products</h1>
-        <p class="ph-console-desc">Type what you're looking for — AI searches 10 platforms simultaneously, validates demand, checks competition, and finds arbitrage opportunities.</p>
+        <h1 class="ph-console-title"><span class="ph-console-badge"><span class="ph-console-badge-dot"></span> AI-Powered</span> Hunt Winning Products</h1>
+        <p class="ph-console-desc">AI searches 10 platforms, validates demand, and finds arbitrage opportunities.</p>
       </div>
 
       <div class="ph-prompt-wrap" role="search" aria-label="Product search">
         <div class="ph-prompt-box">
-          <textarea class="ph-prompt-textarea" id="phPrompt" placeholder="${PROMPT_SUGGESTIONS[0]}" rows="3"></textarea>
+          <div class="ph-prompt-input-row">
+            <svg class="ph-prompt-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <textarea class="ph-prompt-textarea" id="phPrompt" placeholder="${PROMPT_SUGGESTIONS[0]}" rows="1"></textarea>
+            <button class="ph-hunt-btn" id="phHuntBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Hunt
+            </button>
+          </div>
           <div class="ph-prompt-footer">
             <div class="ph-prompt-left">
               <div class="ph-depth-toggle">
                 <button class="ph-depth-btn active" data-depth="quick">Quick Scan</button>
                 <button class="ph-depth-btn" data-depth="deep">Deep Dive</button>
               </div>
-              <span class="ph-platform-toggle active" data-plat="all">All 10</span>
-              ${PLATFORMS.slice(0, 4)
-                .map(
+              <button class="ph-platform-expander" id="phPlatformExpander">
+                <span class="ph-platform-expander-label">All 10 platforms</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ph-platform-expanded-list" id="phPlatformList">
+                <span class="ph-platform-toggle active" data-plat="all">All 10</span>
+                ${PLATFORMS.map(
                   (p) =>
                     `<span class="ph-platform-toggle" data-plat="${p.id}"><span class="ph-pt-dot" style="background:${p.color}"></span>${p.name}</span>`
                 )
-                .join('')}
-              <span class="ph-platform-toggle" data-plat="more">+6 more</span>
+                  .join('')}
+              </div>
             </div>
-            <button class="ph-hunt-btn" id="phHuntBtn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Hunt
-            </button>
+            <div class="ph-prompt-right">
+              <span class="ph-shortcut-hint">⌘K to focus</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="ph-import-section" id="phImportSection">
-        <div class="ph-import-tabs">
-          <button class="ph-import-tab active" data-tab="url">
+        <div class="ph-import-collapsed" id="phImportCollapsed">
+          <button class="ph-import-toggle-btn" id="phImportToggle">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Paste URL
-          </button>
-          <button class="ph-import-tab" data-tab="image">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            Drop Image
+            Or paste a product URL
+            <svg class="ph-import-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         </div>
 
-        <div class="ph-import-panel active" id="phUrlPanel">
-          <div class="ph-import-url-row">
-            <div class="ph-import-url-input-wrap">
-              <input type="text" class="ph-import-url-input" id="phUrlInput" placeholder="Paste AliExpress, Amazon, CJ Dropshipping, eBay link..." autocomplete="off">
-              <button class="ph-import-url-clear" id="phUrlClear" title="Clear">✕</button>
-            </div>
-            <button class="ph-import-analyze-btn" id="phUrlAnalyze">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              Analyze Product
+        <div class="ph-import-section" id="phImportSection" style="display:none">
+          <div class="ph-import-tabs">
+            <button class="ph-import-tab active" data-tab="url">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Paste URL
+            </button>
+            <button class="ph-import-tab" data-tab="image">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Drop Image
             </button>
           </div>
-          <div class="ph-import-detected" id="phUrlDetected"></div>
-          <div class="ph-import-hint">
-            <span class="ph-import-platforms">
-              <span style="color:#e62e04">●</span> AliExpress
-              <span style="color:#ff9900">●</span> Amazon
-              <span style="color:#40c351">●</span> CJ Drop
-              <span style="color:#e53238">●</span> eBay
-              <span style="color:#fb7701">●</span> Temu
-              <span style="color:#00f2ea">●</span> TikTok
-            </span>
-          </div>
-        </div>
 
-        <div class="ph-import-panel" id="phImagePanel">
-          <div class="ph-import-dropzone" id="phDropzone">
-            <input type="file" id="phFileInput" accept="image/*" hidden>
-            <div class="ph-import-dropzone-content" id="phDropzoneContent">
-              <div class="ph-import-dropzone-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="ph-import-panel active" id="phUrlPanel">
+            <div class="ph-import-url-row">
+              <div class="ph-import-url-input-wrap">
+                <input type="text" class="ph-import-url-input" id="phUrlInput" placeholder="Paste AliExpress, Amazon, CJ Dropshipping, eBay link..." autocomplete="off">
+                <button class="ph-import-url-clear" id="phUrlClear" title="Clear">✕</button>
               </div>
-              <strong>Drop product image here</strong>
-              <span>or click to browse files</span>
+              <button class="ph-import-analyze-btn" id="phUrlAnalyze">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Analyze
+              </button>
             </div>
-            <div class="ph-import-dropzone-preview" id="phDropzonePreview" style="display:none">
-              <img id="phPreviewImg" src="" alt="Preview">
-              <div class="ph-import-preview-info">
-                <span class="ph-import-preview-name" id="phPreviewName"></span>
-                <span class="ph-import-preview-size" id="phPreviewSize"></span>
-              </div>
-              <div class="ph-import-preview-actions">
-                <button class="ph-import-preview-search" id="phImageSearch">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  Visual Search
-                </button>
-                <button class="ph-import-preview-remove" id="phImageRemove">✕ Remove</button>
-              </div>
-            </div>
+            <div class="ph-import-detected" id="phUrlDetected"></div>
           </div>
-          <div class="ph-import-hint">
-            <span>AI will find matching products across all platforms using visual recognition</span>
+
+          <div class="ph-import-panel" id="phImagePanel">
+            <div class="ph-import-dropzone" id="phDropzone">
+              <input type="file" id="phFileInput" accept="image/*" hidden>
+              <div class="ph-import-dropzone-content" id="phDropzoneContent">
+                <div class="ph-import-dropzone-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                </div>
+                <strong>Drop product image here</strong>
+                <span>or click to browse</span>
+              </div>
+              <div class="ph-import-dropzone-preview" id="phDropzonePreview" style="display:none">
+                <img id="phPreviewImg" src="" alt="Preview">
+                <div class="ph-import-preview-info">
+                  <span class="ph-import-preview-name" id="phPreviewName"></span>
+                  <span class="ph-import-preview-size" id="phPreviewSize"></span>
+                </div>
+                <div class="ph-import-preview-actions">
+                  <button class="ph-import-preview-search" id="phImageSearch">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Visual Search
+                  </button>
+                  <button class="ph-import-preview-remove" id="phImageRemove">✕</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="ph-presets">
-        ${PRESETS.map((p) => `<button class="ph-preset" data-query="${p.query}">${p.label}</button>`).join('')}
+        ${PRESETS.slice(0, 5)
+          .map((p) => `<button class="ph-preset" data-query="${p.query}">${p.label}</button>`)
+          .join('')}
+        ${PRESETS.length > 5
+          ? `<button class="ph-preset ph-preset-more" id="phPresetMore">+${PRESETS.length - 5} more</button>` +
+            PRESETS.slice(5)
+              .map((p) => `<button class="ph-preset ph-preset-extra" data-query="${p.query}" style="display:none">${p.label}</button>`)
+              .join('')
+          : ''}
       </div>
 
       <div class="ph-scanning" id="phScanning">
@@ -439,27 +451,22 @@
       { key: 'social', icon: '🎵', label: 'Social' },
     ];
 
+    const dotsHtml = signalDefs
+      .map((s) => {
+        const data = sigs[s.key] || { pass: 0, total: 1 };
+        const pct = Math.round((data.pass / data.total) * 100);
+        const color = pct >= 70 ? 'green' : pct >= 40 ? 'yellow' : 'red';
+        return `<span class="ph-val-dot ph-val-dot-${color}" title="${s.label}: ${pct}%"></span>`;
+      })
+      .join('');
+
     el.innerHTML = `
     <div class="ph-val-card">
       <div class="ph-val-verdict ${verdict}">
         <div class="ph-val-verdict-label">${verdict === 'test' ? '✅' : verdict === 'caution' ? '⚠️' : '🛑'} ${verdictLabel}</div>
         <div class="ph-val-verdict-sub">${avgConfidence}% confidence</div>
       </div>
-      <div class="ph-val-signals">
-        ${signalDefs
-          .map((s) => {
-            const data = sigs[s.key] || { pass: 0, total: 1 };
-            const pct = Math.round((data.pass / data.total) * 100);
-            const badge = pct >= 70 ? 'pass' : pct >= 40 ? 'warn' : 'fail';
-            return `<div class="ph-val-signal">
-            <div class="ph-val-signal-icon">${s.icon}</div>
-            <span class="ph-val-signal-value">${pct}%</span>
-            <span class="ph-val-signal-label">${s.label}</span>
-            <span class="ph-val-signal-badge ${badge}">${badge === 'pass' ? '✓ Pass' : badge === 'warn' ? '~ Warn' : '✗ Fail'}</span>
-          </div>`;
-          })
-          .join('')}
-      </div>
+      <div class="ph-val-dots">${dotsHtml}</div>
       <div class="ph-val-reason">${verdictReason}</div>
     </div>`;
 
@@ -480,8 +487,8 @@
 
     el.innerHTML = `
     <div class="ph-kz-header" id="phKzToggle">
-      <span class="ph-kz-icon">🔴</span>
-      <span class="ph-kz-title">Kill Zone Alert — ${killProducts.length} Product${killProducts.length > 1 ? 's' : ''} to Avoid</span>
+      <span class="ph-kz-icon">⚠️</span>
+      <span class="ph-kz-title">${killProducts.length} product${killProducts.length > 1 ? 's' : ''} in Kill Zone — tap to view</span>
       <span class="ph-kz-count">${killProducts.length}</span>
       <span class="ph-kz-toggle">▼</span>
     </div>
@@ -549,18 +556,20 @@
       ${top
         .map((p, i) => {
           const a = p.arbitrage || {};
+          const buyColor = getPlatColor(a.buyPlatform || 'aliexpress');
+          const sellColor = getPlatColor(a.sellPlatform || 'amazon');
           return `<div class="ph-arb-card ${i === 0 ? 'ph-arb-best' : ''}">
           <div class="ph-arb-card-name">${esc(p.title)}</div>
           <div class="ph-arb-route">
             <div class="ph-arb-side">
               <div class="ph-arb-side-label">Buy from</div>
-              <div class="ph-arb-side-plat">${cap(a.buyPlatform || 'aliexpress')}</div>
+              <div class="ph-arb-side-plat" style="color:${buyColor}">${cap(a.buyPlatform || 'aliexpress')}</div>
               <div class="ph-arb-side-price buy">$${(a.buyPrice || p.price).toFixed(2)}</div>
             </div>
-            <div class="ph-arb-arrow">→</div>
+            <div class="ph-arb-arrow-wrap"><div class="ph-arb-arrow-line"></div><div class="ph-arb-arrow">→</div><div class="ph-arb-arrow-line"></div></div>
             <div class="ph-arb-side">
               <div class="ph-arb-side-label">Sell on</div>
-              <div class="ph-arb-side-plat">${cap(a.sellPlatform || 'amazon')}</div>
+              <div class="ph-arb-side-plat" style="color:${sellColor}">${cap(a.sellPlatform || 'amazon')}</div>
               <div class="ph-arb-side-price sell">$${(a.sellPrice || p.price * 3).toFixed(2)}</div>
             </div>
           </div>
@@ -594,8 +603,6 @@
 
     el.innerHTML = `
     <div class="ph-stat cyan"><span class="ph-stat-val">${total}</span><span class="ph-stat-label">Products Found</span></div>
-    <div class="ph-stat green"><span class="ph-stat-val">${safe}</span><span class="ph-stat-label">Safe to Test</span></div>
-    <div class="ph-stat red"><span class="ph-stat-val">${kill}</span><span class="ph-stat-label">Kill Zone</span></div>
     <div class="ph-stat green"><span class="ph-stat-val">${avgMargin}%</span><span class="ph-stat-label">Avg Margin</span></div>
     <div class="ph-stat purple"><span class="ph-stat-val">$${bestProfit.toFixed(0)}</span><span class="ph-stat-label">Best Profit</span></div>`;
   }
@@ -617,25 +624,36 @@
     el.innerHTML = `
     <div class="ph-insights-header">
       <span class="ph-insights-badge">✨ AI Insights</span>
-      <span class="ph-insights-title">Strategic Recommendations</span>
+      <span class="ph-insights-title">Next Steps</span>
     </div>
     <div class="ph-insights-grid">
       <div class="ph-insight-card">
+        <div class="ph-insight-step">1</div>
         <div class="ph-insight-icon">🎯</div>
-        <div class="ph-insight-title">Best Entry Opportunity</div>
-        <div class="ph-insight-text">${bestEntry ? `<strong>${esc(bestEntry.title.split('—')[0])}</strong> — Score ${bestEntry.score}, ${bestEntry.margin}% margin, only ${bestEntry.competitorCount} competitors. ${bestEntry.trendDirection === 'rising' ? 'Trending up — enter now!' : 'Stable demand with room to grow.'}` : 'No strong opportunities found. Try different keywords.'}</div>
+        <div class="ph-insight-title">Start Here</div>
+        <div class="ph-insight-text">${bestEntry ? `<strong>${esc(bestEntry.title.split('—')[0])}</strong> — Score ${bestEntry.score}, ${bestEntry.margin}% margin, only ${bestEntry.competitorCount} competitors.` : 'No strong opportunities found.'}</div>
+        ${bestEntry ? `<button class="ph-insight-action" data-id="${bestEntry.id}">View Product →</button>` : ''}
       </div>
       <div class="ph-insight-card">
+        <div class="ph-insight-step">2</div>
         <div class="ph-insight-icon">💰</div>
-        <div class="ph-insight-title">Highest Profit Potential</div>
-        <div class="ph-insight-text">${bestProfit ? `<strong>${esc(bestProfit.title.split('—')[0])}</strong> — $${(bestProfit.arbitrage?.profit || 0).toFixed(2)} profit per sale (${bestProfit.arbitrage?.roi || 0}% ROI). Buy from ${bestProfit.arbitrage?.buyPlatform || 'AliExpress'}, sell on ${bestProfit.arbitrage?.sellPlatform || 'Amazon'}.` : 'Calculate profit margins to find the best arbitrage.'}</div>
+        <div class="ph-insight-title">Maximize Profit</div>
+        <div class="ph-insight-text">${bestProfit ? `<strong>${esc(bestProfit.title.split('—')[0])}</strong> — $${(bestProfit.arbitrage?.profit || 0).toFixed(2)}/sale (${bestProfit.arbitrage?.roi || 0}% ROI).` : 'Calculate margins to find best arbitrage.'}</div>
+        ${bestProfit ? `<button class="ph-insight-action" data-id="${bestProfit.id}">View Product →</button>` : ''}
       </div>
       <div class="ph-insight-card">
+        <div class="ph-insight-step">3</div>
         <div class="ph-insight-icon">⚠️</div>
-        <div class="ph-insight-title">Action Required</div>
-        <div class="ph-insight-text">${killCount > 0 ? `<strong>${killCount} product${killCount > 1 ? 's' : ''}</strong> in Kill Zone — avoid these. Focus on the ${safe.length} safe products with lower competition and better margins.` : 'All products pass validation! No immediate action needed. Start testing ads on the top-scored products.'}</div>
+        <div class="ph-insight-title">Avoid These</div>
+        <div class="ph-insight-text">${killCount > 0 ? `<strong>${killCount} product${killCount > 1 ? 's' : ''}</strong> in Kill Zone. Focus on ${safe.length} safe products.` : 'All products pass validation!'}</div>
       </div>
     </div>`;
+
+    el.querySelectorAll('.ph-insight-action').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        EventBus.emit('product:analyze', { id: btn.dataset.id });
+      });
+    });
   }
 
   // ===== RENDER FILTERS =====
@@ -649,15 +667,22 @@
     el.style.display = '';
     const filters = ['all', 'safe', 'killzone', 'rising', 'high-margin'];
     const labels = {
-      all: 'All Products',
-      safe: 'Safe to Test',
+      all: 'All',
+      safe: 'Safe',
       killzone: 'Kill Zone',
-      rising: 'Trending Up',
+      rising: 'Trending',
       'high-margin': 'High Margin',
+    };
+    const counts = {
+      all: _searchResults.length,
+      safe: _searchResults.filter((p) => !p.killZone).length,
+      killzone: _searchResults.filter((p) => p.killZone).length,
+      rising: _searchResults.filter((p) => p.trendDirection === 'rising').length,
+      'high-margin': _searchResults.filter((p) => p.margin >= 50).length,
     };
     el.innerHTML = `
     <div class="ph-filter-group">
-      ${filters.map((f) => `<button class="ph-filter-pill ${_activeFilter === f ? 'active' : ''}" data-filter="${f}">${labels[f]}</button>`).join('')}
+      ${filters.map((f) => `<button class="ph-filter-pill ${_activeFilter === f ? 'active' : ''}" data-filter="${f}">${labels[f]}<span class="ph-filter-count">${counts[f]}</span></button>`).join('')}
     </div>
     <div class="ph-sort-group">
       <span class="ph-sort-label">Sort:</span>
@@ -988,12 +1013,10 @@
               <span class="ph-card-live-label">TikTok</span>
             </div>
           </div>
-          <div class="ph-card-spark"><canvas id="spark-${p.id}"></canvas></div>
           <div class="ph-card-actions">
             <button class="ph-card-action" data-action="analyze" data-id="${p.id}">🔍 Analyze</button>
             <button class="ph-card-action" data-action="suppliers" data-id="${p.id}">🏭 Suppliers</button>
-            <button class="ph-card-action" data-action="adcopy" data-id="${p.id}">🎬 Ad Copy</button>
-            <button class="ph-card-action save" data-action="save" data-id="${p.id}">❤️ Save</button>
+            <button class="ph-card-action save" data-action="save" data-id="${p.id}">❤️</button>
           </div>
         </div>
       </div>`;
@@ -1015,21 +1038,18 @@
         const id = btn.dataset.id;
         if (action === 'analyze') EventBus.emit('product:analyze', { id });
         else if (action === 'suppliers') navigateTo('section-supplier-hub');
-        else if (action === 'adcopy') navigateTo('section-ad-studio');
         else if (action === 'save') {
           const p = _searchResults.find((x) => x.id === id);
           if (p) {
             addToWatchlist(p);
-            btn.textContent = '✓ Saved';
+            btn.textContent = '✓';
             btn.style.borderColor = 'var(--accent-green)';
             btn.style.color = 'var(--accent-green)';
-            addChatMsg('ai', `Product saved to watchlist! You can find it in your saved collection below.`);
+            addChatMsg('ai', `Product saved to watchlist!`);
           }
         }
       });
     });
-
-    setTimeout(() => renderSparklines(products), 100);
   }
 
   // ===== START HUNT =====
@@ -1060,30 +1080,20 @@
 
     const scanMessages = [
       'Initializing AI search engines...',
-      'Scanning AliExpress for product matches...',
-      'Checking Amazon pricing and reviews...',
-      'Analyzing Shopify store data...',
-      'Scanning eBay for listings...',
-      'Checking Temu pricing...',
-      'Scanning TikTok Shop trends...',
-      'Analyzing Etsy unique products...',
-      'Checking CJ Dropshipping suppliers...',
-      'Scanning DHgate wholesale prices...',
-      'Checking Wish marketplace...',
+      'Scanning all 10 platforms simultaneously...',
       'Running AI analysis on findings...',
-      'Calculating profit margins...',
-      'Checking competition levels...',
-      'Detecting kill zones...',
-      'Finding arbitrage opportunities...',
+      'Calculating profit margins & competition...',
+      'Detecting arbitrage opportunities...',
       'Finalizing results...',
     ];
 
-    for (let i = 0; i < PLATFORMS.length; i++) {
-      await sleep(180 + Math.random() * 220);
+    const stepCount = Math.min(PLATFORMS.length, scanMessages.length);
+    for (let i = 0; i < stepCount; i++) {
+      await sleep(80 + Math.random() * 100);
       if (platEls && platEls[i]) {
         platEls[i].classList.add('scanning');
         if (scanText) scanText.textContent = scanMessages[i] || `Scanning ${PLATFORMS[i].name}...`;
-        if (progressFill) progressFill.style.width = ((i + 1) / PLATFORMS.length) * 80 + '%';
+        if (progressFill) progressFill.style.width = ((i + 1) / stepCount) * 80 + '%';
       }
     }
 
@@ -1093,7 +1103,7 @@
     }
     if (progressFill) progressFill.style.width = '100%';
     if (scanText) scanText.textContent = 'AI analysis complete!';
-    await sleep(400);
+    await sleep(200);
 
     let matched = [];
     try {
@@ -1251,6 +1261,10 @@
           startHunt(prompt.value);
         }
       });
+      prompt.addEventListener('input', () => {
+        prompt.style.height = 'auto';
+        prompt.style.height = Math.min(prompt.scrollHeight, 160) + 'px';
+      });
       let pi = 0;
       _placeholderInterval = setInterval(() => {
         if (document.activeElement !== prompt && !prompt.value) {
@@ -1263,6 +1277,11 @@
     if (_section) {
       _section.querySelectorAll('.ph-preset').forEach((chip) => {
         chip.addEventListener('click', () => {
+          if (chip.id === 'phPresetMore') {
+            chip.style.display = 'none';
+            _section.querySelectorAll('.ph-preset-extra').forEach((c) => (c.style.display = ''));
+            return;
+          }
           if (prompt) prompt.value = chip.dataset.query;
           startHunt(chip.dataset.query);
         });
@@ -1276,18 +1295,41 @@
         });
       });
 
+      // Platform expander toggle
+      const platExpander = UI.$('phPlatformExpander');
+      const platList = UI.$('phPlatformList');
+      if (platExpander && platList) {
+        platExpander.addEventListener('click', () => {
+          platList.classList.toggle('open');
+          platExpander.classList.toggle('open');
+        });
+      }
+
       _section.querySelectorAll('.ph-platform-toggle').forEach((tog) => {
         tog.addEventListener('click', () => {
-          const plat = tog.dataset.plat;
-          if (plat === 'more') {
-            _section.querySelectorAll('.ph-platform-toggle').forEach((t) => (t.style.display = ''));
-            tog.style.display = 'none';
-            return;
-          }
           _section.querySelectorAll('.ph-platform-toggle').forEach((t) => t.classList.remove('active'));
           tog.classList.add('active');
+          const label = UI.$('phPlatformExpander');
+          if (label) {
+            const lbl = label.querySelector('.ph-platform-expander-label');
+            if (lbl) lbl.textContent = tog.dataset.plat === 'all' ? 'All 10 platforms' : tog.textContent.trim();
+          }
+          if (platList) platList.classList.remove('open');
+          if (platExpander) platExpander.classList.remove('open');
         });
       });
+
+      // Import section toggle
+      const importToggle = UI.$('phImportToggle');
+      const importSection = UI.$('phImportSection');
+      const importCollapsed = UI.$('phImportCollapsed');
+      if (importToggle && importSection) {
+        importToggle.addEventListener('click', () => {
+          const isOpen = importSection.style.display !== 'none';
+          importSection.style.display = isOpen ? 'none' : '';
+          if (importCollapsed) importCollapsed.style.display = isOpen ? '' : 'none';
+        });
+      }
 
       // ===== IMPORT SECTION: Tab Switching =====
       _section.querySelectorAll('.ph-import-tab').forEach((tab) => {

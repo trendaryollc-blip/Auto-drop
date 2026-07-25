@@ -10,6 +10,53 @@
   let _cleanups = [];
   let _clickHandler = null;
   let _containerRef = null;
+  let _lightboxEl = null;
+
+  // ===== IMAGE LIGHTBOX =====
+  function ensureLightbox() {
+    if (_lightboxEl) return _lightboxEl;
+    _lightboxEl = document.createElement('div');
+    _lightboxEl.className = 'pd-image-lightbox';
+    _lightboxEl.innerHTML =
+      '<button class="pd-lb-close" title="Close (Esc)">&times;</button>' +
+      '<div class="pd-lb-hint">CLICK ANYWHERE TO CLOSE &middot; ESC</div>' +
+      '<img class="pd-lb-img" src="" alt="">' +
+      '<div class="pd-lb-title"></div>';
+    document.body.appendChild(_lightboxEl);
+
+    _lightboxEl.addEventListener('click', function (e) {
+      if (e.target === _lightboxEl || e.target.classList.contains('pd-lb-close')) {
+        closeLightbox();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _lightboxEl && _lightboxEl.classList.contains('active')) {
+        closeLightbox();
+      }
+    });
+
+    return _lightboxEl;
+  }
+
+  function openLightbox(src, alt) {
+    var lb = ensureLightbox();
+    var img = lb.querySelector('.pd-lb-img');
+    var title = lb.querySelector('.pd-lb-title');
+    if (img) {
+      img.src = src;
+      img.alt = alt || '';
+    }
+    if (title) title.textContent = alt || '';
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    if (!_lightboxEl) return;
+    _lightboxEl.classList.remove('active');
+    document.body.style.overflow = '';
+  }
 
   function destroyCharts() {
     Object.keys(_currentChart).forEach(function (k) {
@@ -590,6 +637,15 @@
           _containerRef = container;
           // Event delegation for clickable cards/tags
           _clickHandler = function (e) {
+            // Product image → Lightbox
+            const heroImg = e.target.closest('.pd-hero-image');
+            if (heroImg) {
+              const img = heroImg.querySelector('img');
+              if (img && img.src) {
+                openLightbox(img.src, img.alt);
+              }
+              return;
+            }
             // Price cards → Profit Calculator
             const priceCard = e.target.closest('.pd-price-card');
             if (priceCard) {

@@ -380,7 +380,7 @@
 /* === STATS ROW === */
 .mg-stats-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 24px;
 }
@@ -419,12 +419,12 @@
   margin: 0 auto 10px;
   font-size: 19px;
 }
-.mg-stat-value {
+.mg-stat-val {
   font-family: var(--font-mono);
   font-size: 30px;
   font-weight: 800;
 }
-.mg-stat-label {
+.mg-stat-lbl {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 4px;
@@ -510,6 +510,16 @@
 }
 
 /* === CHARTS === */
+.mg-charts-section {
+  margin-bottom: 24px;
+}
+.mg-chart-wrap {
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  height: 260px;
+}
 .mg-charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -576,7 +586,11 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 6px;
+}
+.mg-cat-count {
+  font-size: 11px;
+  color: var(--text-muted);
 }
 .mg-cat-stats {
   display: flex;

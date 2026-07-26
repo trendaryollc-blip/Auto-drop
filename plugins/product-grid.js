@@ -357,6 +357,11 @@
           _allResults = data.results || [];
           _visibleCount = Math.min(PAGE_SIZE, _allResults.length);
           window.HuntDrop.ALL_PRODUCTS = _allResults;
+          window.HuntDrop.ALL_PRODUCTS_META = {
+            query: data.query || '',
+            source: 'Search Results',
+            timestamp: Date.now(),
+          };
 
           let html = '';
           for (let i = 0; i < _visibleCount; i++) {

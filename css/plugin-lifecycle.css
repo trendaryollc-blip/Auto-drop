@@ -58,6 +58,62 @@
   line-height: 1.6;
 }
 
+/* Source Banner */
+.lc-source-banner {
+  margin-bottom: 24px;
+}
+.lc-source-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: rgba(0, 229, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.lc-source-icon {
+  font-size: 14px;
+}
+.lc-source-text strong {
+  color: var(--text-primary);
+}
+.lc-source-sep {
+  color: var(--text-tertiary);
+}
+.lc-source-query {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+.lc-source-label {
+  color: var(--text-secondary);
+}
+.lc-source-time {
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+.lc-source-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: rgba(255, 170, 0, 0.06);
+  border: 1px solid rgba(255, 170, 0, 0.2);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.lc-source-empty-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.lc-source-empty strong {
+  color: var(--accent-yellow);
+}
+
 /* Stage Overview Summary */
 .lc-summary-row {
   display: grid;

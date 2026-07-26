@@ -220,6 +220,7 @@
   platforms.forEach((p) => DataLayer.registerAdapter(p, createAdapter(p)));
 
   window.HuntDrop.ALL_PRODUCTS = [];
+  window.HuntDrop.ALL_PRODUCTS_META = { query: '', source: '', timestamp: 0 };
 
   EventBus.emit('adapters:registered', { platforms });
   console.debug('[DataAdapters] Registered ' + platforms.length + ' adapters. API-only mode — no mock data.');

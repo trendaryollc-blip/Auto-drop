@@ -694,6 +694,11 @@
     }
 
     window.HuntDrop.ALL_PRODUCTS = products;
+    window.HuntDrop.ALL_PRODUCTS_META = {
+      query: query || '',
+      source: 'Niche Radar',
+      timestamp: Date.now(),
+    };
 
     const metrics = computeMetrics(products);
     const scoreData = metrics

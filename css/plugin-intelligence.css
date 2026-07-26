@@ -1118,6 +1118,38 @@
   }
 }
 
+/* Spy Center Utility Classes */
+.spy-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.spy-tab-content {
+  min-height: 200px;
+  padding: 4px 0;
+}
+.spy-api-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-orange);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.spy-api-banner a {
+  color: var(--accent-orange);
+  font-weight: 600;
+  text-decoration: none;
+}
+.spy-api-banner a:hover {
+  text-decoration: underline;
+}
+
 /* ===================================================================
    COMPETITOR BATTLEFIELD — 10-Section Intelligence Hub
    =================================================================== */
@@ -3788,6 +3820,49 @@
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 24px 60px;
+}
+
+.aa-api-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-orange);
+  border-left: 4px solid var(--accent-orange);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+.aa-api-banner-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.aa-api-banner-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.aa-api-banner-text strong {
+  color: var(--accent-orange);
+}
+.aa-api-banner-btn {
+  padding: 8px 18px;
+  background: var(--accent-orange);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.aa-api-banner-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.3);
 }
 
 .aa-hero {

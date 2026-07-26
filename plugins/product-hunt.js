@@ -1132,6 +1132,11 @@
 
     _searchResults = matched.map((p) => enrichProduct(p));
     window.HuntDrop.ALL_PRODUCTS = _searchResults;
+    window.HuntDrop.ALL_PRODUCTS_META = {
+      query: query || '',
+      source: 'Product Hunt Scout',
+      timestamp: Date.now(),
+    };
     if (scanCount) scanCount.textContent = _searchResults.length + ' found';
 
     if (scanningEl) scanningEl.classList.remove('active');

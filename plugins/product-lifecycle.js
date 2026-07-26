@@ -48,6 +48,7 @@
   let _analyzed = [];
   let _activeFilter = 'all';
   let _activeSort = 'confidence';
+  let _listeners = [];
 
   function _sleep(ms) {
     return new Promise((r) => setTimeout(r, ms));
@@ -145,6 +146,7 @@
         <h1 class="lc-hero-title">Where Is Each Product?</h1>
         <p class="lc-hero-desc">See exactly where every product stands: Rising, Peak, or Declining. Know when to enter, maximize profit, or exit before it's too late.</p>
       </div>
+      <div id="lcSourceBanner" class="lc-source-banner"></div>
       <div id="lcInsights" class="lc-insights"></div>
       <div id="lcSummary" class="lc-summary-row"></div>
       <div id="lcActions" class="lc-actions-row"></div>
@@ -221,6 +223,38 @@
         <div class="lc-insight-text">${declining.length > 0 ? `<strong>${declining.length} product${declining.length > 1 ? 's' : ''}</strong> in decline stage. ${declining.length > 1 ? 'These products' : 'This product'} should be deprioritized. Consider pivoting to: ${rising.length > 0 ? rising[0].product.title.split('—')[0] : 'a new rising niche'}.` : 'All products are in healthy stages. No immediate action needed.'}</div>
       </div>
     </div>`;
+  }
+
+  function renderSourceBanner() {
+    const el = UI.$('lcSourceBanner');
+    if (!el) return;
+    const meta = window.HuntDrop.ALL_PRODUCTS_META || {};
+    const count = (_analyzed || []).length;
+    if (!meta.query && count === 0) {
+      el.innerHTML = `
+      <div class="lc-source-empty">
+        <span class="lc-source-empty-icon">📊</span>
+        <span>No products loaded. Use the <strong>Dashboard search</strong>, <strong>Product Hunt Scout</strong>, or <strong>Niche Radar</strong> first to load products, then return here.</span>
+      </div>`;
+      return;
+    }
+    const timeAgo = meta.timestamp ? _getTimeAgo(meta.timestamp) : '';
+    el.innerHTML = `
+    <div class="lc-source-info">
+      <span class="lc-source-icon">🔍</span>
+      <span class="lc-source-text">Showing <strong>${count}</strong> product${count !== 1 ? 's' : ''}</span>
+      ${meta.query ? `<span class="lc-source-sep">·</span><span class="lc-source-query">"${esc(meta.query)}"</span>` : ''}
+      ${meta.source ? `<span class="lc-source-sep">·</span><span class="lc-source-label">from ${esc(meta.source)}</span>` : ''}
+      ${timeAgo ? `<span class="lc-source-sep">·</span><span class="lc-source-time">${timeAgo}</span>` : ''}
+    </div>`;
+  }
+
+  function _getTimeAgo(ts) {
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    return Math.floor(diff / 86400) + 'd ago';
   }
 
   function renderSummary() {
@@ -547,6 +581,7 @@
     _analyzed = products.map((p) => analyzeProduct(p)).filter(Boolean);
     _analyzed.sort((a, b) => b.confidence - a.confidence);
 
+    renderSourceBanner();
     renderInsights();
     renderSummary();
     renderActions();
@@ -575,9 +610,19 @@
       container.appendChild(section);
       _section = section;
       analyzeAll();
+
+      _listeners.push(
+        EventBus.on('search:results', function () {
+          if (_section) analyzeAll();
+        })
+      );
     },
 
     unmount(_ctx) {
+      _listeners.forEach(function (off) {
+        try { off(); } catch { /* ignored */ }
+      });
+      _listeners = [];
       if (_section) {
         _section.querySelectorAll('canvas').forEach(function (c) {
           if (c._chart) {

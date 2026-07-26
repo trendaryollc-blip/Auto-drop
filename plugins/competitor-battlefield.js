@@ -33,8 +33,10 @@
   const Data = {
     getCompetitors() {
       const svc = IntelService();
-      if (svc && svc.isLive() && svc.getCachedData('competitors')) return svc.getCachedData('competitors');
-      if (svc && svc.getCachedData('competitors_')) return svc.getCachedData('competitors_');
+      if (svc && svc.isLive()) {
+        const cached = svc.getCachedData('competitors');
+        if (cached) return cached;
+      }
       return Competitors;
     },
     getLiveAds() {
@@ -73,10 +75,12 @@
   };
 
   function fmtMoney(n) {
-    return '$' + n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (n == null || isNaN(n)) return '$0';
+    return '$' + Number(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
   function fmtNum(n) {
-    return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : n.toString();
+    if (n == null || isNaN(n)) return '0';
+    return Number(n) >= 1000 ? (Number(n) / 1000).toFixed(1) + 'K' : Number(n).toString();
   }
 
   function renderCompetitorRow(c, i) {
@@ -93,7 +97,7 @@
       <div class="cb-comp-stat"><span class="cb-comp-stat-val">${c.convRate}%</span><span class="cb-comp-stat-lbl">Conv.</span></div>
       <div class="cb-comp-stat"><span class="cb-comp-stat-val">${c.ads}</span><span class="cb-comp-stat-lbl">Ads</span></div>
     </div>
-    <div class="cb-comp-active"><span class="cb-comp-active-dot"></span>${c.lastActive}</div>
+    <div class="cb-comp-active"><span class="cb-comp-active-dot"></span>${esc(c.lastActive)}</div>
   </div>`;
   }
 
@@ -104,7 +108,7 @@
         : a.status === 'testing'
           ? 'cb-ad-status-testing'
           : 'cb-ad-status-running';
-    return `<div class="cb-ad-card" data-competitor="${a.competitor}" style="cursor:pointer">
+    return `<div class="cb-ad-card" data-competitor="${esc(a.competitor)}" style="cursor:pointer">
     <div class="cb-ad-header">
       <span class="cb-ad-platform">${esc(a.platform)}</span>
       <span class="cb-ad-status ${statusClass}">${esc(a.status)}</span>
@@ -114,7 +118,7 @@
     <div class="cb-ad-meta">
       <span>CTR: <strong>${a.ctr}%</strong></span>
       <span>$${a.spend}/day</span>
-      <span>${a.age} old</span>
+      <span>${esc(a.age)} old</span>
     </div>
     <div class="cb-ad-details">
       <span>Creative: ${esc(a.adCreative)}</span>
@@ -134,7 +138,7 @@
       <span class="cb-price-old">$${p.oldPrice.toFixed(2)}</span>
       <span class="cb-price-arrow">${isDown ? '↓' : '↑'}</span>
       <span class="cb-price-new" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">$${p.newPrice.toFixed(2)}</span>
-      <span class="cb-price-pct" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">${isDown ? '' : '+'}${p.change}%</span>
+      <span class="cb-price-pct" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">${p.change === 0 ? '' : (isDown ? '' : '+')}${p.change}%</span>
     </div>
     <div class="cb-price-impact cb-impact-${(p.impact || '').toLowerCase()}">${p.impact || ''}</div>
     <div class="cb-price-time">${p.time}</div>
@@ -142,11 +146,11 @@
   }
 
   function renderNewProductRow(np) {
-    return `<div class="cb-newprod-row" data-competitor="${np.competitor}" style="cursor:pointer">
-    <div class="cb-newprod-comp">${np.competitor}</div>
+    return `<div class="cb-newprod-row" data-competitor="${esc(np.competitor)}" style="cursor:pointer">
+    <div class="cb-newprod-comp">${esc(np.competitor)}</div>
     <div class="cb-newprod-info">
-      <div class="cb-newprod-name">${np.name}</div>
-      <div class="cb-newprod-cat">${np.category}</div>
+      <div class="cb-newprod-name">${esc(np.name)}</div>
+      <div class="cb-newprod-cat">${esc(np.category)}</div>
     </div>
     <div class="cb-newprod-price">$${np.price.toFixed(2)}</div>
     <div class="cb-newprod-score"><span class="cb-newprod-score-val">${np.score}</span>/100</div>
@@ -304,7 +308,7 @@
     if (existing) existing.destroy();
     const spend = Data.getAdSpend();
     const sorted = [...spend].sort(
-      (a, b) => (parseInt(b.totalSpend) || parseInt(b.daily) || 0) - (parseInt(a.totalSpend) || parseInt(a.daily) || 0)
+      (a, b) => (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
     );
     new Chart(el, {
       type: 'bar',
@@ -313,7 +317,7 @@
         datasets: [
           {
             label: 'Facebook',
-            data: sorted.map((a) => a.platforms.facebook),
+            data: sorted.map((a) => (a.platforms || {}).facebook || 0),
             backgroundColor: '#1877f288',
             borderColor: '#1877f2',
             borderWidth: 1,
@@ -321,7 +325,7 @@
           },
           {
             label: 'TikTok',
-            data: sorted.map((a) => a.platforms.tiktok),
+            data: sorted.map((a) => (a.platforms || {}).tiktok || 0),
             backgroundColor: '#00000088',
             borderColor: '#fff',
             borderWidth: 1,
@@ -329,7 +333,7 @@
           },
           {
             label: 'Instagram',
-            data: sorted.map((a) => a.platforms.instagram),
+            data: sorted.map((a) => (a.platforms || {}).instagram || 0),
             backgroundColor: '#e6683c88',
             borderColor: '#e6683c',
             borderWidth: 1,
@@ -429,7 +433,7 @@
     <div class="cb-profile-header">
       <button class="cb-profile-close">&times;</button>
       <div class="cb-profile-title-row">
-        <div class="cb-profile-avatar" style="background:${comp.color}22;color:${comp.color}">${comp.avatar}</div>
+        <div class="cb-profile-avatar" style="background:${comp.color}22;color:${comp.color}">${esc(comp.avatar)}</div>
         <div><div class="cb-profile-name">${esc(comp.name)}</div><div class="cb-profile-url">${esc(comp.url)}</div></div>
       </div>
       <div class="cb-profile-badges">
@@ -485,10 +489,10 @@
       ${
         swot
           ? `<div class="cb-profile-section"><h4>SWOT Snapshot</h4><div class="cb-profile-swot-grid">
-        <div class="cb-swot-card cb-swot-s"><div class="cb-swot-label">Strengths</div><ul>${swot.strengths.map((s) => '<li>' + s + '</li>').join('')}</ul></div>
-        <div class="cb-swot-card cb-swot-w"><div class="cb-swot-label">Weaknesses</div><ul>${swot.weaknesses.map((s) => '<li>' + s + '</li>').join('')}</ul></div>
-        <div class="cb-swot-card cb-swot-o"><div class="cb-swot-label">Opportunities</div><ul>${swot.opportunities.map((s) => '<li>' + s + '</li>').join('')}</ul></div>
-        <div class="cb-swot-card cb-swot-t"><div class="cb-swot-label">Threats</div><ul>${swot.threats.map((s) => '<li>' + s + '</li>').join('')}</ul></div>
+        <div class="cb-swot-card cb-swot-s"><div class="cb-swot-label">Strengths</div><ul>${swot.strengths.map((s) => '<li>' + esc(s) + '</li>').join('')}</ul></div>
+        <div class="cb-swot-card cb-swot-w"><div class="cb-swot-label">Weaknesses</div><ul>${swot.weaknesses.map((s) => '<li>' + esc(s) + '</li>').join('')}</ul></div>
+        <div class="cb-swot-card cb-swot-o"><div class="cb-swot-label">Opportunities</div><ul>${swot.opportunities.map((s) => '<li>' + esc(s) + '</li>').join('')}</ul></div>
+        <div class="cb-swot-card cb-swot-t"><div class="cb-swot-label">Threats</div><ul>${swot.threats.map((s) => '<li>' + esc(s) + '</li>').join('')}</ul></div>
       </div></div>`
           : ''
       }
@@ -623,6 +627,7 @@
                 break;
               case 'leaderboard':
                 content.innerHTML = self.renderLeaderboard();
+                self.bindLeaderboard();
                 break;
               case 'ads':
                 content.innerHTML = self.renderAds();
@@ -825,10 +830,10 @@
           .map(
             (c, i) => `<div class="cb-lb-row" data-id="${c.id}">
           <div class="cb-lb-rank">#${i + 1}</div>
-          <div class="cb-lb-avatar" style="background:${c.color}22;color:${c.color}">${c.avatar}</div>
+          <div class="cb-lb-avatar" style="background:${c.color}22;color:${c.color}">${esc(c.avatar)}</div>
           <div class="cb-lb-info">
-            <div class="cb-lb-name">${c.name}</div>
-            <div class="cb-lb-url">${c.url} • ${c.platform} • ${c.cat}</div>
+            <div class="cb-lb-name">${esc(c.name)}</div>
+            <div class="cb-lb-url">${esc(c.url)} • ${esc(c.platform)} • ${esc(c.cat)}</div>
           </div>
           <div class="cb-lb-metrics">
             <div class="cb-lb-metric"><div class="cb-lb-metric-bar"><div class="cb-lb-metric-fill" style="width:${(c.revenue / (sorted[0].revenue || 1)) * 100}%;background:var(--accent-green)"></div></div><span class="cb-lb-metric-val" style="color:var(--accent-green)">${fmtMoney(c.revenue)}</span><span class="cb-lb-metric-lbl">Revenue</span></div>
@@ -841,7 +846,7 @@
             ${c.social.ig ? `<span class="cb-social-icon-sm ig">I</span>${fmtNum(c.social.ig)}` : ''}
             ${c.social.tk ? `<span class="cb-social-icon-sm tk">T</span>${fmtNum(c.social.tk)}` : ''}
           </div>
-          <div class="cb-lb-active"><span class="cb-comp-active-dot"></span>${c.lastActive}</div>
+          <div class="cb-lb-active"><span class="cb-comp-active-dot"></span>${esc(c.lastActive)}</div>
         </div>`
           )
           .join('')}
@@ -860,8 +865,8 @@
       <div class="cb-ads-summary">
         <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-green)">${ads.length}</span><span class="cb-ads-summary-lbl">Total Ads</span></div>
         <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-orange)">${ads.filter((a) => a.status === 'scaling').length}</span><span class="cb-ads-summary-lbl">Scaling</span></div>
-        <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-cyan)">${ads.reduce((a, b) => a + parseInt(b.spend) || 0, 0)}</span><span class="cb-ads-summary-lbl">Total $/day</span></div>
-        <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-purple)">${ads.length ? (ads.reduce((a, b) => a + parseFloat(b.ctr) || 0, 0) / ads.length).toFixed(1) : 0}%</span><span class="cb-ads-summary-lbl">Avg CTR</span></div>
+        <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-cyan)">${ads.reduce((a, b) => a + (parseInt(b.spend, 10) || 0), 0)}</span><span class="cb-ads-summary-lbl">Total $/day</span></div>
+        <div class="cb-ads-summary-card"><span class="cb-ads-summary-val" style="color:var(--accent-purple)">${ads.length ? (ads.reduce((a, b) => a + (parseFloat(b.ctr) || 0), 0) / ads.length).toFixed(1) : 0}%</span><span class="cb-ads-summary-lbl">Avg CTR</span></div>
       </div>
       <div class="cb-ads-groups">
         ${Object.entries(groups)
@@ -885,7 +890,7 @@
         <div class="cb-prices-summary-card"><span class="cb-prices-summary-val" style="color:var(--accent-red)">${prices.filter((p) => p.change < 0).length}</span><span class="cb-prices-summary-lbl">Price Drops</span></div>
         <div class="cb-prices-summary-card"><span class="cb-prices-summary-val" style="color:var(--accent-green)">${prices.filter((p) => p.change > 0).length}</span><span class="cb-prices-summary-lbl">Price Increases</span></div>
         <div class="cb-prices-summary-card"><span class="cb-prices-summary-val" style="color:var(--accent-orange)">${prices.filter((p) => p.impact === 'HIGH').length}</span><span class="cb-prices-summary-lbl">High Impact</span></div>
-        <div class="cb-prices-summary-card"><span class="cb-prices-summary-val">${prices.length ? Math.round(prices.reduce((a, p) => a + parseInt(p.change) || 0, 0) / prices.length) : 0}%</span><span class="cb-prices-summary-lbl">Avg Change</span></div>
+        <div class="cb-prices-summary-card"><span class="cb-prices-summary-val">${prices.length ? Math.round(prices.reduce((a, p) => a + (parseInt(p.change, 10) || 0), 0) / prices.length) : 0}%</span><span class="cb-prices-summary-lbl">Avg Change</span></div>
       </div>
       <div class="cb-section">
         <h3 class="cb-section-title">All Price Changes</h3>
@@ -900,8 +905,8 @@
       <div class="cb-newprod-summary">
         <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val">${prods.length}</span><span class="cb-newprod-summary-lbl">Products Launched</span></div>
         <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val" style="color:var(--accent-green)">${prods.filter((n) => n.trend === 'rising').length}</span><span class="cb-newprod-summary-lbl">Trending Up</span></div>
-        <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val" style="color:var(--accent-cyan)">${prods.length ? Math.round(prods.reduce((a, n) => a + parseInt(n.score) || 0, 0) / prods.length) : 0}</span><span class="cb-newprod-summary-lbl">Avg Score</span></div>
-        <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val">$${prods.length ? (prods.reduce((a, n) => a + parseFloat(n.price) || 0, 0) / prods.length).toFixed(0) : '0'}</span><span class="cb-newprod-summary-lbl">Avg Price</span></div>
+        <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val" style="color:var(--accent-cyan)">${prods.length ? Math.round(prods.reduce((a, n) => a + (parseInt(n.score, 10) || 0), 0) / prods.length) : 0}</span><span class="cb-newprod-summary-lbl">Avg Score</span></div>
+        <div class="cb-newprod-summary-card"><span class="cb-newprod-summary-val">$${prods.length ? (prods.reduce((a, n) => a + (parseFloat(n.price) || 0), 0) / prods.length).toFixed(0) : '0'}</span><span class="cb-newprod-summary-lbl">Avg Price</span></div>
       </div>
       <div class="cb-section">
         <h3 class="cb-section-title">All New Product Launches</h3>
@@ -927,7 +932,7 @@
             .map((c) => {
               const aov = c.traffic && c.convRate ? (c.revenue / ((c.traffic * c.convRate) / 100)).toFixed(2) : '0';
               const daily = Math.round(c.revenue / 30);
-              return `<div class="cb-rev-row"><span class="cb-rev-name">${c.name}</span><span>${c.platform}</span><span>${fmtNum(c.traffic || 0)}</span><span>${c.convRate || 0}%</span><span>$${aov}</span><span style="color:var(--accent-green)">${fmtMoney(c.revenue || 0)}</span><span>${fmtMoney(daily)}</span></div>`;
+              return `<div class="cb-rev-row"><span class="cb-rev-name">${esc(c.name)}</span><span>${esc(c.platform)}</span><span>${fmtNum(c.traffic || 0)}</span><span>${c.convRate || 0}%</span><span>$${aov}</span><span style="color:var(--accent-green)">${fmtMoney(c.revenue || 0)}</span><span>${fmtMoney(daily)}</span></div>`;
             })
             .join('')}
         </div>
@@ -937,14 +942,14 @@
 
     renderAdSpend() {
       const spend = Data.getAdSpend();
-      const totalDaily = spend.reduce((a, s) => a + parseInt(s.totalSpend) || parseInt(s.daily) || 0, 0);
-      const totalMonthly = spend.reduce((a, s) => a + parseInt(s.monthly) || 0, 0);
+      const totalDaily = spend.reduce((a, s) => a + (parseInt(s.totalSpend, 10) || parseInt(s.daily, 10) || 0), 0);
+      const totalMonthly = spend.reduce((a, s) => a + (parseInt(s.monthly, 10) || 0), 0);
       const avgROI = spend.length
-        ? (spend.reduce((a, s) => a + parseFloat(s.estROI) || 0, 0) / spend.length).toFixed(1)
+        ? (spend.reduce((a, s) => a + (parseFloat(s.estROI) || 0), 0) / spend.length).toFixed(1)
         : '0';
       const topSpender = [...spend].sort(
         (a, b) =>
-          (parseInt(b.totalSpend) || parseInt(b.daily) || 0) - (parseInt(a.totalSpend) || parseInt(a.daily) || 0)
+          (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
       )[0];
       return `
       <div class="cb-adspend-summary">
@@ -961,12 +966,12 @@
           ${[...spend]
             .sort(
               (a, b) =>
-                (parseInt(b.totalSpend) || parseInt(b.daily) || 0) - (parseInt(a.totalSpend) || parseInt(a.daily) || 0)
+                (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
             )
             .map(
               (s) => `
-            <div class="cb-adspend-row" data-competitor="${s.competitor}" style="cursor:pointer">
-              <span class="cb-adspend-name">${s.competitor}</span>
+            <div class="cb-adspend-row" data-competitor="${esc(s.competitor)}" style="cursor:pointer">
+              <span class="cb-adspend-name">${esc(s.competitor)}</span>
               <span>${s.platforms?.facebook ? '$' + s.platforms.facebook : '—'}</span>
               <span>${s.platforms?.tiktok ? '$' + s.platforms.tiktok : '—'}</span>
               <span>${s.platforms?.instagram ? '$' + s.platforms.instagram : '—'}</span>
@@ -993,13 +998,13 @@
         ${swot
           .map(
             (s) => `
-          <div class="cb-swot-competitor" data-competitor="${s.competitor}" style="cursor:pointer">
-            <h4 class="cb-swot-comp-name">${s.competitor}</h4>
+          <div class="cb-swot-competitor" data-competitor="${esc(s.competitor)}" style="cursor:pointer">
+            <h4 class="cb-swot-comp-name">${esc(s.competitor)}</h4>
             <div class="cb-swot-cards">
-              <div class="cb-swot-card cb-swot-s"><div class="cb-swot-label">💪 Strengths</div><ul>${(s.strengths || []).map((x) => '<li>' + x + '</li>').join('')}</ul></div>
-              <div class="cb-swot-card cb-swot-w"><div class="cb-swot-label">⚠️ Weaknesses</div><ul>${(s.weaknesses || []).map((x) => '<li>' + x + '</li>').join('')}</ul></div>
-              <div class="cb-swot-card cb-swot-o"><div class="cb-swot-label">🚀 Opportunities</div><ul>${(s.opportunities || []).map((x) => '<li>' + x + '</li>').join('')}</ul></div>
-              <div class="cb-swot-card cb-swot-t"><div class="cb-swot-label">🔥 Threats</div><ul>${(s.threats || []).map((x) => '<li>' + x + '</li>').join('')}</ul></div>
+              <div class="cb-swot-card cb-swot-s"><div class="cb-swot-label">💪 Strengths</div><ul>${(s.strengths || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul></div>
+              <div class="cb-swot-card cb-swot-w"><div class="cb-swot-label">⚠️ Weaknesses</div><ul>${(s.weaknesses || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul></div>
+              <div class="cb-swot-card cb-swot-o"><div class="cb-swot-label">🚀 Opportunities</div><ul>${(s.opportunities || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul></div>
+              <div class="cb-swot-card cb-swot-t"><div class="cb-swot-label">🔥 Threats</div><ul>${(s.threats || []).map((x) => '<li>' + esc(x) + '</li>').join('')}</ul></div>
             </div>
           </div>
         `
@@ -1011,6 +1016,9 @@
 
     renderHeadToHead() {
       const comps = Data.getCompetitors();
+      if (comps.length < 2) {
+        return '<div class="cb-h2h-intro"><h3 class="cb-section-title">Head-to-Head Comparison</h3><p class="cb-h2h-desc">Need at least 2 competitors for comparison. Current: ' + comps.length + '</p></div>';
+      }
       const sorted = [...comps].sort((a, b) => b.revenue - a.revenue);
       return `
       <div class="cb-h2h-intro">
@@ -1094,17 +1102,19 @@
           color: 'var(--accent-red)',
         },
       ];
+      const aWins = metrics.filter((m) => m.aPct > m.bPct).length;
+      const bWins = metrics.filter((m) => m.bPct > m.aPct).length;
       return `
       <div class="cb-h2h-panels">
         <div class="cb-h2h-panel">
-          <div class="cb-h2h-panel-avatar" style="background:${a.color}22;color:${a.color}">${a.avatar}</div>
-          <div class="cb-h2h-panel-name">${a.name}</div>
-          <div class="cb-h2h-panel-url">${a.url}</div>
+          <div class="cb-h2h-panel-avatar" style="background:${a.color}22;color:${a.color}">${esc(a.avatar)}</div>
+          <div class="cb-h2h-panel-name">${esc(a.name)}</div>
+          <div class="cb-h2h-panel-url">${esc(a.url)}</div>
         </div>
         <div class="cb-h2h-panel">
-          <div class="cb-h2h-panel-avatar" style="background:${b.color}22;color:${b.color}">${b.avatar}</div>
-          <div class="cb-h2h-panel-name">${b.name}</div>
-          <div class="cb-h2h-panel-url">${b.url}</div>
+          <div class="cb-h2h-panel-avatar" style="background:${b.color}22;color:${b.color}">${esc(b.avatar)}</div>
+          <div class="cb-h2h-panel-name">${esc(b.name)}</div>
+          <div class="cb-h2h-panel-url">${esc(b.url)}</div>
         </div>
       </div>
       <div class="cb-h2h-metrics">
@@ -1121,8 +1131,8 @@
           .join('')}
       </div>
       <div class="cb-h2h-verdict">
-        <div class="cb-h2h-winner">${a.name} wins ${metrics.filter((m) => (a.revenue >= b.revenue ? m.aPct > m.bPct : m.bPct > m.aPct)).length} categories</div>
-        <div class="cb-h2h-loser">${b.name} wins ${metrics.filter((m) => (a.revenue >= b.revenue ? m.bPct > m.aPct : m.aPct > m.bPct)).length} categories</div>
+        <div class="cb-h2h-winner">${esc(a.name)} wins ${aWins} categories</div>
+        <div class="cb-h2h-loser">${esc(b.name)} wins ${bWins} categories</div>
       </div>
     `;
     },
@@ -1142,6 +1152,51 @@
       sel2.addEventListener('change', update);
     },
 
+    bindLeaderboard() {
+      if (!_section) return;
+      const searchInput = _section.querySelector('#cbLbSearch');
+      const sortSelect = _section.querySelector('#cbLbSort');
+      const listEl = _section.querySelector('#cbLbList');
+      if (!searchInput || !sortSelect || !listEl) return;
+
+      const self = this;
+      function filterAndRender() {
+        const q = (searchInput.value || '').trim().toLowerCase();
+        const sortBy = sortSelect.value || 'revenue';
+        let comps = Data.getCompetitors();
+        if (q) {
+          comps = comps.filter((c) => c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q) || (c.cat || '').toLowerCase().includes(q));
+        }
+        comps.sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0));
+        listEl.innerHTML = comps.map((c, i) => {
+          const sorted0 = comps[0] || c;
+          return `<div class="cb-lb-row" data-id="${c.id}">
+          <div class="cb-lb-rank">#${i + 1}</div>
+          <div class="cb-lb-avatar" style="background:${c.color}22;color:${c.color}">${esc(c.avatar)}</div>
+          <div class="cb-lb-info">
+            <div class="cb-lb-name">${esc(c.name)}</div>
+            <div class="cb-lb-url">${esc(c.url)} • ${esc(c.platform)} • ${esc(c.cat)}</div>
+          </div>
+          <div class="cb-lb-metrics">
+            <div class="cb-lb-metric"><div class="cb-lb-metric-bar"><div class="cb-lb-metric-fill" style="width:${(c.revenue / (sorted0.revenue || 1)) * 100}%;background:var(--accent-green)"></div></div><span class="cb-lb-metric-val" style="color:var(--accent-green)">${fmtMoney(c.revenue)}</span><span class="cb-lb-metric-lbl">Revenue</span></div>
+            <div class="cb-lb-metric"><div class="cb-lb-metric-bar"><div class="cb-lb-metric-fill" style="width:${(c.traffic / (sorted0.traffic || 1)) * 100}%;background:var(--accent-cyan)"></div></div><span class="cb-lb-metric-val">${fmtNum(c.traffic)}</span><span class="cb-lb-metric-lbl">Traffic</span></div>
+            <div class="cb-lb-metric"><div class="cb-lb-metric-bar"><div class="cb-lb-metric-fill" style="width:${(c.convRate / 3.5) * 100}%;background:var(--accent-purple)"></div></div><span class="cb-lb-metric-val">${c.convRate}%</span><span class="cb-lb-metric-lbl">Conv.</span></div>
+            <div class="cb-lb-metric"><div class="cb-lb-metric-bar"><div class="cb-lb-metric-fill" style="width:${(c.pageSpeed / 100) * 100}%;background:var(--accent-orange)"></div></div><span class="cb-lb-metric-val">${c.pageSpeed}</span><span class="cb-lb-metric-lbl">Speed</span></div>
+          </div>
+          <div class="cb-lb-social">
+            ${c.social.fb ? `<span class="cb-social-icon-sm fb">F</span>${fmtNum(c.social.fb)}` : ''}
+            ${c.social.ig ? `<span class="cb-social-icon-sm ig">I</span>${fmtNum(c.social.ig)}` : ''}
+            ${c.social.tk ? `<span class="cb-social-icon-sm tk">T</span>${fmtNum(c.social.tk)}` : ''}
+          </div>
+          <div class="cb-lb-active"><span class="cb-comp-active-dot"></span>${esc(c.lastActive)}</div>
+        </div>`;
+        }).join('');
+        self.attachRowClicks();
+      }
+      searchInput.addEventListener('input', filterAndRender);
+      sortSelect.addEventListener('change', filterAndRender);
+    },
+
     renderPlaybook() {
       const ads = Data.getLiveAds();
       const prods = Data.getNewProducts();
@@ -1150,14 +1205,14 @@
       const spend = Data.getAdSpend();
       const topAd = ads.length ? [...ads].sort((a, b) => parseFloat(b.ctr || 0) - parseFloat(a.ctr || 0))[0] : null;
       const topProduct = prods.length
-        ? [...prods].sort((a, b) => parseInt(b.score || 0) - parseInt(a.score || 0))[0]
+        ? [...prods].sort((a, b) => (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0))[0]
         : null;
       const _topCompetitor = comps.length ? [...comps].sort((a, b) => b.revenue - a.revenue)[0] : null;
       const priceWar = prices.filter((p) => p.change < 0).length;
       const topSpender = spend.length
         ? [...spend].sort(
             (a, b) =>
-              (parseInt(b.totalSpend) || parseInt(b.daily) || 0) - (parseInt(a.totalSpend) || parseInt(a.daily) || 0)
+              (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
           )[0]
         : null;
 
@@ -1171,8 +1226,8 @@
         <div class="cb-playbook-card cb-playbook-urgent">
           <div class="cb-playbook-card-header"><span class="cb-playbook-icon">🚨</span><h4>Immediate Actions (Next 24h)</h4></div>
           <div class="cb-playbook-list">
-            <div class="cb-playbook-item"><span class="cb-playbook-num">1</span><div><strong>Match ${topAd ? topAd.product : 'top product'} ad creative</strong><br><span class="cb-playbook-detail">${topAd ? `${topAd.competitor}'s "${topAd.hook}" is getting ${topAd.ctr}% CTR on ${topAd.platform}. Create a similar UGC video with your own angle. Budget: $${Math.round((parseInt(topAd.spend) || 50) * 0.7)}/day to start.` : 'Analyze top-performing competitor ads and create similar creatives. Focus on UGC-style video content.'}</span></div></div>
-            <div class="cb-playbook-item"><span class="cb-playbook-num">2</span><div><strong>Source ${topProduct ? topProduct.name : 'trending product'} immediately</strong><br><span class="cb-playbook-detail">${topProduct ? `${topProduct.competitor} just launched this at $${topProduct.price}. Score: ${topProduct.score}/100. Price at $${(parseFloat(topProduct.price) * 1.4).toFixed(2)} for 40% margin. First-mover advantage is NOW.` : 'Identify trending products from competitors and source them quickly for first-mover advantage.'}</span></div></div>
+            <div class="cb-playbook-item"><span class="cb-playbook-num">1</span><div><strong>Match ${topAd ? esc(topAd.product) : 'top product'} ad creative</strong><br><span class="cb-playbook-detail">${topAd ? `${esc(topAd.competitor)}'s "${esc(topAd.hook)}" is getting ${topAd.ctr}% CTR on ${esc(topAd.platform)}. Create a similar UGC video with your own angle. Budget: $${Math.round((parseInt(topAd.spend, 10) || 50) * 0.7)}/day to start.` : 'Analyze top-performing competitor ads and create similar creatives. Focus on UGC-style video content.'}</span></div></div>
+            <div class="cb-playbook-item"><span class="cb-playbook-num">2</span><div><strong>Source ${topProduct ? esc(topProduct.name) : 'trending product'} immediately</strong><br><span class="cb-playbook-detail">${topProduct ? `${esc(topProduct.competitor)} just launched this at $${topProduct.price}. Score: ${topProduct.score}/100. Price at $${(parseFloat(topProduct.price) * 1.4).toFixed(2)} for 40% margin. First-mover advantage is NOW.` : 'Identify trending products from competitors and source them quickly for first-mover advantage.'}</span></div></div>
             <div class="cb-playbook-item"><span class="cb-playbook-num">3</span><div><strong>Drop prices on key products</strong><br><span class="cb-playbook-detail">${priceWar} competitors dropped prices today. Match or beat the lowest prices to stay competitive.</span></div></div>
           </div>
         </div>
@@ -1180,7 +1235,7 @@
         <div class="cb-playbook-card cb-playbook-week">
           <div class="cb-playbook-card-header"><span class="cb-playbook-icon">📅</span><h4>This Week's Strategy</h4></div>
           <div class="cb-playbook-list">
-            <div class="cb-playbook-item"><span class="cb-playbook-num">4</span><div><strong>Scale TikTok ad budget to $${topSpender ? Math.round((parseInt(topSpender.totalSpend) || parseInt(topSpender.daily) || 50) * 1.2) : 60}/day</strong><br><span class="cb-playbook-detail">TikTok ads are outperforming Facebook 2:1 across all competitors. Shift 70% of budget to TikTok, 20% Instagram, 10% Facebook retargeting.</span></div></div>
+            <div class="cb-playbook-item"><span class="cb-playbook-num">4</span><div><strong>Scale TikTok ad budget to $${topSpender ? Math.round((parseInt(topSpender.totalSpend, 10) || parseInt(topSpender.daily, 10) || 50) * 1.2) : 60}/day</strong><br><span class="cb-playbook-detail">TikTok ads are outperforming Facebook 2:1 across all competitors. Shift 70% of budget to TikTok, 20% Instagram, 10% Facebook retargeting.</span></div></div>
             <div class="cb-playbook-item"><span class="cb-playbook-num">5</span><div><strong>Launch a product bundle deal</strong><br><span class="cb-playbook-detail">Combine your top 3 products into a "Starter Kit" at 20% discount. Competitors aren't doing this yet. Target AOV increase from $35 to $55.</span></div></div>
             <div class="cb-playbook-item"><span class="cb-playbook-num">6</span><div><strong>Optimize page speed to 90+</strong><br><span class="cb-playbook-detail">Top stores are crushing you on speed. Compress images, enable lazy loading, minimize CSS/JS. Every 1s delay = 7% conversion loss.</span></div></div>
           </div>
@@ -1204,7 +1259,7 @@
       const comps = Data.getCompetitors();
       const topAd = ads.length ? [...ads].sort((a, b) => parseFloat(b.ctr || 0) - parseFloat(a.ctr || 0))[0] : null;
       const topProduct = prods.length
-        ? [...prods].sort((a, b) => parseInt(b.score || 0) - parseInt(a.score || 0))[0]
+        ? [...prods].sort((a, b) => (parseInt(b.score, 10) || 0) - (parseInt(a.score, 10) || 0))[0]
         : null;
       const topCompetitor = comps.length ? [...comps].sort((a, b) => b.revenue - a.revenue)[0] : null;
 
@@ -1223,15 +1278,15 @@
         <div class="cb-steal-card">
           <h3>🎯 Best-Performing Ad to Replicate</h3>
           <div class="cb-steal-ad">
-            <div class="cb-steal-ad-header"><span class="cb-steal-platform">${topAd ? topAd.platform : 'N/A'}</span><span class="cb-steal-ctr">CTR: ${topAd ? topAd.ctr : 0}%</span></div>
-            <div class="cb-steal-ad-hook">"${topAd ? topAd.hook : 'Ad hook not available'}"</div>
-            <div class="cb-steal-ad-product">${topAd ? topAd.product : 'Product'} by ${topAd ? topAd.competitor : 'Competitor'}</div>
-            <div class="cb-steal-ad-spend">Spending: $${topAd ? topAd.spend : 0}/day | Age: ${topAd ? topAd.age : 'N/A'} | Reach: ${fmtNum(topAd ? topAd.estReach : 0)}</div>
+            <div class="cb-steal-ad-header"><span class="cb-steal-platform">${topAd ? esc(topAd.platform) : 'N/A'}</span><span class="cb-steal-ctr">CTR: ${topAd ? topAd.ctr : 0}%</span></div>
+            <div class="cb-steal-ad-hook">"${topAd ? esc(topAd.hook) : 'Ad hook not available'}"</div>
+            <div class="cb-steal-ad-product">${topAd ? esc(topAd.product) : 'Product'} by ${topAd ? esc(topAd.competitor) : 'Competitor'}</div>
+            <div class="cb-steal-ad-spend">Spending: $${topAd ? topAd.spend : 0}/day | Age: ${topAd ? esc(topAd.age) : 'N/A'} | Reach: ${fmtNum(topAd ? topAd.estReach : 0)}</div>
           </div>
           <div class="cb-steal-ad-blueprint">
             <h4>Your Version:</h4>
             <div class="cb-steal-ad-copy"><strong>Hook:</strong> "Everyone's been asking about this ${topAd ? topAd.product.toLowerCase() : 'product'} — here's why it's going viral..."</div>
-            <div class="cb-steal-ad-copy"><strong>Body:</strong> Show product in use → highlight unique feature → social proof (${Math.floor(Math.random() * 5000 + 2000)}+ reviews) → urgency ("50% OFF ends tonight")</div>
+            <div class="cb-steal-ad-copy"><strong>Body:</strong> Show product in use → highlight unique feature → social proof (2500+ reviews) → urgency ("50% OFF ends tonight")</div>
             <div class="cb-steal-ad-copy"><strong>CTA:</strong> "Link in bio — Limited stock!"</div>
           </div>
         </div>
@@ -1239,8 +1294,8 @@
         <div class="cb-steal-card">
           <h3>📦 Product to Launch</h3>
           <div class="cb-steal-product">
-            <strong>${topProduct ? topProduct.name : 'Product'}</strong> — Score ${topProduct ? topProduct.score : 0}/100 — $${topProduct ? topProduct.price.toFixed(2) : '0.00'}
-            <div class="cb-steal-product-comp">Launched by ${topProduct ? topProduct.competitor : 'Competitor'} ${topProduct ? topProduct.time : ''}</div>
+            <strong>${topProduct ? esc(topProduct.name) : 'Product'}</strong> — Score ${topProduct ? topProduct.score : 0}/100 — $${topProduct ? topProduct.price.toFixed(2) : '0.00'}
+            <div class="cb-steal-product-comp">Launched by ${topProduct ? esc(topProduct.competitor) : 'Competitor'} ${topProduct ? esc(topProduct.time) : ''}</div>
           </div>
           <div class="cb-steal-recommendation">
             <strong>Recommendation:</strong> Source this product NOW before competitors scale. Target ${topProduct ? topProduct.category.toLowerCase() : 'niche'} enthusiasts. Price at $${topProduct ? (topProduct.price * 1.4).toFixed(2) : '0.00'} for 40% margin. Launch with UGC-style TikTok ads.
@@ -1250,7 +1305,7 @@
         <div class="cb-steal-card">
           <h3>🏆 Market Position Summary</h3>
           <div class="cb-steal-position">
-            <div><strong>Top Competitor:</strong> ${topCompetitor ? topCompetitor.name : 'N/A'}</div>
+            <div><strong>Top Competitor:</strong> ${topCompetitor ? esc(topCompetitor.name) : 'N/A'}</div>
             <div><strong>Their Revenue:</strong> ${fmtMoney(topCompetitor ? topCompetitor.revenue : 0)}/mo</div>
             <div><strong>Their Traffic:</strong> ${fmtNum(topCompetitor ? topCompetitor.traffic : 0)} visitors</div>
             <div><strong>Their Conversion:</strong> ${topCompetitor ? topCompetitor.convRate : 0}%</div>

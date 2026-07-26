@@ -6,7 +6,116 @@
   const esc = (s) => UI.escapeHtml(s);
   let _section = null;
 
-  const PersonaTemplates = [];
+  const PersonaTemplates = [
+    {
+      name: 'Sarah Mitchell',
+      avatar: '👩',
+      icon: '👩',
+      color: '#E74C3C',
+      age: '28-44',
+      gender: 'Female',
+      location: 'Suburban USA',
+      income: '$55K-$95K',
+      lifestyle: 'Busy working mom who values convenience and quality. Shops during lunch breaks and after kids bedtime. Active on Facebook and Instagram. Loves home organization, beauty tools, and family-friendly products. Researches before buying but can be swayed by social proof.',
+      language: ['I need this in my life', 'Is this actually worth it?', 'Other moms are loving this', 'Treat yourself', 'Game changer for busy mornings'],
+      buyingTriggers: ['Social proof from other moms', 'Before/after transformation photos', 'Limited-time discount', 'Free shipping offer', 'As seen on Instagram'],
+      objections: ['Is this just another dropshipping scam?', 'I can find this cheaper on Amazon', 'Will this actually work for my family?', 'I don\'t have time for something complicated'],
+      persuasionAngles: ['Show real customer reviews with photos', 'Price comparison showing retail value', 'Demonstrate ease of use in 30 seconds', '30-day money-back guarantee removes risk'],
+      priceRange: { low: '$0-$25', '$mid': '$25-$50', '$high': '$50-$100' },
+      contentFormats: ['Instagram Reels (before/after)', 'Facebook carousel ads', 'TikTok mom hack videos', 'Story polls and swipe-ups'],
+      socialProof: ['4,800+ five-star reviews', 'Featured on Good Morning America', '12,847 happy customers', 'Amazon Choice badge'],
+      fbTargeting: { age: '28-44', interests: ['Home Organization', 'Beauty Tools', 'Mom Life', 'Online Shopping', 'DIY Projects'], behaviors: ['Engaged Shoppers', 'Parents with Young Children', 'Online Buyers'], countries: ['US', 'CA', 'UK', 'AU'] },
+      tiktokTargeting: { age: '22-38', interests: ['Life Hacks', 'MomTok', 'Product Reviews', 'Home Tips'], behaviors: ['High Engagement', 'Video Creators', 'Shopping Intent'] },
+      adCopy: 'Stop wasting money on ${product}s that don\'t work. 12,847 moms already switched — here\'s why. Free shipping + 30-day guarantee.',
+      checkoutBehavior: {
+        abandons: ['High shipping cost revealed at checkout', 'No reviews visible on product page', 'Slow page load time', 'Unclear return policy'],
+        completes: ['Free shipping threshold visible', 'Apple Pay / Google Pay available', 'Reviews with photos displayed', 'Trust badges and SSL seal']
+      },
+      purchaseWindow: { best: 'Sun 8-10pm', worst: 'Mon 9-11am', seasonal: 'Back-to-school and holiday seasons peak' },
+      competitorMindset: ['Compares to Amazon basics and name brands', 'Reads 3+ review sources before buying', 'Waits for coupon codes or sales', 'Checks Reddit for honest opinions']
+    },
+    {
+      name: 'Jason Park',
+      avatar: '👨',
+      icon: '👨',
+      color: '#3498DB',
+      age: '22-35',
+      gender: 'Male',
+      location: 'Urban Metro',
+      income: '$45K-$80K',
+      lifestyle: 'Tech-savvy early adopter who values specs and performance. Spends evenings on Reddit, YouTube, and TikTok reading reviews. Willing to pay more for quality but hates being ripped off. Loves gadgets, EDC gear, and desk setups.',
+      language: ['Let me see the specs', 'What\'s the benchmark score?', 'This actually slaps', 'No cap this is legit', 'Best bang for buck'],
+      buyingTriggers: ['Benchmarks beating competitors', 'Reddit community endorsement', 'Detailed review videos', 'Spec comparison charts', 'Limited availability hype'],
+      objections: ['Is this just rebranded AliExpress junk?', 'The specs look too good to be true', 'I\'d rather save up for the real thing', 'What\'s the warranty situation?'],
+      persuasionAngles: ['Side-by-side benchmark data', 'Show teardown/build quality photos', 'Highlight manufacturer transparency', 'Offer extended warranty option'],
+      priceRange: { low: '$0-$30', '$mid': '$30-$75', '$high': '$75-$200' },
+      contentFormats: ['YouTube review videos', 'Reddit discussion threads', 'TikTok honest review format', 'Spec comparison carousels'],
+      socialProof: ['Reddit top recommendation', '2,400+ verified orders', 'Featured on Linus Tech Tips', '4.7/5 average across platforms'],
+      fbTargeting: { age: '22-35', interests: ['Tech Gadgets', 'Gaming Setup', 'EDC Gear', 'Desk Setup', 'PC Building'], behaviors: ['Tech Early Adopters', 'High Online Spend', 'App Installers'], countries: ['US', 'CA', 'UK'] },
+      tiktokTargeting: { age: '18-30', interests: ['Tech Reviews', 'Gadget Unboxing', 'Honest Reviews', 'EDC'], behaviors: ['High Engagement', 'Tech Enthusiasts', 'Long Watch Time'] },
+      adCopy: 'This ${product} just beat [competitor] in every benchmark. $30 gadget that outperforms $150 alternatives — verified. See the data.',
+      checkoutBehavior: {
+        abandons: ['No detailed spec sheet available', 'Missing comparison to alternatives', 'Suspiciously low price with no explanation', 'No warranty or return info'],
+        completes: ['Full spec comparison visible', 'Benchmark data on product page', 'Manufacturer info and warranty', 'Reddit/YouTube reviews linked']
+      },
+      purchaseWindow: { best: 'Weekdays 7-10pm', worst: 'Sat 2-4pm', seasonal: 'Product launch cycles and holiday tech sales' },
+      competitorMindset: ['Runs actual benchmarks when possible', 'Compares spec sheets side by side', 'Checks multiple review channels', 'Values community consensus over marketing']
+    },
+    {
+      name: 'Maria Rodriguez',
+      avatar: '👩‍👧',
+      icon: '👩‍👧',
+      color: '#F39C12',
+      age: '30-50',
+      gender: 'Female',
+      location: 'Suburban/Rural',
+      income: '$40K-$75K',
+      lifestyle: 'Practical family-first shopper who prioritizes durability and value. Shops during nap time and late evenings. Active on Facebook groups and YouTube. Needs products that work for the whole family and last. Highest repeat purchase rate.',
+      language: ['Will this actually last?', 'My kids need this', 'Best purchase this year', 'Finally something that works', 'Worth every penny'],
+      buyingTriggers: ['Family testimonial reviews', 'Durability demonstration videos', 'Bundle deal savings', 'Mom group recommendations', 'Amazon bestseller status'],
+      objections: ['My kids will break this in a week', 'I can make do without it', 'Is this safe for children?', 'Shipping takes too long'],
+      persuasionAngles: ['Show 6-month durability test', 'Family use case demonstrations', 'Safety certifications and materials info', 'Express shipping options highlighted'],
+      priceRange: { low: '$0-$20', '$mid': '$20-$45', '$high': '$45-$80' },
+      contentFormats: ['Facebook group posts', 'YouTube honest mom reviews', 'TikTok mom hack clips', 'Before/after family photos'],
+      socialProof: ['8,400+ mom reviews', '#1 Amazon Bestseller', 'As seen on Family Fun magazine', '97% would recommend to friends'],
+      fbTargeting: { age: '30-50', interests: ['Mom Life', 'Budget Shopping', 'Home Organization', 'Family Activities', 'Meal Prep'], behaviors: ['Parents with Young Children', 'Engaged Shoppers', 'Group Members'], countries: ['US', 'CA', 'UK', 'AU', 'NZ'] },
+      tiktokTargeting: { age: '25-45', interests: ['MomTok', 'Parenting Tips', 'Family Hacks', 'Home Organization'], behaviors: ['Parents', 'High Engagement', 'Video Saves'] },
+      adCopy: 'Mom of 3 says: "This saved me 30 minutes every day." Under $25 and the whole family uses it. 8,400+ reviews can\'t be wrong.',
+      checkoutBehavior: {
+        abandons: ['Shipping cost too high for family budget', 'Unsure if it\'s child-safe', 'No bulk/family discount available', 'Long estimated delivery time'],
+        completes: ['Free shipping on orders over $25', 'Family bundle discount visible', 'Safety certifications displayed', 'Fast delivery estimate shown']
+      },
+      purchaseWindow: { best: 'Nap time 1-3pm and bedtime 9-11pm', worst: 'Morning school rush 7-9am', seasonal: 'Back-to-school and holiday gifting peak' },
+      competitorMindset: ['Checks Amazon reviews first', 'Asks in Facebook mom groups', 'Compares to what friends use', 'Prioritizes durability over aesthetics']
+    },
+    {
+      name: 'Alex Thompson',
+      avatar: '🧑',
+      icon: '🧑',
+      color: '#2ECC71',
+      age: '18-28',
+      gender: 'Unisex',
+      location: 'Urban/College',
+      income: '$25K-$55K',
+      lifestyle: 'Aesthetic-driven Gen Z shopper who values sustainability and visual appeal. Lives on TikTok and Instagram. Makes impulse purchases late at night. Shares finds with friends and cares about brand values. Highest impulse buy rate.',
+      language: ['This is so aesthetic', 'Not me adding to cart at 2am', 'The vibes are immaculate', 'This went viral for a reason', 'Sustainable AND cute?'],
+      buyingTriggers: ['TikTok viral momentum', 'Aesthetic product photography', 'Sustainability credentials', 'Creator endorsement', 'Limited edition drops'],
+      objections: ['Will it look as good in person?', 'Is the sustainability claim real?', 'Can I return it easily?', 'Is this just hype?'],
+      persuasionAngles: ['Show user-generated aesthetic photos', 'Provide sustainability certification proof', 'Offer hassle-free 30-day returns', 'Show real unboxing videos from creators'],
+      priceRange: { low: '$0-$15', '$mid': '$15-$35', '$high': '$35-$75' },
+      contentFormats: ['TikTok POV videos', 'Instagram aesthetic Reels', 'Creator unboxing content', 'Mood board flat lays'],
+      socialProof: ['6,200 sold this week', 'TikTok viral with 2M views', 'Featured by 50+ creators', '4.8/5 aesthetic rating'],
+      fbTargeting: { age: '18-28', interests: ['Aesthetic Lifestyle', 'Sustainable Living', 'Art & Design', 'Thrift Shopping'], behaviors: ['Mobile Buyers', 'Social Media Active', 'Impulse Shoppers'], countries: ['US', 'CA', 'UK', 'AU', 'EU'] },
+      tiktokTargeting: { age: '16-24', interests: ['Aesthetic Finds', 'Sustainable Haul', 'GRWM', 'Room Decor'], behaviors: ['High Engagement', 'Share Creators', 'Late Night Scrollers'] },
+      adCopy: 'POV: you found the ${product} that matches your entire vibe. 6,200 people bought this last week — TikTok was right. Shop the aesthetic.',
+      checkoutBehavior: {
+        abandons: ['Product photos look filtered/fake', 'No easy return option visible', 'Checkout process too long', 'No Afterpay/Klarna option'],
+        completes: ['Apple Pay one-tap checkout', 'Afterpay/Klarna available', 'Aesthetic product photos match reality', 'Free returns within 30 days']
+      },
+      purchaseWindow: { best: '9pm-12am', worst: '8am-10am', seasonal: 'Summer aesthetic season and holiday gift guides' },
+      competitorMindset: ['Scrolls TikTok comments for real opinions', 'Checks creator stories for authenticity', 'Compares aesthetic across similar products', 'Values brand ethics and sustainability']
+    }
+  ];
 
   const ProductPersonas = {
     'wireless earbuds': {

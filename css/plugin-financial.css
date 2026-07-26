@@ -760,6 +760,7 @@
 
 /* Responsive */
 @media (max-width: 1100px) {
+  /* At 1100px, ensure grids start collapsing */
   .pcl-kpi-strip {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -783,6 +784,11 @@
   .pcl-linked-grid {
     grid-template-columns: 1fr;
   }
+  /* Ensure all financial grids are 1-2 columns */
+  .pc-grid,
+  .pb-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 @media (max-width: 600px) {
   .pcl-kpi-strip {
@@ -796,6 +802,20 @@
   }
   .pcl-kpi-value {
     font-size: 20px;
+  }
+  /* All financial grids to 1 column on small screens */
+  .pc-grid,
+  .pb-grid {
+    grid-template-columns: 1fr;
+  }
+  /* Tighter spacing */
+  .pc-container,
+  .pb-container {
+    padding: 16px 12px;
+  }
+  .pc-card,
+  .pb-card {
+    padding: 18px 14px;
   }
 }
 
@@ -2310,3 +2330,27 @@
 }
 
 /* Product Lifecycle Radar — styles moved to plugin-lifecycle.css */
+
+@media (max-width: 480px) {
+  .pc-container,
+  .pb-container {
+    padding: 14px 10px;
+  }
+  .pc-card,
+  .pb-card {
+    padding: 14px 10px;
+  }
+  .pc-card-title,
+  .pb-card-title {
+    font-size: 14px;
+  }
+  .pc-metric-value,
+  .pb-metric-value {
+    font-size: 22px;
+  }
+  .pc-btn,
+  .pb-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

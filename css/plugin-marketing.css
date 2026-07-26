@@ -1973,6 +1973,15 @@
     flex-direction: column;
     text-align: center;
   }
+  .ac-container .ac-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .ac-container .ac-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .oh-container .oh-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===================================================================
@@ -3427,5 +3436,25 @@
   }
   .lo-score-hero {
     padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ac-container,
+  .oh-container {
+    padding: 14px 10px;
+  }
+  .ac-card,
+  .oh-card {
+    padding: 14px;
+  }
+  .ac-card-title,
+  .oh-card-title {
+    font-size: 14px;
+  }
+  .ac-btn,
+  .oh-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

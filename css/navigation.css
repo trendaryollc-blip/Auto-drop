@@ -384,3 +384,17 @@
   border-color: rgba(129, 140, 248, 0.3);
   box-shadow: 0 4px 16px rgba(129, 140, 248, 0.08);
 }
+
+@media (max-width: 768px) {
+  .topnav {
+    padding: 10px 12px;
+  }
+  .topnav .search-input {
+    font-size: 14px;
+    min-height: 44px;
+  }
+  .topnav .nav-item {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}

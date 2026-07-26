@@ -715,6 +715,14 @@
   .sr-products-grid.list-view .card-metrics {
     grid-template-columns: 1fr 1fr;
   }
+  .sr-filters {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sr-filter-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -729,5 +737,12 @@
   }
   .sr-summary {
     grid-template-columns: 1fr 1fr;
+  }
+  .sr-filter-btn {
+    flex: 1 1 100%;
+  }
+  .sr-header {
+    flex-direction: column;
+    gap: 12px;
   }
 }

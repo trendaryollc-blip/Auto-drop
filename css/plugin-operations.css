@@ -2291,6 +2291,41 @@
   }
 }
 
+@media (max-width: 768px) {
+  .ot-hero,
+  .rs-hero,
+  .cf-hero {
+    padding: 32px 24px;
+  }
+  .ot-hero-title,
+  .rs-hero-title,
+  .cf-hero-title {
+    font-size: 26px;
+  }
+  .ot-pipeline,
+  .ot-supplier-grid,
+  .rs-overview,
+  .rs-causes,
+  .rs-impact-grid,
+  .rs-supplier-grid,
+  .cf-overview,
+  .cf-delay-grid,
+  .cf-reinvest-grid,
+  .cf-calc-grid,
+  .cf-calc-grid-results {
+    grid-template-columns: 1fr;
+  }
+  .rd-hero-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rd-cross-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rsr-platforms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* ===================================================================
    REFUND DETAIL (rd-*)
    Hero Gradient: #7c3aed → #5b21b6 (Purple)
@@ -4285,5 +4320,14 @@
   .rsr-refund-card {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .op-container {
+    padding: 14px 10px;
+  }
+  .op-card {
+    padding: 14px;
   }
 }

@@ -794,6 +794,24 @@
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  .lc-summary-row,
+  .lc-actions-row,
+  .lc-insights-grid,
+  .lc-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .lc-sum-card,
+  .lc-action-card,
+  .lc-insight-card {
+    padding: 14px;
+  }
+  .lc-grid {
+    gap: 10px;
+  }
+}
 @media (max-width: 900px) {
   .lc-summary-row {
     grid-template-columns: 1fr;

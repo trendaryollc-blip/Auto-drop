@@ -2138,4 +2138,50 @@
     width: 100%;
     justify-content: center;
   }
+  .mg-grid {
+    grid-template-columns: 1fr;
+  }
+  .mg-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .mg-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .mg-opps-list {
+    gap: 10px;
+  }
+  .mg-opp-card {
+    padding: 14px;
+  }
+  .mg-opp-title {
+    font-size: 13px;
+  }
+}
+@media (max-width: 480px) {
+  .mg-container {
+    padding: 14px 10px;
+  }
+  .mg-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .mg-stat-card {
+    padding: 14px;
+  }
+  .mg-charts-grid {
+    gap: 12px;
+  }
+  .mg-chart-wrap {
+    min-height: 250px;
+  }
+  .mg-opp-card {
+    padding: 12px;
+  }
+  .mg-opp-title {
+    font-size: 12px;
+  }
+  .mg-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

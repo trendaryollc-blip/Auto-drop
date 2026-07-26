@@ -1331,3 +1331,20 @@
     background-position: -200% 0;
   }
 }
+
+@media (max-width: 768px) {
+  .kpi-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .qt-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .kpi-bar {
+    grid-template-columns: 1fr;
+  }
+  .qt-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1091,6 +1091,20 @@
   }
   .spy-profile-panel {
     width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+  }
+  .spy-profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  [class*='spy-'][class*='-card'],
+  [class*='spy-'][class*='-row'] {
+    min-width: 0;
   }
   .spy-rev-header,
   .spy-rev-row {
@@ -2870,6 +2884,17 @@
   .cb-adspend-row span:nth-child(7) {
     display: none;
   }
+  .cb-profile-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .cb-profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  [class*='cb-'][class*='-card'],
+  [class*='cb-'][class*='-row'] {
+    min-width: 0;
+  }
 }
 @media (max-width: 480px) {
   .cb-overview-grid {
@@ -3744,6 +3769,12 @@
   }
   .cps-journey-tips-grid {
     grid-template-columns: 1fr;
+  }
+  .cps-email-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cps-plat-roi-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -4727,6 +4758,30 @@
   color: var(--text-muted);
 }
 
+@media (max-width: 768px) {
+  .aa-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .aa-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .aa-risk-grid {
+    grid-template-columns: 1fr;
+  }
+  .aa-ad-platforms {
+    grid-template-columns: 1fr;
+  }
+  .aa-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .aa-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .aa-swot-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Demographics Tab */
 .cps-demos-hero {
   text-align: center;
@@ -5336,4 +5391,25 @@
 .cps-plat-roi-note {
   font-size: 11px;
   color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .spy-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .spy-tab {
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .cb-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cb-tab {
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
 }

@@ -584,3 +584,37 @@ body.sidebar-collapsed .main-content {
 [data-theme='light'] .sidebar-search input:focus {
   background: rgba(8, 145, 178, 0.04);
 }
+
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+    position: fixed;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100% !important;
+    max-width: 100%;
+  }
+  .sidebar-item {
+    padding: 10px 16px;
+  }
+  .sidebar-section-title {
+    font-size: 11px;
+  }
+}

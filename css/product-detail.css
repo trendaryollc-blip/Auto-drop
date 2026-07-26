@@ -655,6 +655,7 @@
   }
   .pd-hero-image {
     width: 100%;
+    min-width: 0;
     height: 280px;
   }
   .pd-grid-2 {
@@ -668,6 +669,12 @@
   }
 }
 @media (max-width: 768px) {
+  .pd-hero-image {
+    height: 220px;
+  }
+  .pd-hero-title {
+    font-size: 20px;
+  }
   .pd-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -680,9 +687,37 @@
   .pd-spend-grid {
     grid-template-columns: 1fr;
   }
+  .pd-audience-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   .pd-image-lightbox .pd-lb-img {
     max-width: 95vw;
     max-height: 85vh;
+  }
+}
+@media (max-width: 480px) {
+  .pd-container {
+    padding: 14px 10px 40px;
+  }
+  .pd-hero-image {
+    height: 180px;
+    border-radius: var(--radius-lg);
+  }
+  .pd-hero-title {
+    font-size: 18px;
+  }
+  .pd-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .pd-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+  .pd-audience-grid {
+    grid-template-columns: 1fr;
+  }
+  .pd-grid-2 {
+    gap: 12px;
   }
 }
 
@@ -720,7 +755,9 @@
   justify-content: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s ease;
   cursor: zoom-out;
 }
 .pd-image-lightbox.active {

@@ -3635,6 +3635,26 @@
   .ph-import-section {
     display: block !important;
   }
+  .ph-grid,
+  .ph-arb-grid,
+  .ph-wl-grid,
+  .ph-insights-grid,
+  .supplier-hub-grid,
+  .nr-grid,
+  .nr-seasonal-grid,
+  .sci-breakdown-grid,
+  .sci-backup-grid,
+  .sci-tips-grid,
+  .sh-scores-grid,
+  .sh-picks-grid,
+  .nd-duo-grid,
+  .nd-seasonal-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .nr-metrics-grid,
+  .nd-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 /* ===================================================================
@@ -5218,6 +5238,15 @@
   .nd-mc-val {
     font-size: 20px;
   }
+  .ph-grid,
+  .ph-arb-grid,
+  .ph-wl-grid,
+  .ph-insights-grid,
+  .nr-grid,
+  .nr-seasonal-grid,
+  .nr-metrics-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ============================================================================
@@ -5889,5 +5918,18 @@
   }
   .nr-load-plats {
     grid-template-columns: 1fr;
+  }
+  .ph-container,
+  .nr-container,
+  .mg-container {
+    padding: 14px 10px;
+  }
+  .ph-card,
+  .nr-card {
+    padding: 14px;
+  }
+  .ph-card-title,
+  .nr-card-name {
+    font-size: 14px;
   }
 }

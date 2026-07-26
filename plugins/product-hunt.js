@@ -109,8 +109,7 @@
                 ${PLATFORMS.map(
                   (p) =>
                     `<span class="ph-platform-toggle" data-plat="${p.id}"><span class="ph-pt-dot" style="background:${p.color}"></span>${p.name}</span>`
-                )
-                  .join('')}
+                ).join('')}
               </div>
             </div>
             <div class="ph-prompt-right">
@@ -186,12 +185,17 @@
         ${PRESETS.slice(0, 5)
           .map((p) => `<button class="ph-preset" data-query="${p.query}">${p.label}</button>`)
           .join('')}
-        ${PRESETS.length > 5
-          ? `<button class="ph-preset ph-preset-more" id="phPresetMore">+${PRESETS.length - 5} more</button>` +
-            PRESETS.slice(5)
-              .map((p) => `<button class="ph-preset ph-preset-extra" data-query="${p.query}" style="display:none">${p.label}</button>`)
-              .join('')
-          : ''}
+        ${
+          PRESETS.length > 5
+            ? `<button class="ph-preset ph-preset-more" id="phPresetMore">+${PRESETS.length - 5} more</button>` +
+              PRESETS.slice(5)
+                .map(
+                  (p) =>
+                    `<button class="ph-preset ph-preset-extra" data-query="${p.query}" style="display:none">${p.label}</button>`
+                )
+                .join('')
+            : ''
+        }
       </div>
 
       <div class="ph-scanning" id="phScanning">

@@ -2385,7 +2385,29 @@
   box-shadow: 0 4px 20px rgba(0, 255, 136, 0.25);
 }
 
+.sh-comparison-chart {
+  width: 640px;
+  min-width: 0;
+  max-width: 100%;
+}
+
 @media (max-width: 768px) {
+  .sh-comparison-chart {
+    width: 100%;
+    min-width: 0;
+  }
+  .sh-hero {
+    flex-direction: column;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+  .sh-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sh-table {
+    min-width: 700px;
+  }
   .sh-detail-content {
     max-width: 100vw;
     max-height: 100vh;
@@ -3348,5 +3370,24 @@
   }
   .sc-method-btns {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .sh-container {
+    padding: 14px 10px;
+  }
+  .sh-hero {
+    padding: 16px;
+  }
+  .sh-card {
+    padding: 14px;
+  }
+  .sh-table {
+    min-width: 600px;
+    font-size: 12px;
+  }
+  .sh-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

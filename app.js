@@ -449,8 +449,8 @@
     // Sidebar collapsed flyout: hover on category icons shows submenu
     setupSidebarFlyout();
 
-    // Sidebar search filter
-    setupSidebarSearch();
+    // Command palette (Ctrl+K)
+    setupCommandPalette();
 
     // Quick tools card clicks (event delegation on the categories container)
     const qtCategories = document.querySelector('.qt-categories');
@@ -578,57 +578,166 @@
     });
   }
 
-  // ===== Sidebar Search Filter =====
-  function setupSidebarSearch() {
-    const input = document.getElementById('sidebarSearch');
+  // ===== Command Palette (Ctrl+K) =====
+  function setupCommandPalette() {
+    const overlay = document.getElementById('cmdPaletteOverlay');
+    const input = document.getElementById('cmdPaletteInput');
+    const results = document.getElementById('cmdPaletteResults');
+    const trigger = document.getElementById('sidebarCmdTrigger');
+    if (!overlay || !input || !results) return;
+
+    // Build tool list from sidebar
+    const tools = [];
     const sidebarNav = document.getElementById('sidebarNav');
-    if (!input || !sidebarNav) return;
+    if (sidebarNav) {
+      sidebarNav.querySelectorAll('.sidebar-cat').forEach((cat) => {
+        const catLabel = cat.querySelector('.sidebar-cat-label')?.textContent || '';
+        cat.querySelectorAll('.sidebar-item').forEach((item) => {
+          const label = item.querySelector('.sidebar-item-label')?.textContent || '';
+          const section = item.dataset.section || '';
+          const iconHtml = item.querySelector('.sidebar-item-icon')?.innerHTML || '';
+          tools.push({ label, section, cat: catLabel, iconHtml });
+        });
+      });
+      // Add dashboard
+      const dashLabel = sidebarNav.querySelector('.sidebar-dashboard-label')?.textContent || 'Dashboard';
+      const dashIcon = sidebarNav.querySelector('.sidebar-dashboard-icon')?.innerHTML || '';
+      tools.unshift({ label: dashLabel, section: 'dashboard', cat: '', iconHtml: dashIcon });
+    }
 
-    input.addEventListener('input', () => {
-      const query = input.value.toLowerCase().trim();
-      const cats = sidebarNav.querySelectorAll('.sidebar-cat');
-      const dashboard = sidebarNav.querySelector('.sidebar-dashboard');
-      const divider = sidebarNav.querySelector('.sidebar-divider');
-      let anyVisible = false;
+    let focusedIdx = -1;
 
-      if (!query) {
-        cats.forEach((cat) => (cat.style.display = ''));
-        if (dashboard) dashboard.style.display = '';
-        if (divider) divider.style.display = '';
+    function openPalette() {
+      overlay.classList.add('visible');
+      input.value = '';
+      input.focus();
+      focusedIdx = -1;
+      renderResults('');
+    }
+
+    function closePalette() {
+      overlay.classList.remove('visible');
+      input.value = '';
+      input.blur();
+    }
+
+    function fuzzyMatch(query, text) {
+      if (!query) return true;
+      const q = query.toLowerCase();
+      const t = text.toLowerCase();
+      if (t.includes(q)) return true;
+      let qi = 0;
+      for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+        if (t[ti] === q[qi]) qi++;
+      }
+      return qi === q.length;
+    }
+
+    function renderResults(query) {
+      const matched = query ? tools.filter((t) => fuzzyMatch(query, t.label)) : tools;
+      if (matched.length === 0) {
+        results.innerHTML = '<div class="cmd-palette-empty">No tools found</div>';
+        focusedIdx = -1;
         return;
       }
 
-      if (dashboard) dashboard.style.display = 'none';
-      if (divider) divider.style.display = 'none';
-
-      cats.forEach((cat) => {
-        const items = cat.querySelectorAll('.sidebar-item');
-        let catHasMatch = false;
-        items.forEach((item) => {
-          const label = (item.querySelector('.sidebar-item-label')?.textContent || '').toLowerCase();
-          if (label.includes(query)) {
-            item.style.display = '';
-            catHasMatch = true;
-          } else {
-            item.style.display = 'none';
-          }
-        });
-        cat.style.display = catHasMatch ? '' : 'none';
-        if (catHasMatch) {
-          cat.classList.add('open');
-          anyVisible = true;
-        }
+      // Group by category
+      const groups = {};
+      matched.forEach((t) => {
+        const key = t.cat || 'Quick';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(t);
       });
+
+      let html = '';
+      let idx = 0;
+      for (const [cat, items] of Object.entries(groups)) {
+        html += `<div class="cmd-palette-group-label">${cat}</div>`;
+        items.forEach((t) => {
+          const focused = idx === focusedIdx ? ' focused' : '';
+          html += `<div class="cmd-palette-item${focused}" data-section="${t.section}" data-idx="${idx}">
+            <span class="cmd-palette-item-icon">${t.iconHtml}</span>
+            <span class="cmd-palette-item-label">${t.label}</span>
+          </div>`;
+          idx++;
+        });
+      }
+      results.innerHTML = html;
+    }
+
+    function navigateToItem(section) {
+      closePalette();
+      if (section === 'dashboard') {
+        navigateToSection('dashboard');
+      } else {
+        navigateToSection(section);
+      }
+    }
+
+    // Open via trigger button
+    if (trigger) {
+      trigger.addEventListener('click', openPalette);
+    }
+
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closePalette();
     });
 
-    // Clear search on Escape
+    // Input filtering + keyboard
+    input.addEventListener('input', () => {
+      focusedIdx = -1;
+      renderResults(input.value.trim());
+    });
+
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        input.value = '';
-        input.dispatchEvent(new Event('input'));
-        input.blur();
+      const items = results.querySelectorAll('.cmd-palette-item');
+      const count = items.length;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        focusedIdx = focusedIdx < count - 1 ? focusedIdx + 1 : 0;
+        renderResults(input.value.trim());
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusedIdx = focusedIdx > 0 ? focusedIdx - 1 : count - 1;
+        renderResults(input.value.trim());
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (focusedIdx >= 0 && focusedIdx < count) {
+          const section = items[focusedIdx].dataset.section;
+          if (section) navigateToItem(section);
+        }
+      } else if (e.key === 'Escape') {
+        closePalette();
       }
     });
+
+    // Click on result item
+    results.addEventListener('click', (e) => {
+      const item = e.target.closest('.cmd-palette-item');
+      if (item) {
+        navigateToItem(item.dataset.section);
+      }
+    });
+
+    // Global Ctrl+K / Cmd+K
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (overlay.classList.contains('visible')) {
+          closePalette();
+        } else {
+          openPalette();
+        }
+      }
+    });
+
+    // Sidebar settings button
+    const settingsBtn = document.getElementById('sidebarSettingsBtn');
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => navigateToSection('ai-settings'));
+    }
   }
 
   // ===== Search & Filters =====
@@ -922,6 +1031,20 @@
         e.preventDefault();
         const toggle = document.getElementById('sidebarToggle');
         if (toggle) toggle.click();
+      }
+      // Ctrl+K: command palette
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const overlay = document.getElementById('cmdPaletteOverlay');
+        if (overlay) {
+          if (overlay.classList.contains('visible')) {
+            overlay.classList.remove('visible');
+          } else {
+            overlay.classList.add('visible');
+            const input = document.getElementById('cmdPaletteInput');
+            if (input) input.focus();
+          }
+        }
       }
     });
   }

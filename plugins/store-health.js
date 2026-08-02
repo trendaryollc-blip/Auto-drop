@@ -62,7 +62,6 @@
         <div id="healthResults"></div>
 
         ${window.HuntDrop.renderRelatedTools([
-          { section: 'section-store-gen', name: 'Store Generator', desc: 'Fix issues', icon: '🔧', color: '#FF6B6B' },
           {
             section: 'section-supplier-hub',
             name: 'Supplier Hub',
@@ -76,13 +75,6 @@
             desc: 'Optimize spend',
             icon: '💰',
             color: '#45B7D1',
-          },
-          {
-            section: 'section-calendar',
-            name: 'Content Calendar',
-            desc: 'Improve content',
-            icon: '📅',
-            color: '#96CEB4',
           },
         ])}
       </div>
@@ -699,13 +691,6 @@
 
     generateActions(scores, _alerts) {
       const actions = [];
-      if (scores.pricing < 70)
-        actions.push({
-          title: 'Optimize Pricing Strategy',
-          desc: 'Test 10-15% price increase on top 3 products. Use the Price Elasticity Simulator to find the sweet spot.',
-          impact: 'High',
-          section: 'section-elasticity',
-        });
       if (scores.adStrategy < 70)
         actions.push({
           title: 'Reallocate Ad Budget',

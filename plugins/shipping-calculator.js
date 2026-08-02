@@ -381,7 +381,7 @@
           alert.innerHTML =
             '<div class="sc-alert sc-alert-warning">⚠️ Low margin (' +
             marginPct +
-            '%). Consider <a data-section="section-price-elasticity" class="sc-link" style="cursor:pointer">optimizing your price</a> or finding cheaper suppliers on <a data-section="section-supplier-hub" class="sc-link" style="cursor:pointer">Supplier Hub</a>.</div>';
+            '%). Consider <a data-section="section-supplier-hub" class="sc-link" style="cursor:pointer">finding cheaper suppliers</a>.</div>';
         else if (marginPct >= 30)
           alert.innerHTML =
             '<div class="sc-alert sc-alert-success">✅ Excellent margin! (' +
@@ -557,8 +557,8 @@
         icon: '📦',
         title: 'Bundle Orders',
         text: 'Combine items from same supplier to cut per-item shipping 40-60%.',
-        link: 'section-bundles',
-        linkText: 'Find Bundles →',
+        link: 'section-profit-lab',
+        linkText: 'Calculate Savings →',
       },
       {
         icon: '🏭',
@@ -881,20 +881,6 @@
                   desc: 'Allocate shipping budget across orders',
                   icon: '💳',
                   color: 'var(--accent-purple)',
-                },
-                {
-                  section: 'section-bundles',
-                  name: 'Bundle Ideas',
-                  desc: 'Bundle items to reduce per-unit shipping',
-                  icon: '📦',
-                  color: 'var(--accent-orange)',
-                },
-                {
-                  section: 'section-simulator',
-                  name: 'Business Simulator',
-                  desc: 'Model scenarios with different shipping costs',
-                  icon: '🎯',
-                  color: 'var(--accent-pink)',
                 },
               ])
             : ''

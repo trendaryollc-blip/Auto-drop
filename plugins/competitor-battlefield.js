@@ -562,13 +562,6 @@
               icon: '👁️',
               color: '#ff3366',
             },
-            {
-              section: 'section-elasticity',
-              name: 'Price Elasticity',
-              desc: 'Optimize pricing',
-              icon: '💰',
-              color: '#00e5ff',
-            },
           ])
         : '';
       section.insertAdjacentHTML('beforeend', relatedHtml);

@@ -1208,12 +1208,16 @@
 .sci-detail-panel {
   position: fixed;
   top: 0;
-  left: 0;
+  left: var(--sidebar-w);
   right: 0;
   bottom: 0;
   z-index: 200;
   display: none;
   pointer-events: none;
+}
+
+body.sidebar-collapsed .sci-detail-panel {
+  left: var(--sidebar-collapsed-w);
 }
 .sci-detail-panel.sci-detail-open {
   display: block;

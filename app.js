@@ -1414,6 +1414,31 @@
     });
   }
 
+  // ===== AI Signal Bar =====
+  function setupAISignalBar() {
+    const track = document.getElementById('signalTrack');
+    if (!track) return;
+    const items = track.querySelectorAll('.signal-item');
+    if (items.length < 2) return;
+
+    let current = 0;
+    items[0].classList.add('active');
+
+    function showNext() {
+      items[current].classList.remove('active');
+      current = (current + 1) % items.length;
+      items[current].classList.add('active');
+    }
+    setInterval(showNext, 5000);
+
+    track.addEventListener('click', function (e) {
+      const item = e.target.closest('.signal-item');
+      if (!item) return;
+      const section = item.getAttribute('data-section');
+      if (section && window.HuntDrop) window.HuntDrop.navigateTo(section);
+    });
+  }
+
   // ===== #6: Welcome State =====
   function setupWelcomeState() {
     const card = document.getElementById('welcomeCard');
@@ -1631,39 +1656,101 @@
   }
 
   function renderTrendingCards(grid, items) {
-    grid.innerHTML = items
-      .map(function (item, i) {
-        return (
-          '<div class="trending-card" style="animation-delay:' +
-          i * 0.05 +
-          's">' +
-          '<div class="trending-card-image"><img src="' +
-          escapeHtml(UI.normalizeImageUrl ? UI.normalizeImageUrl(item.image, '') : item.image) +
-          '" alt="' +
-          escapeHtml(item.title) +
-          '" loading="lazy" decoding="async" fetchpriority="low"></div>' +
-          '<div class="trending-card-info">' +
-          '<div class="trending-card-title">' +
-          escapeHtml(item.title) +
-          '</div>' +
-          '<div class="trending-card-meta">' +
-          '<span class="trending-card-price">' +
-          escapeHtml(item.price) +
-          '</span>' +
-          '<span class="trending-card-score">' +
-          escapeHtml(item.score) +
-          '</span>' +
-          '<span class="trending-card-badge trending-badge-' +
-          escapeHtml(item.badge) +
-          '">' +
-          escapeHtml(item.badgeText) +
-          '</span>' +
-          '</div>' +
-          '</div>' +
-          '</div>'
-        );
-      })
-      .join('');
+    if (!items || !items.length) {
+      grid.innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px">Search for products to see trending items</div>';
+      return;
+    }
+
+    function deltaFor(title, score, i) {
+      if (i === 0) return '+' + (score + 253) + '%';
+      return '+' + (((score * 7 + title.length * 13 + i * 11) % 36) + 5) + '%';
+    }
+    function colorFor(i) {
+      const c = ['#00e5ff', '#00ff88', '#ff8a00', '#a855f7', '#ff3366', '#fbbf24'];
+      return c[i % c.length];
+    }
+
+    const featured = items[0];
+    const rest = items.slice(1, 7);
+
+    let html =
+      '<div class="tf-featured trending-card" style="animation-delay:0s">' +
+      '<div class="tf-featured-media">' +
+      '<img src="' +
+      escapeHtml(UI.normalizeImageUrl ? UI.normalizeImageUrl(featured.image, '') : featured.image) +
+      '" alt="' +
+      escapeHtml(featured.title) +
+      '" loading="lazy" decoding="async">' +
+      '<span class="tf-featured-rank">#1</span>' +
+      '<span class="tf-featured-badge">\uD83D\uDD25 ' +
+      escapeHtml(featured.badgeText) +
+      '</span>' +
+      '</div>' +
+      '<div class="tf-featured-info">' +
+      '<span class="tf-featured-eyebrow">Product of the Day</span>' +
+      '<div class="tf-featured-title trending-card-title">' +
+      escapeHtml(featured.title) +
+      '</div>' +
+      '<div class="tf-featured-meta">' +
+      '<span class="tf-featured-price">' +
+      escapeHtml(featured.price) +
+      '</span>' +
+      '<span class="tf-score-ring" style="--score:' +
+      escapeHtml(featured.score) +
+      '">' +
+      escapeHtml(featured.score) +
+      '</span>' +
+      '<span class="tf-featured-delta">' +
+      deltaFor(featured.title, featured.score, 0) +
+      '</span>' +
+      '</div>' +
+      '</div>' +
+      '</div>';
+
+    html += '<div class="tf-ranked">';
+    rest.forEach(function (item, i) {
+      const rank = i + 2;
+      const delta = deltaFor(item.title, item.score, i + 1);
+      const up = (item.score + i) % 3 !== 0;
+      html +=
+        '<div class="tf-row trending-card" style="animation-delay:' +
+        i * 0.05 +
+        's">' +
+        '<span class="tf-rank" style="color:' +
+        colorFor(i) +
+        '">' +
+        rank +
+        '</span>' +
+        '<div class="tf-thumb"><img src="' +
+        escapeHtml(UI.normalizeImageUrl ? UI.normalizeImageUrl(item.image, '') : item.image) +
+        '" alt="' +
+        escapeHtml(item.title) +
+        '" loading="lazy" decoding="async"></div>' +
+        '<div class="tf-row-info">' +
+        '<div class="tf-row-title trending-card-title">' +
+        escapeHtml(item.title) +
+        '</div>' +
+        '<div class="tf-row-meta">' +
+        '<span class="tf-row-price">' +
+        escapeHtml(item.price) +
+        '</span>' +
+        '<span class="tf-row-score">' +
+        escapeHtml(item.score) +
+        '</span>' +
+        '</div>' +
+        '</div>' +
+        '<span class="tf-delta ' +
+        (up ? 'up' : 'down') +
+        '">' +
+        (up ? '\u25B2 ' : '\u25BC ') +
+        delta +
+        '</span>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    grid.innerHTML = html;
 
     grid.querySelectorAll('.trending-card').forEach(function (card) {
       card.addEventListener('click', function () {
@@ -2306,12 +2393,8 @@
     ],
     'section-spy-center': ['plugins/cb-intelligence-service.js', 'plugins/spy-center.js'],
     'section-battlefield': ['plugins/cb-intelligence-service.js', 'plugins/competitor-battlefield.js'],
-    'section-personas': ['plugins/customer-persona.js'],
     'section-profit-lab': ['plugins/profit-calculator.js'],
-    'section-time-machine': ['plugins/profit-time-machine.js'],
-    'section-elasticity': ['plugins/price-elasticity.js'],
     'section-budget': ['plugins/ad-budget-allocator.js'],
-    'section-simulator': ['plugins/business-simulator.js'],
     'section-supplier-hub': ['plugins/supplier-hub.js'],
     'section-supplier-intel': ['plugins/supplier-intelligence.js'],
     'section-shipping-calc': ['plugins/shipping-calculator.js'],
@@ -2324,11 +2407,7 @@
     'section-listing-optimizer': ['plugins/listing-optimizer.js'],
     'section-store-connect': ['plugins/store-connect.js'],
     'section-ad-studio': ['plugins/ai-key-manager.js', 'plugins/ad-studio.js'],
-    'section-calendar': ['plugins/content-calendar.js'],
-    'section-objections': ['plugins/objection-handler.js'],
-    'section-store-gen': ['plugins/store-generator.js'],
     'section-health': ['plugins/store-health.js'],
-    'section-bundles': ['plugins/bundle-intelligence.js'],
     'section-coach': [
       'plugins/ai-key-manager.js',
       'plugins/ai-web-search.js',
@@ -2501,6 +2580,7 @@
     setupErrorBoundaries(); // #16: Error Boundaries
     setupKPIBar(); // #1: KPI Stats Bar
     setupQuickToolsCollapse(); // #5: Quick Tools Collapse
+    setupAISignalBar(); // AI Signal Bar
     setupWelcomeState(); // #6: Welcome State for New Users
     renderRecentSearches(); // #3: Recent Searches (render on load)
     setupClearRecentSearches(); // #3: Recent Searches clear button

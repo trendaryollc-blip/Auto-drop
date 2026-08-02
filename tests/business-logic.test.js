@@ -673,28 +673,6 @@ describe('Business Logic — AI Chat Service Fallback Responses', () => {
   });
 });
 
-describe('Business Logic — Bundle Intelligence Calculations', () => {
-  let HuntDrop;
-
-  beforeEach(() => {
-    setupDashboardDOM();
-    ({ HuntDrop } = loadCoreWithPlugins([
-      'plugins/data-adapters.js',
-      'plugins/search-engine.js',
-      'plugins/bundle-intelligence.js',
-    ]));
-  });
-
-  describe('bundle-intelligence plugin', () => {
-    it('should be registered in PluginRegistry', () => {
-      expect(HuntDrop.PluginRegistry).toBeDefined();
-      const allPlugins = HuntDrop.PluginRegistry.getAll();
-      const ids = allPlugins.map((p) => p.id);
-      expect(ids).toContain('bundle-intelligence');
-    });
-  });
-});
-
 describe('Business Logic — Context Builder Data Integrity', () => {
   let HuntDrop;
   let ctx;

@@ -991,13 +991,6 @@
                   color: 'var(--accent-red)',
                 },
                 {
-                  section: 'section-business-sim',
-                  name: 'Business Simulator',
-                  desc: 'Model scenarios with real refund rates',
-                  icon: '🎯',
-                  color: 'var(--accent-purple)',
-                },
-                {
                   section: 'section-cash-flow',
                   name: 'Cash Flow',
                   desc: 'Refund impact on cash position',

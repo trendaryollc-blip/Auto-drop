@@ -820,14 +820,6 @@
 }
 
 /* Profit Time Machine */
-.section-profit-time-machine {
-  background: var(--bg-primary);
-}
-.section-profit-time-machine .section-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
 .ptm-hero {
   text-align: center;
   margin-bottom: 28px;
@@ -1772,14 +1764,6 @@
 }
 
 /* Price Elasticity Simulator */
-.section-price-elasticity {
-  background: var(--bg-primary);
-}
-.section-price-elasticity .section-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
 .pes-hero {
   text-align: center;
   margin-bottom: 28px;

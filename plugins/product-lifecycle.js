@@ -174,20 +174,6 @@
         icon: '🎯',
         color: '#a855f7',
       },
-      {
-        section: 'section-time-machine',
-        name: 'Profit Time Machine',
-        desc: 'Forecast by stage',
-        icon: '🔮',
-        color: '#00e5ff',
-      },
-      {
-        section: 'section-bundles',
-        name: 'Bundle Intelligence',
-        desc: 'Bundle by lifecycle',
-        icon: '📦',
-        color: '#00ff88',
-      },
     ])}`;
   }
 

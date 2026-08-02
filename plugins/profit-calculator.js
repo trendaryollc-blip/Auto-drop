@@ -355,27 +355,6 @@
 
         ${window.HuntDrop.renderRelatedTools([
           {
-            section: 'section-elasticity',
-            name: 'Price Elasticity',
-            desc: 'Simulate pricing',
-            icon: '📈',
-            color: '#00e5ff',
-          },
-          {
-            section: 'section-time-machine',
-            name: 'Profit Time Machine',
-            desc: 'Forecast revenue',
-            icon: '⏳',
-            color: '#f59e0b',
-          },
-          {
-            section: 'section-bundles',
-            name: 'Bundle Intelligence',
-            desc: 'Optimize bundles',
-            icon: '📦',
-            color: '#8b5cf6',
-          },
-          {
             section: 'section-budget',
             name: 'Ad Budget Allocator',
             desc: 'Allocate ad spend',

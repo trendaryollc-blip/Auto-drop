@@ -2951,14 +2951,6 @@
 }
 
 /* Customer Persona Simulator */
-.section-personas {
-  background: var(--bg-primary);
-}
-.section-personas .section-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
 .cps-hero {
   text-align: center;
   margin-bottom: 32px;

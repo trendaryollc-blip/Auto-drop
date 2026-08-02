@@ -395,7 +395,7 @@
           title: 'Low Cash Reserve',
           desc: `Current cash ($${Math.round(d.cash)}) covers only ${Math.floor(d.cash / dailyExpenses)} days of expenses. Aim for 14+ days.`,
           severity: 'medium',
-          section: 'section-business-sim',
+          section: 'section-profit-lab',
         });
       }
       if (dailyExpenses > d.ordersPerDay * d.avgOrderValue) {
@@ -500,7 +500,7 @@
               <div class="cf-hkpi" data-section="section-cash-flow" role="button" tabindex="0" style="cursor:pointer"><div class="cf-hkpi-val" style="color:${d.cash < 500 ? 'var(--accent-red)' : d.cash < 1500 ? 'var(--accent-yellow)' : 'var(--accent-green)'}">$${Math.round(d.cash).toLocaleString()}</div><div class="cf-hkpi-label">Current Cash</div></div>
               <div class="cf-hkpi" data-section="section-profit-lab" role="button" tabindex="0" style="cursor:pointer"><div class="cf-hkpi-val" style="color:var(--accent-green)">$${Math.round(stats.totalInflow).toLocaleString()}</div><div class="cf-hkpi-label">30-Day Inflow</div></div>
               <div class="cf-hkpi" data-section="section-profit-lab" role="button" tabindex="0" style="cursor:pointer"><div class="cf-hkpi-val" style="color:var(--accent-red)">$${Math.round(stats.totalOutflow).toLocaleString()}</div><div class="cf-hkpi-label">30-Day Outflow</div></div>
-              <div class="cf-hkpi" data-section="section-business-sim" role="button" tabindex="0" style="cursor:pointer"><div class="cf-hkpi-val" style="color:${stats.daysOfRunway < 7 ? 'var(--accent-red)' : stats.daysOfRunway < 21 ? 'var(--accent-yellow)' : 'var(--accent-green)'}">${stats.daysOfRunway}</div><div class="cf-hkpi-label">Days Runway</div></div>
+              <div class="cf-hkpi" data-section="section-cash-flow" role="button" tabindex="0" style="cursor:pointer"><div class="cf-hkpi-val" style="color:${stats.daysOfRunway < 7 ? 'var(--accent-red)' : stats.daysOfRunway < 21 ? 'var(--accent-yellow)' : 'var(--accent-green)'}">${stats.daysOfRunway}</div><div class="cf-hkpi-label">Days Runway</div></div>
             </div>
           </div>
         </div>
@@ -517,7 +517,7 @@
               <div class="cf-ov-val" style="color:${d.cash < 500 ? 'var(--accent-red)' : 'var(--accent-green)'}">$${Math.round(d.cash).toLocaleString()}</div>
               <div class="cf-ov-sub">${d.cash < 500 ? '⚠️ Critical — less than 2 days of expenses' : '✅ Adequate operating capital'}</div>
             </div>
-            <div class="cf-ov-card" data-section="section-business-sim" role="button" tabindex="0" style="cursor:pointer">
+            <div class="cf-ov-card" data-section="section-cash-flow" role="button" tabindex="0" style="cursor:pointer">
               <div class="cf-ov-icon">📅</div>
               <div class="cf-ov-label">Days of Runway</div>
               <div class="cf-ov-val" style="color:${stats.daysOfRunway < 7 ? 'var(--accent-red)' : stats.daysOfRunway < 21 ? 'var(--accent-yellow)' : 'var(--accent-green)'}">${stats.daysOfRunway} days</div>
@@ -629,13 +629,6 @@
                   desc: 'Track orders generating revenue',
                   icon: '📦',
                   color: 'var(--accent-cyan)',
-                },
-                {
-                  section: 'section-business-sim',
-                  name: 'Business Simulator',
-                  desc: 'Model growth scenarios with real cash data',
-                  icon: '🎯',
-                  color: 'var(--accent-orange)',
                 },
                 {
                   section: 'section-shipping-calc',

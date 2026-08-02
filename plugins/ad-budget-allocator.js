@@ -244,21 +244,7 @@
             icon: '🎯',
             color: '#f59e0b',
           },
-          {
-            section: 'section-personas',
-            name: 'Customer Persona',
-            desc: 'Target the right audience',
-            icon: '👤',
-            color: '#ec4899',
-          },
           { section: 'section-profit-lab', name: 'Profit Calculator', desc: 'Track ROI', icon: '💰', color: '#00ff88' },
-          {
-            section: 'section-calendar',
-            name: 'Content Calendar',
-            desc: 'Schedule campaigns',
-            icon: '📅',
-            color: '#f97316',
-          },
         ])}
       </div>`;
       container.appendChild(section);

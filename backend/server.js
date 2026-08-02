@@ -94,8 +94,8 @@ async function start() {
       await connectDB();
       console.log('[Server] Database connected');
     } catch (dbErr) {
-      if (isVercel) {
-        console.warn('[Server] Database connection skipped on Vercel:', dbErr.message);
+      if (isVercel || config.isDev) {
+        console.warn('[Server] Database connection skipped:', dbErr.message);
       } else {
         throw dbErr;
       }

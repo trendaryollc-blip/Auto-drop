@@ -114,14 +114,10 @@ testPluginLifecycle('plugins/competitor-battlefield.js', 'competitor-battlefield
   'plugins/ai-web-search.js',
   'plugins/ai-chat-service.js',
 ]);
-testPluginLifecycle('plugins/customer-persona.js', 'customer-persona', 'section-personas');
 
-// Financial (5)
+// Financial (3)
 testPluginLifecycle('plugins/profit-calculator.js', 'profit-calculator', 'section-profit-lab');
-testPluginLifecycle('plugins/profit-time-machine.js', 'profit-time-machine', 'section-time-machine');
-testPluginLifecycle('plugins/price-elasticity.js', 'price-elasticity', 'section-elasticity');
 testPluginLifecycle('plugins/ad-budget-allocator.js', 'ad-budget-allocator', 'section-budget');
-testPluginLifecycle('plugins/business-simulator.js', 'business-simulator', 'section-simulator');
 
 // Sourcing (2)
 testPluginLifecycle('plugins/supplier-hub.js', 'supplier-hub', 'section-supplier-hub');
@@ -129,13 +125,9 @@ testPluginLifecycle('plugins/supplier-intelligence.js', 'supplier-intelligence',
 
 // Marketing (3)
 testPluginLifecycle('plugins/ad-studio.js', 'ad-studio', 'section-ad-studio');
-testPluginLifecycle('plugins/content-calendar.js', 'content-calendar', 'section-calendar');
-testPluginLifecycle('plugins/objection-handler.js', 'objection-handler', 'section-objections');
 
-// Store (3)
-testPluginLifecycle('plugins/store-generator.js', 'store-generator', 'section-store-gen');
+// Store (1)
 testPluginLifecycle('plugins/store-health.js', 'store-health', 'section-health');
-testPluginLifecycle('plugins/bundle-intelligence.js', 'bundle-intelligence', 'section-bundles');
 
 // Strategy (2)
 testPluginLifecycle('plugins/ai-business-coach.js', 'ai-business-coach', 'section-coach', [
@@ -386,7 +378,7 @@ describe('ai-settings plugin — specific API tests', () => {
 });
 
 describe('All plugins cross-reference', () => {
-  it('should have 34 plugin JS files registered', () => {
+  it('should have 26 plugin JS files registered', () => {
     const all = loadCore();
     const expected = [
       'data-adapters.js',
@@ -404,21 +396,13 @@ describe('All plugins cross-reference', () => {
       'ai-chat-service.js',
       'ai-business-coach.js',
       'ai-settings.js',
-      'profit-time-machine.js',
-      'store-generator.js',
       'cb-intelligence-service.js',
       'competitor-battlefield.js',
-      'customer-persona.js',
-      'bundle-intelligence.js',
-      'price-elasticity.js',
       'product-lifecycle.js',
       'ad-budget-allocator.js',
       'store-health.js',
-      'content-calendar.js',
       'supplier-intelligence.js',
-      'objection-handler.js',
       'market-gap-finder.js',
-      'business-simulator.js',
       'spy-center.js',
       'supplier-hub.js',
       'niche-radar.js',
@@ -428,6 +412,6 @@ describe('All plugins cross-reference', () => {
       loadScript('plugins/' + p);
     });
     const registered = all.PluginRegistry.getAll();
-    expect(registered.length).toBeGreaterThanOrEqual(30);
+    expect(registered.length).toBeGreaterThanOrEqual(22);
   });
 });

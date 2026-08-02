@@ -5,13 +5,74 @@
   const { PluginRegistry, UI, Config } = window.HuntDrop;
   const esc = (s) => UI.escapeHtml(String(s || ''));
 
-  const SUPPLIER_DATABASE = [];
+  const SUPPLIER_DATABASE = [
+    {
+      name: 'TechGear Direct', platform: 'AliExpress', location: 'Shenzhen, China',
+      specialty: 'Electronics', rating: 4.8, orders: '152000', verified: true,
+      responseRate: 98, responseTime: '1h', fulfillmentRate: 99.2, disputeRate: 0.8,
+      quality: 92, communication: 95, value: 88, shipTime: '7-12', shipCost: 'Free',
+      minOrder: '1', paymentTerms: 'PayPal, T/T', color: '#06b6d4',
+      sampleAvailable: true, customPackaging: true, dropshipSupport: true,
+      yearsActive: 6, topProducts: ['Wireless Earbuds Pro', 'Smart Watch X200', 'USB-C Hub 7-in-1', 'Bluetooth Speaker Boom'],
+      velocityData: { salesGrowth30d: 18, ratingTrend: 'up', newProducts30d: 4, responseTimeTrend: 'faster' },
+    },
+    {
+      name: 'SmartHome US', platform: 'Amazon', location: 'Austin, TX',
+      specialty: 'Smart Home', rating: 4.9, orders: '89000', verified: true,
+      responseRate: 100, responseTime: '30min', fulfillmentRate: 99.8, disputeRate: 0.3,
+      quality: 96, communication: 98, value: 85, shipTime: '3-5', shipCost: '$3.50',
+      minOrder: '10', paymentTerms: 'Net 30', color: '#8b5cf6',
+      sampleAvailable: true, customPackaging: true, dropshipSupport: true,
+      yearsActive: 4, topProducts: ['Smart Thermostat Elite', 'Motion Sensor Light', 'Smart Plug Hub', 'WiFi Camera 4K'],
+      velocityData: { salesGrowth30d: 25, ratingTrend: 'up', newProducts30d: 6, responseTimeTrend: 'faster' },
+    },
+    {
+      name: 'PetEase Supplies', platform: 'CJ Dropshipping', location: 'Yiwu, China',
+      specialty: 'Pet Products', rating: 4.6, orders: '234000', verified: true,
+      responseRate: 92, responseTime: '2h', fulfillmentRate: 96.5, disputeRate: 1.2,
+      quality: 84, communication: 80, value: 90, shipTime: '10-18', shipCost: 'Free',
+      minOrder: '1', paymentTerms: 'PayPal, Credit Card', color: '#10b981',
+      sampleAvailable: true, customPackaging: false, dropshipSupport: true,
+      yearsActive: 8, topProducts: ['Automatic Pet Feeder', 'Cat Tree Tower Deluxe', 'Pet Grooming Kit', 'Dog Harness Adjustable'],
+      velocityData: { salesGrowth30d: 8, ratingTrend: 'stable', newProducts30d: 2, responseTimeTrend: 'stable' },
+    },
+    {
+      name: 'BeautyGlow Co', platform: 'Alibaba', location: 'Guangzhou, China',
+      specialty: 'Beauty & Cosmetics', rating: 4.5, orders: '410000', verified: true,
+      responseRate: 90, responseTime: '3h', fulfillmentRate: 94.0, disputeRate: 2.1,
+      quality: 78, communication: 82, value: 86, shipTime: '10-15', shipCost: '$2.00',
+      minOrder: '50', paymentTerms: 'T/T, L/C', color: '#ec4899',
+      sampleAvailable: true, customPackaging: true, dropshipSupport: false,
+      yearsActive: 10, topProducts: ['Organic Face Serum', 'Vitamin C Brightening Cream', 'Hyaluronic Acid Moisturizer', 'Retinol Night Oil'],
+      velocityData: { salesGrowth30d: -2, ratingTrend: 'down', newProducts30d: 1, responseTimeTrend: 'slower' },
+    },
+    {
+      name: 'FitGear Pro', platform: 'Amazon', location: 'Los Angeles, CA',
+      specialty: 'Fitness Equipment', rating: 4.9, orders: '67000', verified: true,
+      responseRate: 99, responseTime: '45min', fulfillmentRate: 99.5, disputeRate: 0.5,
+      quality: 94, communication: 96, value: 82, shipTime: '2-4', shipCost: '$5.99',
+      minOrder: '5', paymentTerms: 'Net 15, Credit Card', color: '#f97316',
+      sampleAvailable: false, customPackaging: true, dropshipSupport: true,
+      yearsActive: 3, topProducts: ['Resistance Bands Set', 'Adjustable Dumbbells', 'Yoga Mat Premium', 'Foam Roller Pro'],
+      velocityData: { salesGrowth30d: 32, ratingTrend: 'up', newProducts30d: 7, responseTimeTrend: 'faster' },
+    },
+    {
+      name: 'Global Textile Co', platform: '1688', location: 'Hangzhou, China',
+      specialty: 'Textiles & Apparel', rating: 4.3, orders: '520000', verified: false,
+      responseRate: 85, responseTime: '6h', fulfillmentRate: 91.0, disputeRate: 3.5,
+      quality: 72, communication: 68, value: 80, shipTime: '15-25', shipCost: '$1.50',
+      minOrder: '100', paymentTerms: 'T/T', color: '#6366f1',
+      sampleAvailable: false, customPackaging: true, dropshipSupport: false,
+      yearsActive: 12, topProducts: ['Cotton T-Shirt Bulk', 'Hoodie Fleece Lined', 'Denim Jacket Classic', 'Active Leggings'],
+      velocityData: { salesGrowth30d: 5, ratingTrend: 'stable', newProducts30d: 3, responseTimeTrend: 'stable' },
+    },
+  ];
 
   function computeScore(s) {
     let r = 0;
     if (s.verified) r += 20;
     r += (s.rating / 5) * 30;
-    const o = parseInt(s.orders.replace(/[^0-9]/g, '')) || 0;
+    const o = parseInt(String(s.orders).replace(/[^0-9]/g, '')) || 0;
     if (o > 200000) r += 15;
     else if (o > 100000) r += 10;
     else r += 5;
@@ -27,7 +88,7 @@
     if (s.rating < 4.5) risk += 15;
     if (s.disputeRate > 1.5) risk += 20;
     if (s.responseRate < 90) risk += 15;
-    const o = parseInt(s.orders.replace(/[^0-9]/g, '')) || 0;
+    const o = parseInt(String(s.orders).replace(/[^0-9]/g, '')) || 0;
     if (o < 50000) risk += 10;
     if (risk > 40) return { level: 'HIGH', color: 'var(--accent-red)', pct: risk };
     if (risk > 20) return { level: 'MEDIUM', color: 'var(--accent-orange)', pct: risk };
@@ -153,9 +214,6 @@
           <div class="sci-tips-grid" id="sciTipsGrid"></div>
         </div>
 
-        <!-- DETAIL PANEL -->
-        <div id="sciDetailPanel" class="sci-detail-panel"></div>
-
         ${window.HuntDrop.renderRelatedTools([
           {
             section: 'section-supplier-hub',
@@ -163,13 +221,6 @@
             desc: 'Browse supplier directory',
             icon: '🏭',
             color: '#06b6d4',
-          },
-          {
-            section: 'section-store-gen',
-            name: 'Store Generator',
-            desc: 'Build your store',
-            icon: '🏪',
-            color: '#FF6B6B',
           },
           {
             section: 'section-profit-lab',
@@ -184,6 +235,12 @@
       container.appendChild(section);
       self._section = section;
 
+      // Create detail panel at body level to escape section stacking context
+      var sciPanel = document.createElement('div');
+      sciPanel.id = 'sciDetailPanel';
+      sciPanel.className = 'sci-detail-panel';
+      document.body.appendChild(sciPanel);
+
       self.renderRiskAlerts(analyzed);
       self.renderScoreboard(analyzed);
       self.renderBreakdown(analyzed);
@@ -194,7 +251,7 @@
 
     showDetail(supplier) {
       const self = this;
-      const panel = self._section ? self._section.querySelector('#sciDetailPanel') : null;
+      const panel = document.getElementById('sciDetailPanel');
       if (!panel) return;
       const score = computeScore(supplier);
       const risk = getRiskLevel(supplier);
@@ -234,7 +291,7 @@
             <h4>📊 Key Metrics</h4>
             <div class="sci-detail-metrics">
               <div class="sci-detail-m"><span class="sci-detail-m-label">Total Orders</span><span class="sci-detail-m-val">${esc(supplier.orders)}</span></div>
-              <div class="sci-detail-m"><span class="sci-detail-m-label">Products</span><span class="sci-detail-m-val">${esc(supplier.products)}</span></div>
+              <div class="sci-detail-m"><span class="sci-detail-m-label">Products</span><span class="sci-detail-m-val">${esc(supplier.topProducts ? supplier.topProducts.length : 0)}</span></div>
               <div class="sci-detail-m"><span class="sci-detail-m-label">Response Time</span><span class="sci-detail-m-val">${esc(supplier.responseTime)}</span></div>
               <div class="sci-detail-m"><span class="sci-detail-m-label">Response Rate</span><span class="sci-detail-m-val">${esc(supplier.responseRate)}%</span></div>
               <div class="sci-detail-m"><span class="sci-detail-m-label">Fulfillment Rate</span><span class="sci-detail-m-val">${esc(supplier.fulfillmentRate)}%</span></div>
@@ -285,7 +342,6 @@
 
         <div class="sci-detail-actions">
           <button class="sci-detail-action-btn sci-detail-primary" onclick="window.HuntDrop.navigateTo('section-profit-lab')">💰 Calculate Profit</button>
-          <button class="sci-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-store-gen')">🏪 Build Store</button>
           <button class="sci-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-ad-studio')">🎬 Create Ads</button>
           <button class="sci-detail-action-btn" onclick="window.HuntDrop.navigateTo('section-supplier-hub')">🏭 Find Suppliers</button>
         </div>
@@ -811,6 +867,8 @@
     unmount(_ctx) {
       const el = UI.$('section-supplier-intel');
       if (el) el.remove();
+      var panel = document.getElementById('sciDetailPanel');
+      if (panel) panel.remove();
     },
   };
 

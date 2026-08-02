@@ -936,13 +936,6 @@
                   color: 'var(--accent-purple)',
                 },
                 {
-                  section: 'section-objections',
-                  name: 'FAQ Builder',
-                  desc: 'Auto-generate product FAQs from listing',
-                  icon: '❓',
-                  color: 'var(--accent-cyan)',
-                },
-                {
                   section: 'section-spy-center',
                   name: 'Spy Center',
                   desc: 'Analyze competitor store listings',
@@ -962,13 +955,6 @@
                   desc: 'Audit all listings for compliance',
                   icon: '🏥',
                   color: 'var(--accent-red)',
-                },
-                {
-                  section: 'section-bundles',
-                  name: 'Bundle Ideas',
-                  desc: 'Create bundled listings to boost AOV',
-                  icon: '📦',
-                  color: 'var(--accent-yellow)',
                 },
               ])
             : ''

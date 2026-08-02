@@ -259,10 +259,9 @@
 
       prompt += '\n## AVAILABLE TOOLS\n';
       prompt += 'product-grid, ai-analyst, profit-calculator, ad-studio, ad-budget-allocator, ';
-      prompt += 'supplier-hub, supplier-intelligence, store-generator, store-health, niche-radar, ';
-      prompt += 'product-hunt, market-gap-finder, competitor-battlefield, customer-persona, ';
-      prompt += 'content-calendar, price-elasticity, profit-time-machine, business-simulator, ';
-      prompt += 'bundle-intelligence, objection-handler, spy-center, ai-business-coach\n\n';
+      prompt += 'supplier-hub, supplier-intelligence, store-health, niche-radar, ';
+      prompt += 'product-hunt, market-gap-finder, competitor-battlefield, ';
+      prompt += 'spy-center, ai-business-coach\n\n';
 
       prompt += '## RESPONSE RULES\n';
       prompt += '- Be concise and actionable (adapt length to question complexity)\n';

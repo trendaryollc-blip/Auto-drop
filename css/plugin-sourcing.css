@@ -1203,14 +1203,6 @@
 }
 
 /* Business Simulator */
-.section-business-simulator {
-  background: var(--bg-primary);
-}
-.section-business-simulator .section-inner {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 40px 24px 60px;
-}
 .bs-hero {
   text-align: center;
   margin-bottom: 28px;
@@ -2005,7 +1997,7 @@
   font-size: 14px;
 }
 
-/* Supplier Detail Panel */
+/* Supplier Detail Panel - Overridden by supplier-hub-v3.css for #shDetailPanel (full-page takeover) */
 .sh-detail-panel {
   position: fixed;
   inset: 0;
@@ -2040,6 +2032,10 @@
   padding: 28px;
   animation: shDetailIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* Reset for v3 full-page panel — styles defined in supplier-hub-v3.css with !important */
+#shDetailPanel { align-items: normal; justify-content: normal; }
+#shDetailPanel .sh-detail-content { all: revert; }
+#shDetailPanel .sh-detail-overlay { all: revert; }
 @keyframes shDetailIn {
   from {
     transform: scale(0.92);

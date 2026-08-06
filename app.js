@@ -2850,5 +2850,4 @@
   setupMobileSwipe();
   setupMobileViewport();
   setupMobileNav();
-});
 })();

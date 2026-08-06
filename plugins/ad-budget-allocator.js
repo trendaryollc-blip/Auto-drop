@@ -203,7 +203,7 @@
       section.innerHTML = `
       <div class="section-inner">
         <div class="aba-hero">
-          <div class="aba-hero-badge">Budget Intelligence</div>
+          <div class="aba-hero-badge"><span class="aba-hero-badge-dot"></span>Budget Intelligence</div>
           <h1 class="aba-hero-title">Ad Budget AI Allocator</h1>
           <p class="aba-hero-desc">Drop your monthly budget, and AI splits it across your best products for maximum ROI. Know exactly where every dollar goes.</p>
         </div>

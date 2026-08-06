@@ -153,9 +153,10 @@
       section.id = 'section-supplier-intel';
       section.innerHTML = `
       <div class="section-inner">
-        <div class="section-header">
-          <h2 class="section-title">Supplier Intelligence</h2>
-          <p class="section-desc">Deep verification, reliability scoring, risk alerts & backup matching for every supplier</p>
+        <div class="sci-hero">
+          <div class="sci-hero-badge"><span class="sci-hero-badge-dot"></span>Supplier Verification</div>
+          <h2 class="sci-hero-title">Supplier Intelligence</h2>
+          <p class="sci-hero-desc">Deep verification, reliability scoring, risk alerts & backup matching for every supplier</p>
         </div>
 
         <!-- OVERVIEW STATS -->

@@ -498,3 +498,36 @@
   border: 1px solid var(--border-primary);
   cursor: pointer;
 }
+
+/* Mobile responsive — stack everything on small screens */
+@media (max-width: 768px) {
+  .sc-hero {
+    padding: 24px 16px;
+  }
+  .sc-hero-kpis {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sc-grid {
+    grid-template-columns: 1fr;
+  }
+  .sc-kpi-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sc-section {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sc-hero {
+    padding: 16px 12px;
+  }
+  .sc-hero-title {
+    font-size: 22px;
+  }
+  .sc-steps {
+    grid-template-columns: 1fr;
+  }
+}

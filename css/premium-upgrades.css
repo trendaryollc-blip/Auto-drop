@@ -1,0 +1,993 @@
+/* ===================================================================
+   PREMIUM UPGRADES — 10 Visual Enhancements for Extra Premium Feel
+   =================================================================== */
+
+/* ================================================================
+   1. ANIMATED GRADIENT BORDERS
+   ================================================================ */
+
+/* --- Product Cards --- */
+.product-card {
+  position: relative;
+  border: none !important;
+  background: var(--bg-card);
+  isolation: isolate;
+  /* Animated gradient border via box-shadow layering */
+  transition: all 0.3s ease, box-shadow 0.4s ease !important;
+}
+.product-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.3),
+    0 0 0 2px rgba(168, 85, 247, 0.15),
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    0 0 30px rgba(0, 229, 255, 0.08) !important;
+}
+@keyframes borderShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* --- KPI Cards --- */
+.kpi-card {
+  position: relative;
+  border: none !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent) !important;
+  backdrop-filter: blur(20px);
+  isolation: isolate;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.kpi-card:hover::after {
+  opacity: 1;
+  background: linear-gradient(135deg, #00e5ff, #a855f7, #00e5ff);
+  background-size: 200% 200%;
+  animation: borderShift 3s ease infinite;
+}
+
+/* --- Quick Launch Cards --- */
+.ql-card {
+  position: relative;
+  border: none !important;
+  isolation: isolate;
+}
+.ql-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+.ql-card:hover::before {
+  opacity: 1;
+  background: linear-gradient(135deg, #00e5ff, #a855f7, #ec4899, #00e5ff);
+  background-size: 300% 300%;
+  animation: borderShift 4s ease infinite;
+}
+
+/* --- Tool Cards (Mission Control) --- */
+.qt-card {
+  position: relative;
+  border: none !important;
+  isolation: isolate;
+}
+.qt-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
+}
+.qt-card:hover::after {
+  opacity: 1;
+  animation: borderShift 3.5s ease infinite;
+  background-size: 200% 200%;
+}
+/* Category-specific animated border colors */
+.qt-card[data-cat='research']:hover::after { background: linear-gradient(135deg, #60a5fa, #3b82f6, #60a5fa); }
+.qt-card[data-cat='intelligence']:hover::after { background: linear-gradient(135deg, #a78bfa, #8b5cf6, #a78bfa); }
+.qt-card[data-cat='financial']:hover::after { background: linear-gradient(135deg, #34d399, #10b981, #34d399); }
+.qt-card[data-cat='sourcing']:hover::after { background: linear-gradient(135deg, #fbbf24, #f59e0b, #fbbf24); }
+.qt-card[data-cat='marketing']:hover::after { background: linear-gradient(135deg, #f472b6, #ec4899, #f472b6); }
+.qt-card[data-cat='store']:hover::after { background: linear-gradient(135deg, #2dd4bf, #14b8a6, #2dd4bf); }
+.qt-card[data-cat='strategy']:hover::after { background: linear-gradient(135deg, #818cf8, #6366f1, #818cf8); }
+
+/* --- Trending Cards --- */
+.trending-card {
+  position: relative;
+  border: none !important;
+  isolation: isolate;
+}
+.trending-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, transparent, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.trending-card:hover::after {
+  opacity: 1;
+  background: linear-gradient(135deg, #00e5ff, #a855f7, #ec4899, #00e5ff);
+  background-size: 300% 300%;
+  animation: borderShift 4s ease infinite;
+}
+
+/* --- Featured Trending Card --- */
+.tf-featured {
+  position: relative;
+  border: none !important;
+  background: linear-gradient(160deg, rgba(0, 229, 255, 0.05), rgba(168, 85, 247, 0.04)) !important;
+  isolation: isolate;
+}
+.tf-featured::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.3), rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.2), rgba(0, 229, 255, 0.3));
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: borderShift 5s ease infinite;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+.tf-featured:hover::after {
+  opacity: 1;
+}
+
+/* ================================================================
+   2. SCORE-BASED VISUAL HIERARCHY
+   ================================================================ */
+
+/* High-score products get radial glow via box-shadow */
+.product-card[data-score="90"],
+.product-card[data-score="95"],
+.product-card[data-score="100"] {
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.06);
+}
+.product-card[data-score="95"],
+.product-card[data-score="100"] {
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.08), 0 0 60px rgba(0, 229, 255, 0.03);
+}
+.product-card[data-score="100"] {
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.1), 0 0 80px rgba(0, 229, 255, 0.04);
+}
+.product-card[data-score="90"]:hover,
+.product-card[data-score="95"]:hover,
+.product-card[data-score="100"]:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.4),
+    0 0 0 2px rgba(168, 85, 247, 0.2),
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    0 0 40px rgba(0, 229, 255, 0.12) !important;
+}
+.product-card[data-score="100"]:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 255, 0.5),
+    0 0 0 2px rgba(168, 85, 247, 0.25),
+    0 10px 40px rgba(0, 0, 0, 0.35),
+    0 0 50px rgba(0, 229, 255, 0.15),
+    0 0 100px rgba(0, 229, 255, 0.05) !important;
+}
+
+/* Score ring glow */
+.card-score.score-excellent {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+  animation: scoreGlow 2s ease-in-out infinite alternate;
+}
+.card-score.score-good {
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.4));
+}
+@keyframes scoreGlow {
+  from { filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4)); }
+  to { filter: drop-shadow(0 0 14px rgba(0, 255, 136, 0.7)); }
+}
+
+/* TF Featured score ring glow */
+.tf-score-ring {
+  filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.4));
+  transition: filter 0.3s;
+}
+.tf-featured:hover .tf-score-ring {
+  filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.7)) drop-shadow(0 0 24px rgba(0, 229, 255, 0.3));
+}
+
+/* ================================================================
+   3. NEON CATEGORY GLOW ON TOOL CARDS (Enhanced)
+   ================================================================ */
+
+/* Enhanced per-category hover glow */
+.qt-card[data-cat='research']:hover {
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.15), 0 0 40px rgba(96, 165, 250, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='intelligence']:hover {
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.15), 0 0 40px rgba(167, 139, 250, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='financial']:hover {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.15), 0 0 40px rgba(52, 211, 153, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='sourcing']:hover {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.15), 0 0 40px rgba(251, 191, 36, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='marketing']:hover {
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.15), 0 0 40px rgba(244, 114, 182, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='store']:hover {
+  box-shadow: 0 0 20px rgba(45, 212, 191, 0.15), 0 0 40px rgba(45, 212, 191, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+.qt-card[data-cat='strategy']:hover {
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.15), 0 0 40px rgba(129, 140, 248, 0.05), 0 6px 24px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Icon glow on hover per category */
+.qt-card[data-cat='research']:hover .qt-icon { box-shadow: 0 0 16px rgba(96, 165, 250, 0.4); }
+.qt-card[data-cat='intelligence']:hover .qt-icon { box-shadow: 0 0 16px rgba(167, 139, 250, 0.4); }
+.qt-card[data-cat='financial']:hover .qt-icon { box-shadow: 0 0 16px rgba(52, 211, 153, 0.4); }
+.qt-card[data-cat='sourcing']:hover .qt-icon { box-shadow: 0 0 16px rgba(251, 191, 36, 0.4); }
+.qt-card[data-cat='marketing']:hover .qt-icon { box-shadow: 0 0 16px rgba(244, 114, 182, 0.4); }
+.qt-card[data-cat='store']:hover .qt-icon { box-shadow: 0 0 16px rgba(45, 212, 191, 0.4); }
+.qt-card[data-cat='strategy']:hover .qt-icon { box-shadow: 0 0 16px rgba(129, 140, 248, 0.4); }
+
+/* ================================================================
+   4. SEARCH BOX SHIMMER + GLOW + ANIMATED PLACEHOLDER
+   ================================================================ */
+
+.search-box {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(17, 17, 25, 0.95) 100%) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Inner glow on focus */
+.search-box:focus-within {
+  box-shadow:
+    0 0 0 3px var(--accent-cyan-dim),
+    var(--shadow-glow-cyan),
+    inset 0 0 30px rgba(0, 229, 255, 0.03) !important;
+}
+
+/* Gradient underline that expands on focus */
+.search-box::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-50%);
+  border-radius: 1px;
+}
+.search-box:focus-within::after {
+  width: 80%;
+}
+
+/* Shimmer sweep on search button */
+.search-btn {
+  position: relative;
+  overflow: hidden;
+}
+.search-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.25) 50%, transparent 80%);
+  transition: left 0.5s ease;
+}
+.search-btn:hover::after {
+  left: 100%;
+}
+
+/* AI search box shimmer */
+.ai-search-box {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+}
+.ai-search-box:focus-within {
+  box-shadow:
+    0 0 0 3px var(--accent-purple-dim),
+    0 0 40px rgba(168, 85, 247, 0.12) !important;
+}
+.ai-analyze-btn {
+  position: relative;
+  overflow: hidden;
+}
+.ai-analyze-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.25) 50%, transparent 80%);
+  transition: left 0.5s ease;
+}
+.ai-analyze-btn:hover::after {
+  left: 100%;
+}
+
+/* ================================================================
+   5. KPI GLASSMORPHISM DEPTH
+   ================================================================ */
+
+.kpi-card {
+  background: linear-gradient(135deg,
+    rgba(17, 17, 25, 0.9),
+    rgba(17, 17, 25, 0.7)) !important;
+  backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+}
+.kpi-card:hover {
+  background: linear-gradient(135deg,
+    rgba(24, 24, 42, 0.95),
+    rgba(17, 17, 25, 0.8)) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(0, 229, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+/* KPI icon glow on hover */
+.kpi-card:hover .kpi-icon-wrap {
+  transform: scale(1.08);
+  transition: transform 0.2s ease;
+}
+.kpi-card:hover .kpi-icon-cyan { box-shadow: 0 0 16px rgba(0, 229, 255, 0.3); }
+.kpi-card:hover .kpi-icon-green { box-shadow: 0 0 16px rgba(0, 255, 136, 0.3); }
+.kpi-card:hover .kpi-icon-orange { box-shadow: 0 0 16px rgba(255, 138, 0, 0.3); }
+.kpi-card:hover .kpi-icon-purple { box-shadow: 0 0 16px rgba(168, 85, 247, 0.3); }
+.kpi-card:hover .kpi-icon-yellow { box-shadow: 0 0 16px rgba(251, 191, 36, 0.3); }
+.kpi-card:hover .kpi-icon-red { box-shadow: 0 0 16px rgba(255, 51, 102, 0.3); }
+
+/* KPI delta bounce-in */
+.kpi-delta {
+  animation: deltaBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.kpi-card:nth-child(1) .kpi-delta { animation-delay: 0.3s; }
+.kpi-card:nth-child(2) .kpi-delta { animation-delay: 0.35s; }
+.kpi-card:nth-child(3) .kpi-delta { animation-delay: 0.4s; }
+.kpi-card:nth-child(4) .kpi-delta { animation-delay: 0.45s; }
+@keyframes deltaBounce {
+  0% { opacity: 0; transform: scale(0.5) translateY(4px); }
+  60% { transform: scale(1.1) translateY(-1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ================================================================
+   6. PARTICLE / CONSTELLATION FLOATING BACKGROUND
+   ================================================================ */
+
+.bg-grid::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 50px 80px, rgba(0, 229, 255, 0.12), transparent),
+    radial-gradient(1px 1px at 150px 200px, rgba(168, 85, 247, 0.1), transparent),
+    radial-gradient(1.5px 1.5px at 300px 120px, rgba(0, 255, 136, 0.08), transparent),
+    radial-gradient(1px 1px at 400px 350px, rgba(0, 229, 255, 0.07), transparent),
+    radial-gradient(1.5px 1.5px at 550px 180px, rgba(236, 72, 153, 0.06), transparent),
+    radial-gradient(1px 1px at 650px 400px, rgba(168, 85, 247, 0.08), transparent),
+    radial-gradient(1.5px 1.5px at 200px 500px, rgba(0, 229, 255, 0.06), transparent),
+    radial-gradient(1px 1px at 750px 300px, rgba(0, 255, 136, 0.05), transparent);
+  background-size: 800px 600px;
+  animation: particleDrift 40s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+@keyframes particleDrift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-30px, -20px); }
+  50% { transform: translate(-10px, -40px); }
+  75% { transform: translate(20px, -15px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Light mode: dim the particles */
+[data-theme='light'] .bg-grid::after {
+  opacity: 0.3;
+}
+
+/* ================================================================
+   7. MICRO-INTERACTIONS
+   ================================================================ */
+
+/* --- 3D Tilt on Product Cards --- */
+.product-card {
+  transform-style: preserve-3d;
+  perspective: 800px;
+}
+.product-card:hover {
+  transform: translateY(-3px) rotateX(1deg) rotateY(-1deg) !important;
+}
+
+/* --- Draw-in sparkline animation --- */
+.kpi-spark path,
+.kpi-spark line {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawLine 1.2s ease forwards;
+}
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+/* --- Staggered entrance for trending cards --- */
+.trending-card:nth-child(1) { animation-delay: 0.05s; }
+.trending-card:nth-child(2) { animation-delay: 0.1s; }
+.trending-card:nth-child(3) { animation-delay: 0.15s; }
+.trending-card:nth-child(4) { animation-delay: 0.2s; }
+.trending-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* --- Staggered entrance for tool cards --- */
+.qt-card:nth-child(1) { animation-delay: 0.04s; }
+.qt-card:nth-child(2) { animation-delay: 0.08s; }
+.qt-card:nth-child(3) { animation-delay: 0.12s; }
+.qt-card:nth-child(4) { animation-delay: 0.16s; }
+.qt-card:nth-child(5) { animation-delay: 0.2s; }
+.qt-card:nth-child(6) { animation-delay: 0.24s; }
+.qt-card:nth-child(7) { animation-delay: 0.28s; }
+.qt-card:nth-child(8) { animation-delay: 0.32s; }
+
+/* --- Quick launch card arrow animation --- */
+.ql-arrow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ql-card:hover .ql-arrow {
+  transform: translateX(4px);
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.4));
+}
+
+/* --- Featured trending card entrance --- */
+.tf-featured {
+  animation: fadeUp 0.5s ease both;
+}
+.tf-ranked .tf-row {
+  animation: fadeUp 0.4s ease both;
+}
+.tf-ranked .tf-row:nth-child(1) { animation-delay: 0.1s; }
+.tf-ranked .tf-row:nth-child(2) { animation-delay: 0.18s; }
+.tf-ranked .tf-row:nth-child(3) { animation-delay: 0.26s; }
+.tf-ranked .tf-row:nth-child(4) { animation-delay: 0.34s; }
+
+/* --- Metric bar fill animation --- */
+.metric-bar-fill {
+  animation: barFill 0.8s ease both;
+}
+@keyframes barFill {
+  from { width: 0 !important; }
+}
+
+/* ================================================================
+   8. MODAL PREMIUM TREATMENT
+   ================================================================ */
+
+/* Gradient overlay glow */
+.modal,
+.hd-modal {
+  border: none !important;
+  position: relative;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(0, 229, 255, 0.05),
+    0 0 120px rgba(168, 85, 247, 0.03) !important;
+}
+.modal::before,
+.hd-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.1), rgba(0, 229, 255, 0.15));
+  background-size: 300% 300%;
+  animation: borderShift 6s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.6;
+}
+
+/* Modal header glow line */
+.modal-hero,
+.modal-body {
+  position: relative;
+  z-index: 2;
+}
+
+/* Modal close button glow */
+.modal-close:hover,
+.hd-modal-close:hover {
+  box-shadow: 0 0 16px rgba(255, 51, 102, 0.3);
+}
+
+/* Modal stat cards hover glow */
+.modal-stat {
+  transition: all 0.25s ease;
+}
+.modal-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-color: var(--accent-cyan);
+}
+
+/* ================================================================
+   9. EMPTY STATE UPGRADE
+   ================================================================ */
+
+.sr-empty {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated radar/sonar background */
+.sr-empty::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+  animation: radarPulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+.sr-empty::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.04) 0%, transparent 70%);
+  animation: radarPulse 3s ease-in-out infinite 1.5s;
+  pointer-events: none;
+}
+@keyframes radarPulse {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; }
+  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
+
+/* Floating icon animation */
+.sr-empty-icon {
+  position: relative;
+  z-index: 1;
+  animation: emptyFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.2));
+}
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-12px) scale(1.05); }
+}
+
+/* Empty suggestion cards glow */
+.sr-empty-card {
+  position: relative;
+  overflow: hidden;
+}
+.sr-empty-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(0, 229, 255, 0.03) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.sr-empty-card:hover::before {
+  opacity: 1;
+}
+.sr-empty-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.08);
+}
+
+/* ================================================================
+   10. PREMIUM MICRO-INTERACTION POLISH
+   ================================================================ */
+
+/* --- Nav underline slide effect --- */
+.sidebar-item {
+  position: relative;
+}
+.sidebar-item::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--accent-cyan);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+}
+.sidebar-item:hover::after {
+  transform: scaleX(1);
+  opacity: 0.3;
+}
+.sidebar-item.active::after {
+  display: none;
+}
+
+/* --- Dashboard nav item slide --- */
+.sidebar-dashboard {
+  position: relative;
+}
+.sidebar-dashboard::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--accent-cyan);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+}
+.sidebar-dashboard:hover::after {
+  transform: scaleX(1);
+  opacity: 0.3;
+}
+
+/* --- Upgrade button shimmer --- */
+.btn-upgrade {
+  position: relative;
+  overflow: hidden;
+}
+.btn-upgrade::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.2) 50%, transparent 80%);
+  transition: left 0.5s ease;
+}
+.btn-upgrade:hover::after {
+  left: 100%;
+}
+
+/* --- Credits badge glow pulse --- */
+.credits-badge:hover {
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.08);
+}
+
+/* --- Signal bar enhanced gradient --- */
+.ai-signal-bar {
+  background: linear-gradient(90deg,
+    rgba(0, 229, 255, 0.08),
+    rgba(168, 85, 247, 0.06),
+    rgba(0, 229, 255, 0.04)) !important;
+  border: 1px solid rgba(0, 229, 255, 0.1) !important;
+  position: relative;
+  overflow: hidden;
+}
+.ai-signal-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.04), transparent);
+  animation: signalSweep 8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes signalSweep {
+  0% { left: -50%; }
+  100% { left: 150%; }
+}
+
+/* --- Search chip hover glow --- */
+.search-chip:hover {
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+}
+
+/* --- Filter pill active glow --- */
+.sr-pill.active {
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+}
+
+/* --- Summary bar gradient depth --- */
+.sr-summary {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(17, 17, 25, 0.95) 100%) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+.sr-summary-value {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* --- Filter bar depth --- */
+.sr-filter-bar {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Card image overlay gradient --- */
+.card-image::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.15));
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.product-card:hover .card-image::after {
+  opacity: 1;
+}
+
+/* --- Welcome card glow enhancement --- */
+.welcome-card {
+  box-shadow:
+    0 0 40px rgba(0, 229, 255, 0.08),
+    0 0 80px rgba(0, 229, 255, 0.03) !important;
+}
+.welcome-card:hover {
+  box-shadow:
+    0 0 50px rgba(0, 229, 255, 0.12),
+    0 0 100px rgba(0, 229, 255, 0.05) !important;
+}
+
+/* --- Related tool card glow --- */
+.related-tool-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.1), 0 0 30px rgba(0, 229, 255, 0.05) !important;
+}
+
+/* --- Toast premium shadow --- */
+.hd-toast {
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(0, 229, 255, 0.08) !important;
+}
+
+/* --- Command palette gradient border --- */
+.cmd-palette {
+  position: relative;
+}
+.cmd-palette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(168, 85, 247, 0.1), rgba(0, 229, 255, 0.1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* --- Search results button shimmer --- */
+.sr-search-btn {
+  position: relative;
+  overflow: hidden;
+}
+.sr-search-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.25) 50%, transparent 80%);
+  transition: left 0.5s ease;
+}
+.sr-search-btn:hover::after {
+  left: 100%;
+}
+
+/* --- AI Analysis Header glow --- */
+.ai-analysis-header {
+  position: relative;
+  overflow: hidden;
+}
+.ai-analysis-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  opacity: 0.5;
+}
+
+/* --- AI Section cards hover --- */
+.ai-section {
+  transition: all 0.3s ease;
+}
+.ai-section:hover {
+  border-color: rgba(168, 85, 247, 0.2);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.06);
+}
+
+/* --- Supplier card hover --- */
+.supplier-card {
+  transition: all 0.25s ease;
+}
+.supplier-card:hover {
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.08);
+}
+
+/* --- Platform row hover --- */
+.platform-row {
+  transition: all 0.25s ease;
+}
+.platform-row:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ================================================================
+   RESPONSIVE — Ensure premium effects don't break mobile
+   ================================================================ */
+@media (max-width: 768px) {
+  .product-card:hover {
+    transform: translateY(-2px) !important;
+  }
+  .bg-grid::after {
+    opacity: 0.3;
+  }
+  .sr-empty::before,
+  .sr-empty::after {
+    display: none;
+  }
+}
+
+/* Very small screens — ensure premium effects don't break on simple phones */
+@media (max-width: 480px) {
+  .product-card:hover {
+    transform: none !important;
+  }
+  .bg-grid::after {
+    opacity: 0.2;
+  }
+  .kpi-card::after,
+  .ql-card::before,
+  .qt-card::after,
+  .nr-card::before,
+  .aa-feature-card::before {
+    display: none;
+  }
+  .search-btn::after,
+  .ai-analyze-btn::after,
+  .btn-upgrade::after,
+  .sr-search-btn::after {
+    display: none !important;
+  }
+}
+
+/* ================================================================
+   REDUCED MOTION — Respect user preferences
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .bg-grid::after {
+    animation: none !important;
+  }
+  .product-card::after,
+  .kpi-card::after,
+  .ql-card::before,
+  .qt-card::after,
+  .trending-card::after,
+  .tf-featured::after,
+  .modal::before,
+  .hd-modal::before,
+  .cmd-palette::before {
+    animation: none !important;
+  }
+  .card-score.score-excellent {
+    animation: none !important;
+  }
+  .kpi-delta {
+    animation: none !important;
+  }
+  .sr-empty::before,
+  .sr-empty::after {
+    animation: none !important;
+  }
+  .product-card {
+    transform: none !important;
+  }
+  .ai-signal-bar::before {
+    animation: none !important;
+  }
+  .search-btn::after,
+  .ai-analyze-btn::after,
+  .btn-upgrade::after,
+  .sr-search-btn::after {
+    display: none !important;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 480px) {
+  .product-card:hover {
+    transform: none !important;
+  }
+  .bg-grid::after {
+    opacity: 0.2;
+  }
+  .sr-empty::before,
+  .sr-empty::after {
+    animation: none !important;
+  }
+  .product-card {
+    transform: none !important;
+  }
+  .ai-signal-bar::before {
+    animation: none !important;
+  }
+  .search-btn::after,
+  .ai-analyze-btn::after,
+  .btn-upgrade::after,
+  .sr-search-btn::after {
+    display: none !important;
+  }
+}

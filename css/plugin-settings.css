@@ -14,6 +14,7 @@
   text-align: center;
   margin-bottom: 32px;
   position: relative;
+  transition: all 0.3s ease;
 }
 .ais-hero-badge {
   display: inline-flex;
@@ -30,6 +31,11 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 14px;
+  transition: all 0.3s ease;
+}
+.ais-hero-badge:hover {
+  background: rgba(0, 229, 255, 0.15);
+  transform: translateY(-1px);
 }
 .ais-hero-badge .dot {
   width: 6px;
@@ -54,6 +60,7 @@
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 8px;
+  transition: all 0.3s ease;
 }
 .ais-hero-title .highlight {
   background: var(--gradient-primary);
@@ -67,6 +74,7 @@
   max-width: 500px;
   margin: 0 auto;
   line-height: 1.6;
+  transition: all 0.3s ease;
 }
 
 /* === STATUS BAR === */
@@ -81,6 +89,10 @@
   border-radius: var(--radius-lg);
   margin-bottom: 28px;
   flex-wrap: wrap;
+  transition: all 0.3s ease;
+}
+.ais-status-bar:hover {
+  border-color: var(--border-primary);
 }
 .ais-status-item {
   display: flex;
@@ -88,12 +100,23 @@
   gap: 8px;
   font-family: var(--font-mono);
   font-size: 11px;
+  transition: all 0.3s ease;
+  animation: aisFadeUp 0.4s ease both;
+}
+.ais-status-item:nth-child(1) { animation-delay: 0.05s; }
+.ais-status-item:nth-child(2) { animation-delay: 0.1s; }
+.ais-status-item:nth-child(3) { animation-delay: 0.15s; }
+.ais-status-item:nth-child(4) { animation-delay: 0.2s; }
+@keyframes aisFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .ais-status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 .ais-status-dot.live {
   background: var(--accent-green);

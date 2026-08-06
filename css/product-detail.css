@@ -836,3 +836,107 @@
   z-index: 10001;
   pointer-events: none;
 }
+/* ===== Enhanced Mobile Responsiveness ===== */
+@media (max-width: 768px) {
+  .pd-hero {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .pd-image {
+    width: 100%;
+    height: 250px;
+  }
+  .pd-info {
+    width: 100%;
+  }
+  .pd-platforms {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pd-platform-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+  }
+  .pd-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .pd-actions .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+  .pd-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pd-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .pd-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pd-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .pd-compare-table {
+    font-size: 11px;
+  }
+  .pd-compare-table th,
+  .pd-compare-table td {
+    padding: 6px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pd-hero {
+    padding: 16px;
+    gap: 12px;
+  }
+  .pd-image {
+    height: 200px;
+    border-radius: var(--radius-sm);
+  }
+  .pd-platforms {
+    gap: 6px;
+  }
+  .pd-platform-card {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .pd-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .pd-metric-card {
+    padding: 10px 8px;
+  }
+  .pd-metric-value {
+    font-size: 18px;
+  }
+  .pd-metric-label {
+    font-size: 9px;
+  }
+  .pd-tabs {
+    gap: 2px;
+  }
+  .pd-tab {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .pd-detail-section {
+    padding: 12px;
+  }
+  .pd-detail-section h4 {
+    font-size: 12px;
+  }
+  .pd-back-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+}

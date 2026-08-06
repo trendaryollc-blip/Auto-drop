@@ -526,9 +526,10 @@
       section.id = 'section-battlefield';
       section.innerHTML = `
       <div class="section-inner">
-        <div class="section-header">
-          <h2 class="section-title">Competitor Battlefield</h2>
-          <p class="section-desc">10-section competitive intelligence hub — spy on everything your rivals do</p>
+        <div class="cb-hero">
+          <div class="cb-hero-badge"><span class="cb-hero-badge-dot"></span>Competitive Intelligence</div>
+          <h2 class="cb-hero-title">Competitor Battlefield</h2>
+          <p class="cb-hero-desc">10-section competitive intelligence hub — spy on everything your rivals do</p>
         </div>
         <div id="cbResults"></div>
       </div>`;

@@ -448,8 +448,9 @@
   // --- Search Hero ---
   function renderHero() {
     return '<div class="sh-hero">' +
+      '<div class="sh-hero-badge"><span class="sh-hero-badge-dot"></span>Supplier Intelligence</div>' +
       '<div class="sh-hero-top">' +
-      '<div class="sh-hero-title">Supplier Intelligence Hub <span class="sh-version-badge">v3.0</span></div>' +
+      '<div class="sh-hero-title">Supplier Intelligence Hub</div>' +
       '<p class="sh-hero-sub">Search the web for suppliers \u2014 AI analysis, velocity scoring, profit calculation & more</p>' +
       '</div>' +
       '<div class="sh-search-bar" id="shSearchBar">' +

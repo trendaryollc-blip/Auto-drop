@@ -542,15 +542,19 @@
       var avgConv = (STORES.reduce(function(a, s) { return a + s.convRate; }, 0) / STORES.length).toFixed(1);
 
       section.innerHTML = '<div class="section-inner">' +
-        '<div class="section-header"><h2 class="section-title">\ud83d\udd0d Store Spy Center</h2><p class="section-subtitle">Full-stack intelligence on top Shopify stores</p>' +
-        '<div class="spy-search-bar"><input type="text" id="spySearchInput" class="spy-search" placeholder="Search any store... (e.g. Pawfect, NomadStyle, petlover)" /><button class="spy-search-btn" id="spySearchBtn">\ud83d\udd0e</button></div>' +
-        '<div class="spy-quick-picks"><button class="spy-quick-btn" data-store="s1">Pawfect Picks</button>' +
-        '<button class="spy-quick-btn" data-store="s2">Glow Essentials</button>' +
-        '<button class="spy-quick-btn" data-store="s5">TechDrop Hub</button>' +
-        '<button class="spy-quick-btn" data-store="s7">NomadStyle</button>' +
-        '<button class="spy-quick-btn" data-store="s4">Kawaii Decor</button>' +
-        '<button class="spy-quick-btn" data-store="s6">PostureTech</button>' +
-        '</div></div>' +
+        '<div class="spy-hero">' +
+          '<div class="spy-hero-badge"><span class="spy-hero-badge-dot"></span>Competitive Intelligence</div>' +
+          '<h2 class="spy-hero-title">Store Spy Center</h2>' +
+          '<p class="spy-hero-desc">Full-stack intelligence on top Shopify stores — revenue, traffic, tech stack, and live ad campaigns.</p>' +
+          '<div class="spy-search-bar"><input type="text" id="spySearchInput" class="spy-search" placeholder="Search any store... (e.g. Pawfect, NomadStyle, petlover)" /><button class="spy-search-btn" id="spySearchBtn">\ud83d\udd0e</button></div>' +
+          '<div class="spy-quick-picks"><button class="spy-quick-btn" data-store="s1">Pawfect Picks</button>' +
+          '<button class="spy-quick-btn" data-store="s2">Glow Essentials</button>' +
+          '<button class="spy-quick-btn" data-store="s5">TechDrop Hub</button>' +
+          '<button class="spy-quick-btn" data-store="s7">NomadStyle</button>' +
+          '<button class="spy-quick-btn" data-store="s4">Kawaii Decor</button>' +
+          '<button class="spy-quick-btn" data-store="s6">PostureTech</button>' +
+          '</div>' +
+        '</div>' +
         renderAPIBanner() +
         '<div class="spy-overview">' +
           '<div class="spy-ov-card"><div class="spy-ov-icon" style="background:var(--accent-cyan-dim);color:var(--accent-cyan)">\ud83c\udfe2</div><div class="spy-ov-info"><div class="spy-ov-value">' + STORES.length + '</div><div class="spy-ov-label">Stores Tracked</div></div></div>' +

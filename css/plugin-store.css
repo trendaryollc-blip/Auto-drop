@@ -254,7 +254,7 @@
   gap: 12px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   flex: 1;
 }
 .osg-step-num {
@@ -271,7 +271,7 @@
   font-weight: 700;
   color: var(--text-muted);
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
 }
 .osg-step-info {
   flex: 1;
@@ -317,9 +317,12 @@
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 28px;
-  margin-bottom: 18px;
-  transition: all 0.3s;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+.osg-panel:hover {
+  border-color: var(--border-primary);
 }
 .osg-panel-hidden {
   display: none;
@@ -390,7 +393,7 @@
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
 }
 .osg-btn-primary:hover {
@@ -400,6 +403,7 @@
 .osg-btn-generate {
   padding: 14px 32px;
   font-size: 14px;
+  transition: all 0.25s ease;
 }
 .osg-btn-ghost {
   display: inline-flex;
@@ -414,7 +418,7 @@
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
 }
 .osg-btn-ghost:hover {
   border-color: var(--accent-cyan);
@@ -432,7 +436,7 @@
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-md);
   padding: 4px;
-  transition: border-color 0.2s;
+  transition: all 0.25s ease;
   margin-bottom: 14px;
 }
 .osg-input-wrap:focus-within {
@@ -478,7 +482,7 @@
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
 }
 .osg-quick-btn:hover {
   border-color: var(--accent-cyan);
@@ -2026,6 +2030,11 @@
   margin-bottom: 18px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+.sh-hero-badge:hover {
+  background: rgba(0, 229, 255, 0.15);
+  transform: translateY(-1px);
 }
 .sh-hero-badge-dot {
   width: 6px;
@@ -2040,6 +2049,7 @@
   font-weight: 800;
   line-height: 1.1;
   margin-bottom: 14px;
+  transition: all 0.3s ease;
 }
 .sh-hero-title-accent {
   background: linear-gradient(135deg, var(--accent-cyan), var(--accent-red));
@@ -2053,6 +2063,7 @@
   line-height: 1.7;
   max-width: 520px;
   margin-bottom: 24px;
+  transition: all 0.3s ease;
 }
 .sh-hero-stats {
   display: flex;
@@ -2062,27 +2073,40 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  animation: shFadeUp 0.5s ease both;
+}
+.sh-hero-stat:nth-child(1) { animation-delay: 0.05s; }
+.sh-hero-stat:nth-child(2) { animation-delay: 0.1s; }
+.sh-hero-stat:nth-child(3) { animation-delay: 0.15s; }
+.sh-hero-stat:nth-child(4) { animation-delay: 0.2s; }
+@keyframes shFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sh-hero-stat-num {
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 800;
   color: var(--accent-cyan);
+  transition: all 0.3s ease;
 }
 .sh-hero-stat-label {
   font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: all 0.3s ease;
 }
 .sh-hero-visual {
   width: 240px;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 .sh-hero-pulse-ring {
   position: relative;
   width: 240px;
   height: 240px;
+  transition: all 0.3s ease;
 }
 .sh-hero-pulse-ring svg {
   width: 100%;
@@ -2097,6 +2121,7 @@
   font-size: 64px;
   filter: drop-shadow(0 0 30px rgba(0, 229, 255, 0.5));
   animation: shPulse 2s ease-in-out infinite;
+  transition: all 0.3s ease;
 }
 @keyframes shPulse {
   0%,

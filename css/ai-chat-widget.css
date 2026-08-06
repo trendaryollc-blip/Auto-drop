@@ -365,3 +365,76 @@
     border-radius: 12px;
   }
 }
+/* ===== Enhanced Mobile Responsiveness ===== */
+@media (max-width: 768px) {
+  .cw-wrapper {
+    bottom: 12px;
+    right: 12px;
+    width: 44px;
+    height: 44px;
+  }
+  .cw-toggle {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+  .cw-panel {
+    width: calc(100vw - 24px);
+    right: 12px;
+    bottom: 60px;
+    height: calc(100vh - 120px);
+    border-radius: 12px;
+  }
+  .cw-messages {
+    padding: 12px;
+    gap: 10px;
+  }
+  .cw-msg {
+    max-width: 100%;
+  }
+  .cw-input-area {
+    padding: 10px;
+    gap: 6px;
+  }
+  .cw-input {
+    font-size: 14px;
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+  .cw-send {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cw-wrapper {
+    bottom: 8px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+  }
+  .cw-toggle {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .cw-panel {
+    width: calc(100vw - 16px);
+    right: 8px;
+    bottom: 52px;
+    height: calc(100vh - 100px);
+    border-radius: 8px;
+  }
+  .cw-msg-body {
+    font-size: 12px;
+  }
+  .cw-input {
+    font-size: 13px;
+    min-height: 44px;
+  }
+  .cw-send {
+    width: 40px;
+    height: 40px;
+  }
+}

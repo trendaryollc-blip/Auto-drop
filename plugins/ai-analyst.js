@@ -679,7 +679,7 @@
       section.id = 'section-ai-analyst';
       section.innerHTML = '<div class="section-inner">' +
         '<div class="aa-hero">' +
-          '<div class="aa-hero-badge">AI-Powered v3.0</div>' +
+          '<div class="aa-hero-badge"><span class="aa-hero-badge-dot"></span>AI-Powered v3.0</div>' +
           '<h1 class="aa-hero-title">Product Intelligence Engine</h1>' +
           '<p class="aa-hero-desc">Instant deep analysis on any product \u2014 market demand, competition, profit potential, risk scoring, trending data, and supplier recommendations. Powered by real AI.</p>' +
         '</div>' +

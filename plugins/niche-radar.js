@@ -175,8 +175,14 @@
     return `
     <div class="section-inner">
       <div class="nr-hero" style="animation:fadeUp 0.5s ease both">
-        <h2 class="section-title">Niche Finder</h2>
-        <p class="section-desc">Enter any niche to discover real market data, competition landscape, profit potential, and AI-powered verdict — all from live platform APIs and web intelligence.</p>
+        <div class="nr-hero-badge"><span class="nr-hero-badge-dot"></span>Niche Intelligence</div>
+        <h2 class="nr-hero-title">Find Profitable Niches</h2>
+        <p class="nr-hero-desc">Enter any niche to discover real market data, competition landscape, profit potential, and AI-powered verdict — all from live platform APIs and web intelligence.</p>
+        <div class="nr-hero-features">
+          <div class="nr-hero-feat"><div class="nr-hero-feat-icon" style="background:rgba(0,229,255,0.1);color:var(--accent-cyan)">&#x1F50D;</div><div class="nr-hero-feat-text"><strong>Live Data</strong><span>10+ platforms scanned</span></div></div>
+          <div class="nr-hero-feat"><div class="nr-hero-feat-icon" style="background:rgba(0,255,136,0.1);color:var(--accent-green)">&#x1F4CA;</div><div class="nr-hero-feat-text"><strong>AI Scoring</strong><span>Demand & margin analysis</span></div></div>
+          <div class="nr-hero-feat"><div class="nr-hero-feat-icon" style="background:rgba(168,85,247,0.1);color:var(--accent-purple)">&#x1F4B0;</div><div class="nr-hero-feat-text"><strong>Profit Simulator</strong><span>Real-time calculations</span></div></div>
+        </div>
         <div class="nr-search-bar" role="search" aria-label="Niche search">
           <div class="nr-search-row">
             <input type="text" id="nicheSearch" placeholder="e.g. pet cooling mat, yoga accessories, car phone mount..." class="nr-search-input" autocomplete="off">

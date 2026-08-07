@@ -2794,6 +2794,134 @@ body.sidebar-collapsed .sci-detail-panel {
 .ph-card:hover .ph-card-img img {
   transform: scale(1.06);
 }
+.ph-card-thumbnails {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ph-card-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+.ph-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.8;
+  transition: all 0.2s;
+  background: var(--bg-elevated);
+}
+.ph-thumb:hover {
+  opacity: 1;
+  border-color: var(--border-primary);
+}
+.ph-thumb.active {
+  border-color: var(--accent-cyan);
+  opacity: 1;
+}
+.ph-thumb-overflow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-card-hover);
+  border: 2px dashed var(--border-primary);
+}
+
+/* Product Hunt Lightbox */
+.ph-image-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.ph-image-lightbox.active {
+  opacity: 1;
+  pointer-events: all;
+}
+.ph-image-lightbox img {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.ph-lb-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10001;
+}
+.ph-lb-close:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.4);
+  transform: scale(1.1);
+}
+.ph-lb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10001;
+}
+.ph-lb-nav:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: rgba(255,255,255,0.4);
+}
+.ph-lb-prev { left: 18px; }
+.ph-lb-next { right: 18px; }
+.ph-lb-counter {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10001;
+  pointer-events: none;
+}
 .ph-card-score {
   position: absolute;
   top: 8px;

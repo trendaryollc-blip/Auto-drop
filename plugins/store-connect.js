@@ -48,7 +48,7 @@
         brand: supplier.name || 'Various',
         stock: 100,
         image: p.image || '',
-        images: p.image ? [p.image] : [],
+        images: Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.image ? [p.image] : []),
         sku: 'HD-' + (p.id || Date.now()),
         supplier: supplier.name || '',
         supplierId: String(p.id || ''),

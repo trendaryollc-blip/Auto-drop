@@ -75,6 +75,57 @@
     return p ? p.color : '#888';
   }
 
+  // ===== PH LIGHTBOX =====
+  function openPHLightbox(card, images) {
+    let lb = document.getElementById('phImageLightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.id = 'phImageLightbox';
+      lb.className = 'ph-image-lightbox';
+      lb.innerHTML =
+        '<button class="ph-lb-close" title="Close (Esc)">&times;</button>' +
+        '<button class="ph-lb-nav ph-lb-prev" title="Previous">&#10094;</button>' +
+        '<button class="ph-lb-nav ph-lb-next" title="Next">&#10095;</button>' +
+        '<div class="ph-lb-img-wrap"><img class="ph-lb-img" src="" alt=""></div>' +
+        '<div class="ph-lb-counter"></div>';
+      document.body.appendChild(lb);
+      lb.addEventListener('click', function (e) {
+        if (e.target === lb || e.target.classList.contains('ph-lb-close')) {
+          closePHLightbox();
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lb && lb.classList.contains('active')) {
+          closePHLightbox();
+        }
+      });
+    }
+    if (!card._lbImages) {
+      card._lbImages = images;
+    }
+    const imgs = card._lbImages;
+    let idx = 0;
+    const img = lb.querySelector('.ph-lb-img');
+    const counter = lb.querySelector('.ph-lb-counter');
+    function show(i) {
+      idx = (i + imgs.length) % imgs.length;
+      img.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx]);
+      if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
+    }
+    show(0);
+    lb.querySelector('.ph-lb-prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
+    lb.querySelector('.ph-lb-next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    window._phLightbox = lb;
+  }
+  function closePHLightbox() {
+    const lb = window._phLightbox;
+    if (!lb) return;
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   // ===== BUILD HTML =====
   function buildHTML() {
     return `
@@ -984,6 +1035,23 @@
         const buyPrice = (p.arbitrage?.buyPrice || p.price).toFixed(2);
         const sellPrice = (p.arbitrage?.sellPrice || p.platformPrices?.amazon || p.price * 3).toFixed(2);
 
+        const images = (p.images || []);
+        const thumbCount = Math.min(images.length, 4);
+        const overflow = images.length > 4 ? images.length - 4 : 0;
+
+        let thumbsHtml = '';
+        for (let i = 0; i < thumbCount; i++) {
+          const isActive = i === 0;
+          thumbsHtml +=
+            '<img src="' +
+            esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(images[i], '') : images[i]) +
+            '" class="ph-thumb' + (isActive ? ' active' : '') + '" data-idx="' + i + '" alt="">';
+        }
+        if (overflow > 0) {
+          thumbsHtml +=
+            '<div class="ph-thumb ph-thumb-overflow" data-idx="4" title="' + images.length + ' images total">+' + overflow + '</div>';
+        }
+
         return `
       <div class="ph-card ${p.killZone ? 'killzone' : ''}" data-id="${p.id}">
         <div class="ph-card-img">
@@ -993,6 +1061,7 @@
           <div class="ph-card-platform"><span class="platform-dot" style="background:${getPlatColor(p.platform)}"></span>${cap(p.platform)}</div>
           ${p.killZone ? '<div class="ph-card-kill-badge">🔴 Kill Zone</div>' : ''}
         </div>
+        ${images.length > 1 ? '<div class="ph-card-thumbnails">' + thumbsHtml + '</div>' : ''}
         <div class="ph-card-body">
           <div class="ph-card-title">${esc(p.title)}</div>
           <div class="ph-card-profit">
@@ -1031,8 +1100,38 @@
       const id = card.dataset.id;
       card.addEventListener('click', (e) => {
         if (e.target.closest('.ph-card-action')) return;
+        const thumb = e.target.closest('.ph-thumb');
+        if (thumb) {
+          e.stopPropagation();
+          const imgEl = card.querySelector('.ph-card-img img');
+          const allThumbs = card.querySelectorAll('.ph-thumb');
+          const idx = parseInt(thumb.dataset.idx || '0', 10);
+          if (imgEl) {
+            const imgs = card._images || [];
+            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : (imgs[idx] || ''));
+            imgEl.src = safe;
+          }
+          allThumbs.forEach(function(t){ t.classList.remove('active'); });
+          thumb.classList.add('active');
+          return;
+        }
+        const mainImg = e.target.closest('.ph-card-img img');
+        if (mainImg) {
+          const imgs = card._images || [];
+          if (imgs.length > 1) {
+            e.stopPropagation();
+            openPHLightbox(card, imgs);
+            return;
+          }
+        }
         EventBus.emit('product:analyze', { id });
       });
+    });
+
+    // Attach images arrays to cards
+    products.forEach(function(p) {
+      const card = grid.querySelector('.ph-card[data-id="' + esc(String(p.id)) + '"]');
+      if (card) card._images = p.images || [];
     });
 
     grid.querySelectorAll('.ph-card-action').forEach((btn) => {

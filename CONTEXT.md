@@ -42,12 +42,11 @@ css/            — Modular CSS files. Base, components, navigation, dashboard, 
 
 ## Product Object Shape
 ```js
-{ id, title, image, platform, price, originalPrice, margin, score, badges: [],
+{ id, title, image, images: [], platform, price, originalPrice, margin, score, badges: [],
   salesVelocity, competition, demand, rating, reviews, orders, shipFrom, category,
   keywords: [], suppliers: [{name, location, rating, orders, responseTime, verified}],
   platformPrices: {aliexpress, amazon, shopify, ebay, temu, tiktok, etsy, cjdropshipping, dhgate, wish},
-  trendData: [12 numbers], seasonality: [12 numbers],
-  audience: {age, gender, interests: [], countries: []},
+  trendData: [12 numbers], seasonality: [12 numbers], audience: {age, gender, interests: [], countries: []},
   riskScore, marketSaturation, adSpendAvg, cpaAvg, aiInsight }
 ```
 

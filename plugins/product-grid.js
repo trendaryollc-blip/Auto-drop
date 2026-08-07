@@ -51,6 +51,23 @@
     const margin = p.margin || 0;
     const marginClass = margin >= 50 ? 'margin-high' : margin >= 30 ? 'margin-med' : 'margin-low';
 
+    const images = (p.images || []);
+    const thumbCount = Math.min(images.length, 4);
+    const overflow = images.length > 4 ? images.length - 4 : 0;
+
+    let thumbsHtml = '';
+    for (let i = 0; i < thumbCount; i++) {
+      const isActive = i === 0;
+      thumbsHtml +=
+        '<img src="' +
+        esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(images[i], '') : images[i]) +
+        '" class="card-thumb' + (isActive ? ' active' : '') + '" data-idx="' + i + '" alt="">';
+    }
+    if (overflow > 0) {
+      thumbsHtml +=
+        '<div class="card-thumb card-thumb-overflow" data-idx="4" title="' + images.length + ' images total">+' + overflow + '</div>';
+    }
+
     const selectCb =
       window.HuntDrop.StoreConnect && window.HuntDrop.StoreConnect.isSelectMode()
         ? '<input type="checkbox" class="sc-select-cb" data-sel-id="' +
@@ -87,6 +104,9 @@
       '</div>' +
       selectCb +
       '</div>' +
+      (images.length > 1
+        ? '<div class="card-thumbnails">' + thumbsHtml + '</div>'
+        : '') +
       '<div class="card-body">' +
       '<h3 class="card-title">' +
       title +
@@ -159,6 +179,30 @@
       card.addEventListener('click', function (e) {
         if (e.target.closest('.card-action')) return;
         if (e.target.closest('.push-trendaryo-btn') || e.target.closest('.sc-select-cb')) return;
+        const thumb = e.target.closest('.card-thumb');
+        if (thumb) {
+          e.stopPropagation();
+          const imgEl = card.querySelector('.card-image img');
+          const allThumbs = card.querySelectorAll('.card-thumb');
+          const idx = parseInt(thumb.dataset.idx || '0', 10);
+          if (imgEl) {
+            const imgs = card._images || [];
+            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : (imgs[idx] || ''));
+            imgEl.src = safe;
+          }
+          allThumbs.forEach(function(t){ t.classList.remove('active'); });
+          thumb.classList.add('active');
+          return;
+        }
+        const mainImg = e.target.closest('.card-image img');
+        if (mainImg) {
+          const imgs = card._images || [];
+          if (imgs.length > 1) {
+            e.stopPropagation();
+            openProductGridLightbox(card, imgs);
+            return;
+          }
+        }
         const id = card.dataset.productId;
         if (id) {
           window.HuntDrop._currentProductId = id;
@@ -166,6 +210,56 @@
         }
       });
     });
+  }
+
+  function openProductGridLightbox(card, images) {
+    let lb = document.getElementById('pgImageLightbox');
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.id = 'pgImageLightbox';
+      lb.className = 'pg-image-lightbox';
+      lb.innerHTML =
+        '<button class="pg-lb-close" title="Close (Esc)">&times;</button>' +
+        '<button class="pg-lb-nav pg-lb-prev" title="Previous">&#10094;</button>' +
+        '<button class="pg-lb-nav pg-lb-next" title="Next">&#10095;</button>' +
+        '<div class="pg-lb-img-wrap"><img class="pg-lb-img" src="" alt=""></div>' +
+        '<div class="pg-lb-counter"></div>';
+      document.body.appendChild(lb);
+      lb.addEventListener('click', function (e) {
+        if (e.target === lb || e.target.classList.contains('pg-lb-close')) {
+          closeProductGridLightbox();
+        }
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && lb && lb.classList.contains('active')) {
+          closeProductGridLightbox();
+        }
+      });
+    }
+    if (!card._lbImages) {
+      card._lbImages = images;
+    }
+    const imgs = card._lbImages;
+    let idx = 0;
+    const img = lb.querySelector('.pg-lb-img');
+    const counter = lb.querySelector('.pg-lb-counter');
+    function show(i) {
+      idx = (i + imgs.length) % imgs.length;
+      img.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx]);
+      if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
+    }
+    show(0);
+    lb.querySelector('.pg-lb-prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
+    lb.querySelector('.pg-lb-next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    window._pgLightbox = lb;
+  }
+  function closeProductGridLightbox() {
+    const lb = window._pgLightbox;
+    if (!lb) return;
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
   }
 
   function bindPushButtons(grid) {
@@ -383,6 +477,12 @@
 
           grid.innerHTML = html;
 
+          // Attach images arrays to card DOM nodes for thumbnail/lightbox
+          _allResults.forEach(function (p, idx) {
+            const card = grid.querySelector('.product-card[data-product-id="' + esc(String(p.id)) + '"]');
+            if (card) card._images = p.images || [];
+          });
+
           // Bind Load More button (capture snapshot of results to prevent stale closure)
           const loadMoreSnapshot = data.results || [];
           const loadMoreSnapshotLen = loadMoreSnapshot.length;
@@ -453,9 +553,11 @@
           var grid = UI.$('productsGrid');
           if (!grid) return;
           Object.keys(data.updated).forEach(function (id) {
-            var imgUrl = data.updated[id];
+            var imgUrls = data.updated[id];
+            if (!Array.isArray(imgUrls)) return;
             var imgEl = grid.querySelector('img[data-product-id="' + id + '"]');
-            if (imgEl && imgUrl) {
+            var card = grid.querySelector('.product-card[data-product-id="' + id + '"]');
+            if (imgEl && imgUrls.length > 0) {
               imgEl.onerror = function () {
                 this.style.display = 'none';
                 var loading = grid.querySelector('[data-img-loading="' + id + '"]');
@@ -469,7 +571,8 @@
               imgEl.style.opacity = '0.5';
               var loadingEl = grid.querySelector('[data-img-loading="' + id + '"]');
               if (loadingEl) loadingEl.style.display = 'flex';
-              imgEl.src = imgUrl;
+              imgEl.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgUrls[0], '') : imgUrls[0]);
+              if (card) card._images = imgUrls;
             }
           });
         })

@@ -26,6 +26,7 @@ export default class Product {
       id,
       title: product.title || '',
       image: product.image || '',
+      images: product.images || [],
       platform: product.platform || '',
       price: product.price || 0,
       originalPrice: product.originalPrice || 0,

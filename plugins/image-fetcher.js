@@ -7,8 +7,9 @@
   const imageCache = {};
   let isFetching = false;
 
-  function getBestImage(images) {
-    if (!images || images.length === 0) return null;
+  function getBestImages(images) {
+    if (!images || images.length === 0) return [];
+    var out = [];
     for (var i = 0; i < images.length; i++) {
       var url = images[i].url || images[i];
       if (
@@ -17,31 +18,31 @@
         !url.includes('placeholder') &&
         !url.includes('via.placeholder')
       ) {
-        return url;
+        out.push(url);
       }
     }
-    return null;
+    return out;
   }
 
   async function fetchImagesForProduct(product) {
-    if (!product || !product.title) return null;
+    if (!product || !product.title) return [];
     var cacheKey = product.title.toLowerCase().trim();
     if (imageCache[cacheKey]) return imageCache[cacheKey];
 
     var webSearch = window.HuntDrop.AIWebSearch;
-    if (!webSearch || !webSearch.hasKey()) return null;
+    if (!webSearch || !webSearch.hasKey()) return [];
 
     try {
-      var result = await webSearch.searchProductImages(product.title, 3);
-      var imgUrl = getBestImage(result ? result.images : []);
-      if (imgUrl) {
-        imageCache[cacheKey] = imgUrl;
-        return imgUrl;
+      var result = await webSearch.searchProductImages(product.title, 6);
+      var imgUrls = getBestImages(result ? result.images : []);
+      if (imgUrls.length > 0) {
+        imageCache[cacheKey] = imgUrls;
+        return imgUrls;
       }
     } catch (e) {
       console.warn('[ImageFetcher] Error for:', product.title, e);
     }
-    return null;
+    return [];
   }
 
   async function fetchImagesForResults(products) {
@@ -54,10 +55,11 @@
     for (var i = 0; i < products.length; i += batchSize) {
       var batch = products.slice(i, i + batchSize);
       var promises = batch.map(async function (p) {
-        var imgUrl = await fetchImagesForProduct(p);
-        if (imgUrl && imgUrl !== p.image) {
-          p._realImage = imgUrl;
-          updated[p.id] = imgUrl;
+        var imgUrls = await fetchImagesForProduct(p);
+        if (imgUrls.length > 0) {
+          p.images = imgUrls;
+          p.image = imgUrls[0];
+          updated[p.id] = imgUrls;
         }
       });
       await Promise.allSettled(promises);

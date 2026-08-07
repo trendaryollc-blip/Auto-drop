@@ -20,12 +20,16 @@
     _lightboxEl.innerHTML =
       '<button class="pd-lb-close" title="Close (Esc)">&times;</button>' +
       '<div class="pd-lb-hint">CLICK ANYWHERE TO CLOSE &middot; ESC</div>' +
+      '<button class="pd-lb-nav pd-lb-prev" title="Previous">&#10094;</button>' +
+      '<button class="pd-lb-nav pd-lb-next" title="Next">&#10095;</button>' +
       '<img class="pd-lb-img" src="" alt="">' +
-      '<div class="pd-lb-title"></div>';
+      '<div class="pd-lb-title"></div>' +
+      '<div class="pd-lb-counter"></div>';
     document.body.appendChild(_lightboxEl);
 
     _lightboxEl.addEventListener('click', function (e) {
-      if (e.target === _lightboxEl || e.target.classList.contains('pd-lb-close')) {
+      if (e.target.classList.contains('pd-lb-nav')) return;
+      if (e.target === _lightboxEl || e.target.classList.contains('pd-lb-close') || e.target.classList.contains('pd-lb-hint')) {
         closeLightbox();
       }
     });
@@ -34,20 +38,51 @@
       if (e.key === 'Escape' && _lightboxEl && _lightboxEl.classList.contains('active')) {
         closeLightbox();
       }
+      if (e.key === 'ArrowLeft' && _lightboxEl && _lightboxEl.classList.contains('active') && _lbImages && _lbImages.length > 1) {
+        _lbShow((_lbIdx - 1 + _lbImages.length) % _lbImages.length);
+      }
+      if (e.key === 'ArrowRight' && _lightboxEl && _lightboxEl.classList.contains('active') && _lbImages && _lbImages.length > 1) {
+        _lbShow((_lbIdx + 1) % _lbImages.length);
+      }
+    });
+
+    _lightboxEl.querySelector('.pd-lb-prev').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (_lbImages && _lbImages.length > 1) _lbShow(_lbIdx - 1);
+    });
+    _lightboxEl.querySelector('.pd-lb-next').addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (_lbImages && _lbImages.length > 1) _lbShow(_lbIdx + 1);
     });
 
     return _lightboxEl;
   }
 
+  var _lbImages = [];
+  var _lbIdx = 0;
+  function _lbShow(i) {
+    if (!_lbImages.length) return;
+    _lbIdx = (i + _lbImages.length) % _lbImages.length;
+    var lb = _lightboxEl;
+    var img = lb.querySelector('.pd-lb-img');
+    var counter = lb.querySelector('.pd-lb-counter');
+    img.src = _lbImages[_lbIdx];
+    if (counter) counter.textContent = (_lbIdx + 1) + ' / ' + _lbImages.length;
+  }
+
   function openLightbox(src, alt) {
     var lb = ensureLightbox();
+    _lbImages = Array.isArray(src) ? src : [src];
+    _lbIdx = 0;
     var img = lb.querySelector('.pd-lb-img');
     var title = lb.querySelector('.pd-lb-title');
-    if (img) {
-      img.src = src;
-      img.alt = alt || '';
-    }
+    var counter = lb.querySelector('.pd-lb-counter');
+    img.src = _lbImages[0];
+    img.alt = alt || '';
     if (title) title.textContent = alt || '';
+    if (counter) counter.textContent = _lbImages.length > 1 ? ('1 / ' + _lbImages.length) : '';
+    lb.querySelector('.pd-lb-prev').style.display = _lbImages.length > 1 ? 'flex' : 'none';
+    lb.querySelector('.pd-lb-next').style.display = _lbImages.length > 1 ? 'flex' : 'none';
     lb.classList.add('active');
     document.body.style.overflow = 'hidden';
   }
@@ -56,6 +91,8 @@
     if (!_lightboxEl) return;
     _lightboxEl.classList.remove('active');
     document.body.style.overflow = '';
+    _lbImages = [];
+    _lbIdx = 0;
   }
 
   function destroyCharts() {
@@ -229,10 +266,25 @@
       })
       .join('');
 
+    const images = (p.images || []);
+    window._currentProductImages = images;
+    window._currentProductTitle = p.title || '';
+
+    let thumbsHtml = '';
+    if (images.length > 1) {
+      for (let i = 0; i < images.length; i++) {
+        const isActive = i === 0;
+        thumbsHtml +=
+          '<img src="' +
+          esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(images[i], '') : images[i]) +
+          '" class="pd-thumb' + (isActive ? ' active' : '') + '" data-idx="' + i + '" alt="">';
+      }
+    }
+
     return (
       '<div class="pd-hero">' +
       '<button class="pd-back-btn" onclick="window.HuntDrop.goBack()" style="position:absolute;top:16px;left:16px;z-index:10;display:inline-flex;align-items:center;gap:6px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;padding:10px 14px;font-family:var(--font-body);transition:all 0.2s">&#8592; Back</button>' +
-      '<div class="pd-hero-image">' +
+      '<div id="pdHeroImage" class="pd-hero-image">' +
       '<img src="' +
       esc(p.image) +
       '" alt="' +
@@ -252,6 +304,7 @@
       esc(cap(p.platform)) +
       '</div>' +
       '</div>' +
+      (images.length > 1 ? '<div class="pd-hero-thumbnails">' + thumbsHtml + '</div>' : '') +
       '<div class="pd-hero-info">' +
       '<div class="pd-hero-category">' +
       esc(p.category) +
@@ -642,7 +695,31 @@
             if (heroImg) {
               const img = heroImg.querySelector('img');
               if (img && img.src) {
-                openLightbox(img.src, img.alt);
+                const images = (window._currentProductImages || []);
+                const src = images.length > 1 ? images : img.src;
+                openLightbox(src, img.alt);
+              }
+              return;
+            }
+            const thumb = e.target.closest('.pd-thumb');
+            if (thumb) {
+              e.stopPropagation();
+              const idx = parseInt(thumb.dataset.idx || '0', 10);
+              const hero = UI.$('pdHeroImage');
+              if (hero) {
+                const imgs = window._currentProductImages || [];
+                if (imgs[idx]) {
+                  const heroImg = hero.querySelector('img');
+                  if (heroImg) {
+                    heroImg.src = imgs[idx];
+                    heroImg.alt = window._currentProductTitle || '';
+                  }
+                }
+                const allThumbs = UI.$('pdHeroImage')?.querySelectorAll('.pd-thumb');
+                if (allThumbs) {
+                  allThumbs.forEach(function(t){ t.classList.remove('active'); });
+                  thumb.classList.add('active');
+                }
               }
               return;
             }

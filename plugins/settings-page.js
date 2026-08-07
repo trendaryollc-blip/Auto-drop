@@ -1093,12 +1093,5 @@
       });
     }
 
-    // Gear icon click handler
-    const gearBtn = document.getElementById('navSettingsBtn');
-    if (gearBtn) {
-      gearBtn.addEventListener('click', function () {
-        window.HuntDrop.navigateTo('section-settings');
-      });
-    }
   }
 })();

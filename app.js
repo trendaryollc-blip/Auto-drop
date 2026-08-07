@@ -736,7 +736,7 @@
     // Sidebar settings button
     const settingsBtn = document.getElementById('sidebarSettingsBtn');
     if (settingsBtn) {
-      settingsBtn.addEventListener('click', () => navigateToSection('ai-settings'));
+      settingsBtn.addEventListener('click', () => navigateToSection('section-settings'));
     }
   }
 
@@ -2683,10 +2683,6 @@
     // Back button
     const backBtn = document.getElementById('navBackBtn');
     if (backBtn) backBtn.addEventListener('click', () => window.HuntDrop.goBack());
-
-    // Settings gear button
-    const settingsBtn = document.getElementById('navSettingsBtn');
-    if (settingsBtn) settingsBtn.addEventListener('click', () => window.HuntDrop.navigateTo('section-settings'));
 
     // Global click handler for all related-tool-card elements across every page
     document.addEventListener('click', function (e) {

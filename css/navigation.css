@@ -417,25 +417,32 @@
   }
 }
 
-/* Mobile: hamburger menu visible, nav items hidden */
+/* Mobile: compact single-row header */
 @media (max-width: 768px) {
   .topnav {
-    flex-wrap: wrap;
-    height: auto;
+    flex-wrap: nowrap;
+    height: 52px;
     padding: 8px 12px;
-    gap: 8px;
+    gap: 6px;
   }
   .nav-right {
-    order: 3;
-    width: 100%;
+    order: 0;
+    width: auto;
     justify-content: flex-end;
-    padding-top: 4px;
-  }
-  .nav-sidebar-toggle {
-    display: flex;
-    order: 1;
+    padding-top: 0;
   }
   .nav-left {
-    order: 0;
+    flex-shrink: 0;
+    min-width: 0;
+  }
+  .logo-text {
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+  .credits-badge {
+    display: none;
+  }
+  .btn-upgrade {
+    display: none;
   }
 }

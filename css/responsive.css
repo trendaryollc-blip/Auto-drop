@@ -2024,31 +2024,34 @@
 @media (max-width: 480px) {
   .topnav {
     padding: 6px 8px;
-    height: auto;
-    flex-wrap: wrap;
+    height: 52px;
+    flex-wrap: nowrap;
     gap: 4px;
   }
   .nav-right {
-    width: 100%;
+    width: auto;
     justify-content: flex-end;
-    padding-top: 4px;
+    padding-top: 0;
   }
   .nav-left {
     flex-shrink: 0;
   }
   .logo-text {
-    font-size: 15px;
-    letter-spacing: 1px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
   }
   .credits-badge {
     display: none;
   }
   .btn-upgrade {
-    padding: 5px 10px;
-    font-size: 10px;
+    display: none;
   }
   .theme-toggle {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
+  }
+  .nav-gear-btn {
+    width: 30px;
+    height: 30px;
   }
 }

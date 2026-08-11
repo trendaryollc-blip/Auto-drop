@@ -46,7 +46,18 @@
       .join('');
     const supplierName = esc(p.suppliers && p.suppliers[0] ? p.suppliers[0].name : 'N/A');
     const supplierVerified = p.suppliers && p.suppliers[0] && p.suppliers[0].verified;
-    const img = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(p.image, '') : p.image || '');
+    let imgAttrs = {};
+    try {
+      imgAttrs = UI.getOptimizedImageAttributes
+        ? UI.getOptimizedImageAttributes(p.image || '', title, { sizes: '(max-width: 768px) 100vw, 33vw', fetchpriority: 'high' })
+        : { src: p.image || '' };
+    } catch (e) {
+      imgAttrs = { src: p.image || '' };
+    }
+    const img = esc(imgAttrs.src || '');
+    const srcsetAttr = imgAttrs.srcset ? ' srcset="' + esc(imgAttrs.srcset) + '"' : '';
+    const sizesAttr = imgAttrs.sizes ? ' sizes="' + esc(imgAttrs.sizes) + '"' : '';
+    const fetchPrio = imgAttrs.fetchpriority || 'low';
     const title = esc(p.title || 'Unknown Product');
     const margin = p.margin || 0;
     const marginClass = margin >= 50 ? 'margin-high' : margin >= 30 ? 'margin-med' : 'margin-low';
@@ -81,11 +92,21 @@
       '<div class="card-image">' +
       '<img src="' +
       img +
-      '" alt="' +
+      '"' +
+      ' alt="' +
       title +
       '" data-product-id="' +
       esc(String(p.id)) +
-      '" loading="lazy" decoding="async" fetchpriority="low">' +
+      '" loading="' +
+      esc(imgAttrs.loading || 'lazy') +
+      '" decoding="' +
+      esc(imgAttrs.decoding || 'async') +
+      '" fetchpriority="' +
+      esc(fetchPrio) +
+      '"' +
+      srcsetAttr +
+      sizesAttr +
+      '>' +
       '<div class="card-img-loading" data-img-loading="' +
       esc(String(p.id)) +
       '"><div class="card-img-spinner"></div></div>' +
@@ -571,7 +592,13 @@
               imgEl.style.opacity = '0.5';
               var loadingEl = grid.querySelector('[data-img-loading="' + id + '"]');
               if (loadingEl) loadingEl.style.display = 'flex';
-              imgEl.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgUrls[0], '') : imgUrls[0]);
+              // Use optimized attributes when available
+              var opt = {};
+              try { opt = UI.getOptimizedImageAttributes ? UI.getOptimizedImageAttributes(imgUrls[0], '', { sizes: '(max-width: 768px) 100vw, 33vw', fetchpriority: 'high' }) : { src: imgUrls[0] }; } catch(e) { opt = { src: imgUrls[0] }; }
+              if (opt.srcset) imgEl.setAttribute('srcset', opt.srcset);
+              if (opt.sizes) imgEl.setAttribute('sizes', opt.sizes);
+              imgEl.setAttribute('fetchpriority', opt.fetchpriority || 'high');
+              imgEl.src = esc(opt.src || imgUrls[0]);
               if (card) card._images = imgUrls;
             }
           });

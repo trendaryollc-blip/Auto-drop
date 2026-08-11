@@ -625,26 +625,62 @@
   })();
 
   // ===== 6. UI UTILITIES =====
-  const normalizeImageUrl = (src, fallback = '') => {
+  const getImageProxyBase = () => {
+    if (typeof window === 'undefined') return '';
+    const BACKEND_URL = window.HuntDrop && window.HuntDrop.BACKEND_URL;
+    const proxyUrl = window.HuntDrop && window.HuntDrop._proxyUrl;
+    if (BACKEND_URL) return BACKEND_URL.replace(/\/$/, '');
+    if (proxyUrl) return proxyUrl.replace(/\/api\/platform\/?$/, '/api').replace(/\/$/, '');
+    return '';
+  };
+
+  const getBackendImageProxyUrl = (src, options = {}) => {
+    if (typeof src !== 'string' || !src.trim()) return src;
+    const base = getImageProxyBase();
+    if (!base) return src;
+    if (src.startsWith(base + '/images/proxy') || src.startsWith('/images/proxy')) return src;
+    try {
+      const url = new URL(src);
+      if (!['http:', 'https:'].includes(url.protocol)) return src;
+    } catch {
+      return src;
+    }
+    const params = new URLSearchParams();
+    params.set('url', src);
+    if (options.w) params.set('w', String(options.w));
+    if (options.q) params.set('q', String(options.q));
+    if (options.format) params.set('format', String(options.format));
+    return `${base}/images/proxy?${params.toString()}`;
+  };
+
+  const getRawNormalizedImageUrl = (src, fallback = '') => {
     if (typeof src !== 'string' || !src.trim()) return fallback;
     const value = src.trim();
-    if (value.indexOf('images.unsplash.com') === -1) return value;
-    try {
-      const url = new URL(value);
-      const width = parseInt(url.searchParams.get('w') || '800', 10) || 800;
-      url.searchParams.set('auto', 'format');
-      url.searchParams.set('fit', 'crop');
-      url.searchParams.set('q', '80');
-      url.searchParams.set('w', String(width));
-      return url.toString();
-    } catch (e) {
-      return value;
+    if (value.indexOf('images.unsplash.com') !== -1) {
+      try {
+        const url = new URL(value);
+        const width = parseInt(url.searchParams.get('w') || '800', 10) || 800;
+        url.searchParams.set('auto', 'format');
+        url.searchParams.set('fit', 'crop');
+        url.searchParams.set('q', '80');
+        url.searchParams.set('w', String(width));
+        return url.toString();
+      } catch (e) {
+        return value;
+      }
     }
+    return value;
+  };
+
+  const normalizeImageUrl = (src, fallback = '') => {
+    const rawNormalized = getRawNormalizedImageUrl(src, fallback);
+    return getBackendImageProxyUrl(rawNormalized, { w: 1200, q: 80, format: 'format' }) || rawNormalized;
   };
 
   const getOptimizedImageAttributes = (src, alt = '', options = {}) => {
     const fallback = options.fallback || '';
-    const normalized = normalizeImageUrl(src, fallback);
+    const rawNormalized = getRawNormalizedImageUrl(src, fallback);
+    const normalized = getBackendImageProxyUrl(rawNormalized, { w: 1200, q: 80, format: 'format' });
     const attrs = {
       src: normalized,
       alt: alt || '',
@@ -652,13 +688,13 @@
       decoding: 'async',
       fetchpriority: options.fetchpriority || 'low',
     };
-    if (typeof normalized === 'string' && normalized.indexOf('images.unsplash.com') !== -1) {
-      const baseUrl = normalized.split('?')[0];
-      const params = new URL(normalized).searchParams;
+    if (typeof rawNormalized === 'string' && rawNormalized.indexOf('images.unsplash.com') !== -1) {
+      const baseUrl = rawNormalized.split('?')[0];
+      const params = new URL(rawNormalized).searchParams;
       const width = parseInt(params.get('w') || '800', 10) || 800;
-      const small = `${baseUrl}?${params.toString().replace(/w=\d+/, 'w=400')}`;
-      const large = `${baseUrl}?${params.toString().replace(/w=\d+/, 'w=' + width)}`;
-      attrs.srcset = `${small} 400w, ${large} ${width}w`;
+      const smallUrl = `${baseUrl}?${params.toString().replace(/w=\d+/, 'w=400')}`;
+      const largeUrl = `${baseUrl}?${params.toString().replace(/w=\d+/, 'w=' + width)}`;
+      attrs.srcset = `${getBackendImageProxyUrl(smallUrl, { w: 400, q: 80, format: 'format' })} 400w, ${getBackendImageProxyUrl(largeUrl, { w: width, q: 80, format: 'format' })} ${width}w`;
       attrs.sizes = options.sizes || '(max-width: 768px) 100vw, 33vw';
     }
     return attrs;

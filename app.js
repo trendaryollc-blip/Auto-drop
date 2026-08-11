@@ -2558,6 +2558,7 @@
     'plugins/platform-connectors.js',
     'plugins/data-adapters.js',
     'plugins/search-engine.js',
+    'plugins/backend-bridge.js',
     'plugins/product-grid.js',
     'plugins/product-detail.js',
     'plugins/image-fetcher.js',

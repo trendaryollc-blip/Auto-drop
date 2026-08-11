@@ -12,6 +12,8 @@ import analyticsRoutes from './analytics.js';
 import batchRoutes from './batch.js';
 import exportRoutes from './export.js';
 import platformProxy from './proxy.js';
+import storeConnectRoutes from './store-connect.js';
+import imageRoutes from './images.js';
 import supplierSearchRoutes from './supplier-search.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 
@@ -26,7 +28,9 @@ router.use('/settings', rateLimit('default'), settingsRoutes);
 router.use('/analytics', rateLimit('analytics'), analyticsRoutes);
 router.use('/products/batch', rateLimit('products'), batchRoutes);
 router.use('/export', rateLimit('export'), exportRoutes);
+router.use('/store-connect', rateLimit('default'), storeConnectRoutes);
 router.use('/platform', rateLimit('default'), platformProxy);
+router.use('/images', rateLimit('default'), imageRoutes);
 router.use('/suppliers', rateLimit('default'), supplierSearchRoutes);
 
 export default router;

@@ -131,6 +131,25 @@ describe('product-grid plugin', () => {
       expect(grid.children.length).toBe(0);
     });
 
+    it('should show a helpful empty-state message when no results match', async () => {
+      await HuntDrop.EventBus.emit('search:results', { results: [], total: 0, query: 'unlikely product xyz' });
+      const empty = document.getElementById('productsEmpty');
+      expect(empty).not.toBeNull();
+      expect(empty.classList.contains('visible')).toBe(true);
+      expect(empty.innerHTML).toContain('No matches');
+    });
+
+    it('should show a friendly failure state when a search error happens', async () => {
+      await HuntDrop.EventBus.emit('search:error', {
+        query: 'test query',
+        error: new Error('network failure'),
+      });
+      const empty = document.getElementById('productsEmpty');
+      expect(empty).not.toBeNull();
+      expect(empty.classList.contains('visible')).toBe(true);
+      expect(empty.innerHTML).toContain('Search failed');
+    });
+
     it('should handle missing grid gracefully', async () => {
       document.getElementById('productsGrid').remove();
       // Should not throw

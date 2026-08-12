@@ -1507,11 +1507,17 @@
     const proxyUrl = getProxyUrl();
     if (!proxyUrl) return null;
     try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(function () {
+        ctrl.abort();
+      }, 8000);
       const resp = await fetch(proxyUrl + '/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform, query, filters }),
+        signal: ctrl.signal,
       });
+      clearTimeout(tid);
       if (!resp.ok) {
         console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
         return null;

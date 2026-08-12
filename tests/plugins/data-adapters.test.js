@@ -144,6 +144,20 @@ describe('data-adapters plugin', () => {
     });
   });
 
+  describe('Local fallback catalog', () => {
+    it('should return demo results for non-empty search when no platforms are connected', async () => {
+      HuntDrop.PlatformConnectors = {
+        configs: {},
+        isConnected: () => false,
+        searchPlatform: async () => [],
+      };
+
+      const results = await HuntDrop.DataLayer.searchAll('wireless earbuds');
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.some((product) => /earbuds/i.test(product.title))).toBe(true);
+    });
+  });
+
   describe('createAdapter() — search', () => {
     it('should search by title', async () => {
       const results = await HuntDrop.DataLayer.searchAll('earbuds');

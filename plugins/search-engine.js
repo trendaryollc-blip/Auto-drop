@@ -89,8 +89,12 @@
           const query = data.query || '';
           const filters = data.filters || {};
           if (query) Config.set('search.lastQuery', query);
-          const results = await DataLayer.searchAll(query, filters);
-          EventBus.emit('search:results', { query, results, total: results.length, filters });
+          try {
+            const results = await DataLayer.searchAll(query, filters);
+            EventBus.emit('search:results', { query, results, total: results.length, filters });
+          } catch (error) {
+            EventBus.emit('search:error', { query, filters, error });
+          }
         })
       );
 
@@ -98,8 +102,12 @@
         EventBus.on('filter:changed', async (data) => {
           const query = data && data.query !== undefined ? data.query : Config.get('search.lastQuery', '');
           const filters = data.filters || {};
-          const results = await DataLayer.searchAll(query, filters);
-          EventBus.emit('search:results', { query, results, total: results.length, filters });
+          try {
+            const results = await DataLayer.searchAll(query, filters);
+            EventBus.emit('search:results', { query, results, total: results.length, filters });
+          } catch (error) {
+            EventBus.emit('search:error', { query, filters, error });
+          }
         })
       );
       _cleanups = c;

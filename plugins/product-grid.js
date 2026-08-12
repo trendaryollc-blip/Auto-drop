@@ -344,6 +344,48 @@
     }
   }
 
+  function setEmptyState(mode, title, description) {
+    const empty = document.getElementById('productsEmpty');
+    const titleEl = document.getElementById('srEmptyTitle');
+    const descEl = document.getElementById('srEmptyDesc');
+    const grid = document.getElementById('productsGrid');
+    const finalTitle = title || 'No products found';
+    const finalDescription = description || 'Try adjusting your filters or search for something different.';
+
+    if (empty) {
+      empty.classList.add('visible');
+      empty.setAttribute('aria-live', 'polite');
+      if (!titleEl || !descEl) {
+        empty.innerHTML = [
+          '<div class="sr-empty-icon">',
+          '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">',
+          '<circle cx="11" cy="11" r="8" />',
+          '<line x1="21" y1="21" x2="16.65" y2="16.65" />',
+          '<line x1="8" y1="11" x2="14" y2="11" />',
+          '</svg>',
+          '</div>',
+          '<h3 class="sr-empty-title" id="srEmptyTitle">' + esc(finalTitle) + '</h3>',
+          '<p class="sr-empty-desc" id="srEmptyDesc">' + esc(finalDescription) + '</p>',
+          '<div class="sr-empty-suggestions">',
+          '<h4>Popular Searches</h4>',
+          '<div class="sr-empty-grid">',
+          '<div class="sr-empty-card" data-query="wireless earbuds"><span>🎧</span><span>Wireless Earbuds</span></div>',
+          '<div class="sr-empty-card" data-query="pet gadgets"><span>🐶</span><span>Pet Gadgets</span></div>',
+          '<div class="sr-empty-card" data-query="kitchen organizer"><span>🍽️</span><span>Kitchen Organizer</span></div>',
+          '<div class="sr-empty-card" data-query="LED strip lights"><span>💡</span><span>LED Strip Lights</span></div>',
+          '<div class="sr-empty-card" data-query="phone accessories"><span>📱</span><span>Phone Accessories</span></div>',
+          '<div class="sr-empty-card" data-query="fitness gadget"><span>💪</span><span>Fitness Gadget</span></div>',
+          '</div>',
+          '</div>'
+        ].join('');
+      } else {
+        titleEl.textContent = finalTitle;
+        descEl.textContent = finalDescription;
+      }
+    }
+    if (grid) grid.innerHTML = '';
+  }
+
   function updateSummaryBar(results) {
     const total = results.length;
     let avgMargin = 0;
@@ -466,6 +508,8 @@
       c.push(
         EventBus.on('search:results', function (data) {
           const grid = UI.$('productsGrid');
+          const empty = document.getElementById('productsEmpty');
+          if (empty) empty.classList.remove('visible');
           if (!grid) return;
 
           // Store all results and reset visible count
@@ -477,6 +521,16 @@
             source: 'Search Results',
             timestamp: Date.now(),
           };
+
+          if (!_allResults.length) {
+            const query = data && data.query ? String(data.query).trim() : '';
+            const title = query ? 'No matches for “' + query + '”' : 'No products found';
+            const desc = query
+              ? 'Try a broader search, lower the minimum score, or switch to another platform.'
+              : 'Try adjusting your filters or search for something different.';
+            setEmptyState('empty', title, desc);
+            return;
+          }
 
           let html = '';
           for (let i = 0; i < _visibleCount; i++) {
@@ -557,6 +611,17 @@
           // Store for filter chip removal
           window.HuntDrop._lastFilters = data.filters || {};
           window.HuntDrop._lastQuery = data.query || '';
+        })
+      );
+
+      c.push(
+        EventBus.on('search:error', function (data) {
+          const query = data && data.query ? String(data.query).trim() : '';
+          const title = 'Search failed';
+          const desc = query
+            ? 'Search failed while looking for “' + query + '”. Please retry or try a simpler query.'
+            : 'Search failed. Please retry or adjust your filters.';
+          setEmptyState('error', title, desc);
         })
       );
 

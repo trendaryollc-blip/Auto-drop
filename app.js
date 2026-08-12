@@ -892,27 +892,23 @@
   }
 
   // ===== Skeleton & Empty State =====
-  function showSkeleton() {
-    const skeleton = UI.$('productsSkeleton');
+  function setSearchEmptyState(mode, message, detail) {
     const empty = UI.$('productsEmpty');
     const grid = UI.$('productsGrid');
-    if (skeleton) skeleton.classList.add('visible');
-    if (empty) empty.classList.remove('visible');
-    if (grid) grid.innerHTML = '';
-  }
-
-  function hideSkeleton() {
-    const skeleton = UI.$('productsSkeleton');
-    if (skeleton) skeleton.classList.remove('visible');
-  }
-
-  function showEmpty() {
-    const empty = UI.$('productsEmpty');
-    const grid = UI.$('productsGrid');
+    const title = document.getElementById('srEmptyTitle');
+    const desc = document.getElementById('srEmptyDesc');
     const notice = document.getElementById('srEmptyNotice');
-    if (empty) empty.classList.add('visible');
+
+    if (empty) {
+      empty.classList.add('visible');
+      empty.setAttribute('aria-live', 'polite');
+    }
     if (grid) grid.innerHTML = '';
-    // Show platform connection notice if no platforms are connected
+    if (title) title.textContent = message || 'No products found';
+    if (desc) {
+      desc.textContent = detail || 'Try adjusting your filters or search for something different.';
+    }
+
     if (notice) {
       const PC = window.HuntDrop.PlatformConnectors;
       let hasConnected = false;
@@ -921,8 +917,49 @@
           if (PC.isConnected(p)) hasConnected = true;
         });
       }
-      notice.style.display = hasConnected ? 'none' : 'block';
+      if (mode === 'error') {
+        notice.style.display = 'none';
+      } else {
+        notice.style.display = hasConnected ? 'none' : 'block';
+      }
     }
+  }
+
+  function showSkeleton() {
+    const skeleton = UI.$('productsSkeleton');
+    const empty = UI.$('productsEmpty');
+    const grid = UI.$('productsGrid');
+    if (skeleton) {
+      skeleton.classList.add('visible');
+      skeleton.setAttribute('aria-busy', 'true');
+    }
+    if (empty) empty.classList.remove('visible');
+    if (grid) grid.innerHTML = '';
+  }
+
+  function hideSkeleton() {
+    const skeleton = UI.$('productsSkeleton');
+    if (skeleton) {
+      skeleton.classList.remove('visible');
+      skeleton.removeAttribute('aria-busy');
+    }
+  }
+
+  function showEmpty(query) {
+    const safeQuery = typeof query === 'string' && query.trim() ? query.trim() : '';
+    const title = safeQuery ? 'No matches for “' + safeQuery + '”' : 'No products found';
+    const detail = safeQuery
+      ? 'Try a broader search, lower the minimum score, or switch to another platform.'
+      : 'Try adjusting your filters or search for something different.';
+    setSearchEmptyState('empty', title, detail);
+  }
+
+  function showSearchFailure(data) {
+    const query = data && data.query ? data.query : '';
+    const detail = query
+      ? 'Search failed while looking for “' + query + '”. Please retry or try a simpler query.'
+      : 'Search failed. Please retry or adjust your filters.';
+    setSearchEmptyState('error', 'Search failed', detail);
   }
 
   // Listen for search events to toggle skeleton/empty states
@@ -932,8 +969,12 @@
   EventBus.on('search:results', (data) => {
     hideSkeleton();
     if (!data.results || data.results.length === 0) {
-      showEmpty();
+      showEmpty(data.query || '');
     }
+  });
+  EventBus.on('search:error', (data) => {
+    hideSkeleton();
+    showSearchFailure(data || {});
   });
 
   // Listen for search results to add related tools to search page

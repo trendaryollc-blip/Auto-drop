@@ -1486,52 +1486,122 @@
   // When the backend is available, proxy platform API calls through it
   // to bypass CORS restrictions. Falls back to direct browser calls.
 
-  function getProxyUrl() {
-    // 1. Check env-config.js injected URL
-    if (window.HuntDrop && window.HuntDrop._proxyUrl) return window.HuntDrop._proxyUrl;
-    // 2. Check Config for backend URL
-    try {
-      const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
-      if (cfg) return cfg.replace(/\/?$/, '') + '/api/platform';
-    } catch (e) {
-      /* ignore */
-    }
-    // 3. Default to deployed backend
-    return 'https://backend-psi-five-60.vercel.app/api/platform';
-  }
+   function getProxyCandidates() {
+     const list = [];
+     // 1. Explicit runtime override (ai-settings UI, etc.)
+     try {
+       const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
+       if (cfg) list.push(cfg.replace(/\/?$/, '') + '/api/platform');
+     } catch (e) {
+       /* ignore */
+     }
+     // 2. env-config.js injected URL (source of truth, may be stale if cached)
+     if (window.HuntDrop && window.HuntDrop._proxyUrl) list.push(window.HuntDrop._proxyUrl);
+     // 3. Origin-relative (works when the app is served by the backend or via a
+     //    dev proxy that forwards /api -> the backend, e.g. Vite dev server)
+     if (typeof window !== 'undefined' && window.location) {
+       list.push(window.location.origin + '/api/platform');
+     }
+     // 4. Local dev backend (auto-discovered so search works even when
+     //    env-config.js points at a dead deployment or is missing entirely)
+     list.push('http://localhost:3001/api/platform');
+     list.push('http://127.0.0.1:3001/api/platform');
+     // 5. Legacy deployed backend (fallback of last resort)
+     list.push('https://backend-psi-five-60.vercel.app/api/platform');
+     // de-duplicate while preserving order
+     const seen = Object.create(null);
+     return list.filter(function (u) {
+       if (!u || seen[u]) return false;
+       seen[u] = true;
+       return true;
+     });
+   }
 
-  // Platforms that need proxy (CORS-blocked from browser)
-  const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
+   let _activeProxy = null;
 
-  async function searchViaProxy(platform, query, filters) {
-    const proxyUrl = getProxyUrl();
-    if (!proxyUrl) return null;
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(function () {
-        ctrl.abort();
-      }, 8000);
-      const resp = await fetch(proxyUrl + '/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform, query, filters }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(tid);
-      if (!resp.ok) {
-        console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
-        return null;
-      }
-      const data = await resp.json();
-      if (data.results && data.results.length > 0) {
-        return data.results;
-      }
-      return null;
-    } catch (e) {
-      console.debug('[PlatformConnectors] Proxy failed for ' + platform + ':', e.message);
-      return null;
-    }
-  }
+   function getProxyUrl() {
+     // 1. Prefer a proxy already verified healthy by checkProxyHealth()
+     if (_activeProxy) return _activeProxy;
+     // 2. Otherwise fall back to the first configured candidate
+     const candidates = getProxyCandidates();
+     return candidates.length ? candidates[0] : null;
+   }
+
+   async function probeProxyStatus(url, timeoutMs) {
+     const ctrl = new AbortController();
+     const tid = setTimeout(function () {
+       ctrl.abort();
+     }, timeoutMs || 5000);
+     try {
+       const statusUrl = url.replace(/\/?$/, '') + '/status';
+       const resp = await fetch(statusUrl, { method: 'GET', signal: ctrl.signal });
+       clearTimeout(tid);
+       if (!resp.ok) return null;
+       // Only trust JSON status responses — an SPA fallback or HTML page can
+       // return 200 and must NOT be mistaken for the backend.
+       const text = await resp.text();
+       try {
+         const data = JSON.parse(text);
+         if (data && typeof data === 'object') return url;
+       } catch (e) {
+         return null;
+       }
+       return null;
+     } catch (e) {
+       clearTimeout(tid);
+       return null;
+     }
+   }
+
+   // Platforms that need proxy (CORS-blocked from browser)
+   const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
+
+   async function fetchProxySearch(proxyUrl, platform, query, filters) {
+     if (!proxyUrl) return null;
+     try {
+       const ctrl = new AbortController();
+       const tid = setTimeout(function () {
+         ctrl.abort();
+       }, 8000);
+       const resp = await fetch(proxyUrl + '/search', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ platform, query, filters }),
+         signal: ctrl.signal,
+       });
+       clearTimeout(tid);
+       if (!resp.ok) {
+         console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
+         return null;
+       }
+       const data = await resp.json();
+       if (data.results && data.results.length > 0) {
+         return data.results;
+       }
+       return null;
+     } catch (e) {
+       console.debug('[PlatformConnectors] Proxy failed for ' + platform + ':', e.message);
+       return null;
+     }
+   }
+
+   async function searchViaProxy(platform, query, filters) {
+     const proxyUrl = getProxyUrl();
+     if (!proxyUrl) return null;
+     const results = await fetchProxySearch(proxyUrl, platform, query, filters);
+     if (results) return results;
+     // If the configured proxy failed and a healthy proxy has not been resolved
+     // yet (health check still pending), resolve one and retry once. This covers
+     // stale/missing env-config.js while still hitting a working local backend.
+     if (!_activeProxy && _proxyHealthy === null) {
+       await checkProxyHealth();
+       if (_activeProxy && _activeProxy !== proxyUrl) {
+         const retryResults = await fetchProxySearch(_activeProxy, platform, query, filters);
+         if (retryResults) return retryResults;
+       }
+     }
+     return null;
+   }
 
   async function searchPlatform(platform, query, filters) {
     // For proxy-supported platforms, try proxy first (bypasses CORS)
@@ -1549,35 +1619,32 @@
   let _proxyHealthy = null;
   let _proxyHealthPromise = null;
 
-  async function checkProxyHealth() {
-    if (_proxyHealthy !== null) return _proxyHealthy;
-    if (_proxyHealthPromise) return _proxyHealthPromise;
-    _proxyHealthPromise = (async function () {
-      try {
-        const proxyUrl = getProxyUrl();
-        if (!proxyUrl) {
-          _proxyHealthy = false;
-          return false;
-        }
-        const ctrl = new AbortController();
-        const tid = setTimeout(function () {
-          ctrl.abort();
-        }, 5000);
-        const statusUrl = proxyUrl.replace(/\/?$/, '') + '/status';
-        const resp = await fetch(statusUrl, {
-          method: 'GET',
-          signal: ctrl.signal,
-        });
-        clearTimeout(tid);
-        _proxyHealthy = resp.ok;
-        return _proxyHealthy;
-      } catch (e) {
-        _proxyHealthy = false;
-        return false;
-      }
-    })();
-    return _proxyHealthPromise;
-  }
+   async function checkProxyHealth() {
+     if (_proxyHealthy !== null) return _proxyHealthy;
+     if (_proxyHealthPromise) return _proxyHealthPromise;
+     _proxyHealthPromise = (async function () {
+       const candidates = getProxyCandidates();
+       if (!candidates.length) {
+         _proxyHealthy = false;
+         return false;
+       }
+       const results = await Promise.all(
+         candidates.map(function (url) {
+           return probeProxyStatus(url, 5000);
+         })
+       );
+       for (let i = 0; i < results.length; i++) {
+         if (results[i]) {
+           _activeProxy = results[i];
+           _proxyHealthy = true;
+           return true;
+         }
+       }
+       _proxyHealthy = false;
+       return false;
+     })();
+     return _proxyHealthPromise;
+   }
 
   // Check proxy health on load (non-blocking)
   checkProxyHealth();
@@ -1607,9 +1674,13 @@
     getKeyStatus: getKeyStatus,
     getAllStatus: getAllStatus,
     getProxyUrl: getProxyUrl,
+    getProxyCandidates: getProxyCandidates,
     checkProxyHealth: checkProxyHealth,
     isProxyHealthy: function () {
       return _proxyHealthy;
+    },
+    getActiveProxy: function () {
+      return _activeProxy;
     },
   };
 

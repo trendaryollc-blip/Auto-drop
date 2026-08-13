@@ -68,7 +68,6 @@
     };
 
     let _section = null;
-    let _cleanups = [];
     let _selectMode = false;
     const _selectedProducts = new Set();
     let _connection = loadConnection();
@@ -307,6 +306,7 @@
     async function loadRemoteStoreConnectState() {
       const apiUrl = getStoreConnectUrl();
       if (!apiUrl) return;
+      let changed = false;
       try {
         const statusResp = await fetch(apiUrl + '/status', {
           method: 'GET',
@@ -319,8 +319,7 @@
             acc[key] = entry.config || entry;
             return acc;
           }, {});
-          render();
-          bindEvents();
+          changed = true;
         }
       } catch (e) {
         // ignore remote status failures
@@ -333,11 +332,14 @@
         const historyData = await historyResp.json();
         if (historyResp.ok && historyData.success) {
           _remoteHistory = Array.isArray(historyData.data) ? historyData.data : [];
-          render();
-          bindEvents();
+          changed = true;
         }
       } catch (e) {
         // ignore remote history failures
+      }
+      if (changed) {
+        render();
+        bindEvents();
       }
     }
 
@@ -640,7 +642,8 @@
             resultEl.innerHTML = '<div class="sc-test-error">❌ ' + esc(result.error || 'Connection failed') + '</div>';
           }
         } catch (e) {
-          if (resultEl) resultEl.innerHTML = '<div class="sc-test-error">❌ ' + esc(e.message || 'Test failed') + '</div>';
+          if (resultEl)
+            resultEl.innerHTML = '<div class="sc-test-error">❌ ' + esc(e.message || 'Test failed') + '</div>';
         }
         btn.disabled = false;
         btn.textContent = 'Test Connection';
@@ -708,12 +711,6 @@
       },
 
       unmount(_ctx) {
-        (_cleanups || []).forEach((fn) => {
-          try {
-            fn();
-          } catch (e) {}
-        });
-        _cleanups = [];
         const el = UI.$('section-store-connect');
         if (el) el.remove();
         _section = null;

@@ -128,6 +128,10 @@
   background: rgba(0, 255, 136, 0.12);
   color: var(--accent-green);
 }
+.sc-status-warning {
+  background: rgba(255, 180, 0, 0.12);
+  color: var(--accent-orange, #ffb400);
+}
 
 .sc-info-row {
   display: flex;
@@ -203,6 +207,32 @@
   background: var(--bg-primary);
   color: var(--text-primary);
   font-size: 13px;
+}
+.sc-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+.sc-input:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+.sc-connection-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 12px 0;
+}
+.sc-connection-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .sc-btn {

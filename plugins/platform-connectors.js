@@ -376,7 +376,7 @@
       id: 'ae_' + p.productId,
       title: p.productTitle || p.title || '',
       image: p.productImage || p.imageUrl || '',
-      images: (p.productImage || p.imageUrl) ? [p.productImage || p.imageUrl] : [],
+      images: p.productImage || p.imageUrl ? [p.productImage || p.imageUrl] : [],
       platform: 'aliexpress',
       price: parseFloat(p.productPrice || p.price || 0),
       originalPrice: parseFloat(p.originalPrice || p.price || 0),
@@ -443,7 +443,15 @@
       id: 'am_' + (p.asin || Math.random().toString(36).substr(2, 9)),
       title: p.title || '',
       image: p.image || '',
-      images: Array.isArray(p.images) ? p.images.map(function(i){ return i; }).filter(Boolean) : (p.image ? [p.image] : []),
+      images: Array.isArray(p.images)
+        ? p.images
+            .map(function (i) {
+              return i;
+            })
+            .filter(Boolean)
+        : p.image
+          ? [p.image]
+          : [],
       platform: 'amazon',
       price: parseFloat(p.price && p.price.raw ? p.price.raw : p.price || 0),
       originalPrice: parseFloat(p.list_price && p.list_price.raw ? p.list_price.raw : p.price || 0),
@@ -507,7 +515,11 @@
       id: 'sh_' + p.id,
       title: p.title || '',
       image: p.images && p.images[0] ? p.images[0].src : '',
-      images: (p.images || []).map(function(i){ return i.src; }).filter(Boolean),
+      images: (p.images || [])
+        .map(function (i) {
+          return i.src;
+        })
+        .filter(Boolean),
       platform: 'shopify',
       price: parseFloat(variant ? variant.price : 0),
       originalPrice: parseFloat(variant ? variant.price : 0),
@@ -664,7 +676,11 @@
       id: 'et_' + p.listing_id,
       title: p.title || '',
       image: p.images && p.images[0] ? p.images[0].url_170x135 : '',
-      images: (p.images || []).map(function(img){ return img.url_570xN || img.url_fullxfull || img.url_170x135 || ''; }).filter(Boolean),
+      images: (p.images || [])
+        .map(function (img) {
+          return img.url_570xN || img.url_fullxfull || img.url_170x135 || '';
+        })
+        .filter(Boolean),
       platform: 'etsy',
       price: price,
       originalPrice: price,
@@ -830,7 +846,7 @@
       id: 'wm_' + (p.itemId || Math.random().toString(36).substr(2, 9)),
       title: p.name || '',
       image: p.thumbnailImage || p.largeImage || '',
-      images: p.thumbnailImage ? [p.thumbnailImage] : (p.largeImage ? [p.largeImage] : []),
+      images: p.thumbnailImage ? [p.thumbnailImage] : p.largeImage ? [p.largeImage] : [],
       platform: 'walmart',
       price: parseFloat(p.salePrice || p.regularPrice || 0),
       originalPrice: parseFloat(p.regularPrice || p.salePrice || 0),
@@ -1032,7 +1048,11 @@
       id: 'rk_' + (p.itemCode || Math.random().toString(36).substr(2, 9)),
       title: p.itemName || '',
       image: p.mediumImageUrls && p.mediumImageUrls[0] ? p.mediumImageUrls[0].imageUrl : '',
-      images: (p.mediumImageUrls || []).map(function(img){ return img.imageUrl || ''; }).filter(Boolean),
+      images: (p.mediumImageUrls || [])
+        .map(function (img) {
+          return img.imageUrl || '';
+        })
+        .filter(Boolean),
       platform: 'rakuten',
       price: price,
       originalPrice: price,
@@ -1357,7 +1377,11 @@
   function normalizeAmazonSPProduct(p) {
     const summaries = p.summaries || [];
     const summary = summaries[0] || {};
-    const spImages = (p.images && p.images[0] && p.images[0].images || []).map(function(i){ return i.link || ''; }).filter(Boolean);
+    const spImages = ((p.images && p.images[0] && p.images[0].images) || [])
+      .map(function (i) {
+        return i.link || '';
+      })
+      .filter(Boolean);
     return {
       id: 'asp_' + (p.asin || Math.random().toString(36).substr(2, 9)),
       title: summary.itemName || '',
@@ -1486,122 +1510,122 @@
   // When the backend is available, proxy platform API calls through it
   // to bypass CORS restrictions. Falls back to direct browser calls.
 
-   function getProxyCandidates() {
-     const list = [];
-     // 1. Explicit runtime override (ai-settings UI, etc.)
-     try {
-       const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
-       if (cfg) list.push(cfg.replace(/\/?$/, '') + '/api/platform');
-     } catch (e) {
-       /* ignore */
-     }
-     // 2. env-config.js injected URL (source of truth, may be stale if cached)
-     if (window.HuntDrop && window.HuntDrop._proxyUrl) list.push(window.HuntDrop._proxyUrl);
-     // 3. Origin-relative (works when the app is served by the backend or via a
-     //    dev proxy that forwards /api -> the backend, e.g. Vite dev server)
-     if (typeof window !== 'undefined' && window.location) {
-       list.push(window.location.origin + '/api/platform');
-     }
-     // 4. Local dev backend (auto-discovered so search works even when
-     //    env-config.js points at a dead deployment or is missing entirely)
-     list.push('http://localhost:3001/api/platform');
-     list.push('http://127.0.0.1:3001/api/platform');
-     // 5. Legacy deployed backend (fallback of last resort)
-     list.push('https://backend-psi-five-60.vercel.app/api/platform');
-     // de-duplicate while preserving order
-     const seen = Object.create(null);
-     return list.filter(function (u) {
-       if (!u || seen[u]) return false;
-       seen[u] = true;
-       return true;
-     });
-   }
+  function getProxyCandidates() {
+    const list = [];
+    // 1. Explicit runtime override (ai-settings UI, etc.)
+    try {
+      const cfg = Config.get('backendUrl') || Config.get('proxyUrl');
+      if (cfg) list.push(cfg.replace(/\/?$/, '') + '/api/platform');
+    } catch (e) {
+      /* ignore */
+    }
+    // 2. env-config.js injected URL (source of truth, may be stale if cached)
+    if (window.HuntDrop && window.HuntDrop._proxyUrl) list.push(window.HuntDrop._proxyUrl);
+    // 3. Origin-relative (works when the app is served by the backend or via a
+    //    dev proxy that forwards /api -> the backend, e.g. Vite dev server)
+    if (typeof window !== 'undefined' && window.location) {
+      list.push(window.location.origin + '/api/platform');
+    }
+    // 4. Local dev backend (auto-discovered so search works even when
+    //    env-config.js points at a dead deployment or is missing entirely)
+    list.push('http://localhost:3001/api/platform');
+    list.push('http://127.0.0.1:3001/api/platform');
+    // 5. Legacy deployed backend (fallback of last resort)
+    list.push('https://backend-psi-five-60.vercel.app/api/platform');
+    // de-duplicate while preserving order
+    const seen = Object.create(null);
+    return list.filter(function (u) {
+      if (!u || seen[u]) return false;
+      seen[u] = true;
+      return true;
+    });
+  }
 
-   let _activeProxy = null;
+  let _activeProxy = null;
 
-   function getProxyUrl() {
-     // 1. Prefer a proxy already verified healthy by checkProxyHealth()
-     if (_activeProxy) return _activeProxy;
-     // 2. Otherwise fall back to the first configured candidate
-     const candidates = getProxyCandidates();
-     return candidates.length ? candidates[0] : null;
-   }
+  function getProxyUrl() {
+    // 1. Prefer a proxy already verified healthy by checkProxyHealth()
+    if (_activeProxy) return _activeProxy;
+    // 2. Otherwise fall back to the first configured candidate
+    const candidates = getProxyCandidates();
+    return candidates.length ? candidates[0] : null;
+  }
 
-   async function probeProxyStatus(url, timeoutMs) {
-     const ctrl = new AbortController();
-     const tid = setTimeout(function () {
-       ctrl.abort();
-     }, timeoutMs || 5000);
-     try {
-       const statusUrl = url.replace(/\/?$/, '') + '/status';
-       const resp = await fetch(statusUrl, { method: 'GET', signal: ctrl.signal });
-       clearTimeout(tid);
-       if (!resp.ok) return null;
-       // Only trust JSON status responses — an SPA fallback or HTML page can
-       // return 200 and must NOT be mistaken for the backend.
-       const text = await resp.text();
-       try {
-         const data = JSON.parse(text);
-         if (data && typeof data === 'object') return url;
-       } catch (e) {
-         return null;
-       }
-       return null;
-     } catch (e) {
-       clearTimeout(tid);
-       return null;
-     }
-   }
+  async function probeProxyStatus(url, timeoutMs) {
+    const ctrl = new AbortController();
+    const tid = setTimeout(function () {
+      ctrl.abort();
+    }, timeoutMs || 5000);
+    try {
+      const statusUrl = url.replace(/\/?$/, '') + '/status';
+      const resp = await fetch(statusUrl, { method: 'GET', signal: ctrl.signal });
+      clearTimeout(tid);
+      if (!resp.ok) return null;
+      // Only trust JSON status responses — an SPA fallback or HTML page can
+      // return 200 and must NOT be mistaken for the backend.
+      const text = await resp.text();
+      try {
+        const data = JSON.parse(text);
+        if (data && typeof data === 'object') return url;
+      } catch (e) {
+        return null;
+      }
+      return null;
+    } catch (e) {
+      clearTimeout(tid);
+      return null;
+    }
+  }
 
-   // Platforms that need proxy (CORS-blocked from browser)
-   const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
+  // Platforms that need proxy (CORS-blocked from browser)
+  const PROXY_PLATFORMS = ['aliexpress', 'amazon', 'google_shopping', 'cjdropshipping'];
 
-   async function fetchProxySearch(proxyUrl, platform, query, filters) {
-     if (!proxyUrl) return null;
-     try {
-       const ctrl = new AbortController();
-       const tid = setTimeout(function () {
-         ctrl.abort();
-       }, 8000);
-       const resp = await fetch(proxyUrl + '/search', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ platform, query, filters }),
-         signal: ctrl.signal,
-       });
-       clearTimeout(tid);
-       if (!resp.ok) {
-         console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
-         return null;
-       }
-       const data = await resp.json();
-       if (data.results && data.results.length > 0) {
-         return data.results;
-       }
-       return null;
-     } catch (e) {
-       console.debug('[PlatformConnectors] Proxy failed for ' + platform + ':', e.message);
-       return null;
-     }
-   }
+  async function fetchProxySearch(proxyUrl, platform, query, filters) {
+    if (!proxyUrl) return null;
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(function () {
+        ctrl.abort();
+      }, 8000);
+      const resp = await fetch(proxyUrl + '/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform, query, filters }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(tid);
+      if (!resp.ok) {
+        console.debug('[PlatformConnectors] Proxy returned ' + resp.status + ' for ' + platform);
+        return null;
+      }
+      const data = await resp.json();
+      if (data.results && data.results.length > 0) {
+        return data.results;
+      }
+      return null;
+    } catch (e) {
+      console.debug('[PlatformConnectors] Proxy failed for ' + platform + ':', e.message);
+      return null;
+    }
+  }
 
-   async function searchViaProxy(platform, query, filters) {
-     const proxyUrl = getProxyUrl();
-     if (!proxyUrl) return null;
-     const results = await fetchProxySearch(proxyUrl, platform, query, filters);
-     if (results) return results;
-     // If the configured proxy failed and a healthy proxy has not been resolved
-     // yet (health check still pending), resolve one and retry once. This covers
-     // stale/missing env-config.js while still hitting a working local backend.
-     if (!_activeProxy && _proxyHealthy === null) {
-       await checkProxyHealth();
-       if (_activeProxy && _activeProxy !== proxyUrl) {
-         const retryResults = await fetchProxySearch(_activeProxy, platform, query, filters);
-         if (retryResults) return retryResults;
-       }
-     }
-     return null;
-   }
+  async function searchViaProxy(platform, query, filters) {
+    const proxyUrl = getProxyUrl();
+    if (!proxyUrl) return null;
+    const results = await fetchProxySearch(proxyUrl, platform, query, filters);
+    if (results) return results;
+    // If the configured proxy failed and a healthy proxy has not been resolved
+    // yet (health check still pending), resolve one and retry once. This covers
+    // stale/missing env-config.js while still hitting a working local backend.
+    if (!_activeProxy && _proxyHealthy === null) {
+      await checkProxyHealth();
+      if (_activeProxy && _activeProxy !== proxyUrl) {
+        const retryResults = await fetchProxySearch(_activeProxy, platform, query, filters);
+        if (retryResults) return retryResults;
+      }
+    }
+    return null;
+  }
 
   async function searchPlatform(platform, query, filters) {
     // For proxy-supported platforms, try proxy first (bypasses CORS)
@@ -1619,32 +1643,32 @@
   let _proxyHealthy = null;
   let _proxyHealthPromise = null;
 
-   async function checkProxyHealth() {
-     if (_proxyHealthy !== null) return _proxyHealthy;
-     if (_proxyHealthPromise) return _proxyHealthPromise;
-     _proxyHealthPromise = (async function () {
-       const candidates = getProxyCandidates();
-       if (!candidates.length) {
-         _proxyHealthy = false;
-         return false;
-       }
-       const results = await Promise.all(
-         candidates.map(function (url) {
-           return probeProxyStatus(url, 5000);
-         })
-       );
-       for (let i = 0; i < results.length; i++) {
-         if (results[i]) {
-           _activeProxy = results[i];
-           _proxyHealthy = true;
-           return true;
-         }
-       }
-       _proxyHealthy = false;
-       return false;
-     })();
-     return _proxyHealthPromise;
-   }
+  async function checkProxyHealth() {
+    if (_proxyHealthy !== null) return _proxyHealthy;
+    if (_proxyHealthPromise) return _proxyHealthPromise;
+    _proxyHealthPromise = (async function () {
+      const candidates = getProxyCandidates();
+      if (!candidates.length) {
+        _proxyHealthy = false;
+        return false;
+      }
+      const results = await Promise.all(
+        candidates.map(function (url) {
+          return probeProxyStatus(url, 5000);
+        })
+      );
+      for (let i = 0; i < results.length; i++) {
+        if (results[i]) {
+          _activeProxy = results[i];
+          _proxyHealthy = true;
+          return true;
+        }
+      }
+      _proxyHealthy = false;
+      return false;
+    })();
+    return _proxyHealthPromise;
+  }
 
   // Check proxy health on load (non-blocking)
   checkProxyHealth();

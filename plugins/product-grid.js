@@ -49,7 +49,10 @@
     let imgAttrs = {};
     try {
       imgAttrs = UI.getOptimizedImageAttributes
-        ? UI.getOptimizedImageAttributes(p.image || '', title, { sizes: '(max-width: 768px) 100vw, 33vw', fetchpriority: 'high' })
+        ? UI.getOptimizedImageAttributes(p.image || '', title, {
+            sizes: '(max-width: 768px) 100vw, 33vw',
+            fetchpriority: 'high',
+          })
         : { src: p.image || '' };
     } catch (e) {
       imgAttrs = { src: p.image || '' };
@@ -62,7 +65,7 @@
     const margin = p.margin || 0;
     const marginClass = margin >= 50 ? 'margin-high' : margin >= 30 ? 'margin-med' : 'margin-low';
 
-    const images = (p.images || []);
+    const images = p.images || [];
     const thumbCount = Math.min(images.length, 4);
     const overflow = images.length > 4 ? images.length - 4 : 0;
 
@@ -72,11 +75,19 @@
       thumbsHtml +=
         '<img src="' +
         esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(images[i], '') : images[i]) +
-        '" class="card-thumb' + (isActive ? ' active' : '') + '" data-idx="' + i + '" alt="">';
+        '" class="card-thumb' +
+        (isActive ? ' active' : '') +
+        '" data-idx="' +
+        i +
+        '" alt="">';
     }
     if (overflow > 0) {
       thumbsHtml +=
-        '<div class="card-thumb card-thumb-overflow" data-idx="4" title="' + images.length + ' images total">+' + overflow + '</div>';
+        '<div class="card-thumb card-thumb-overflow" data-idx="4" title="' +
+        images.length +
+        ' images total">+' +
+        overflow +
+        '</div>';
     }
 
     const selectCb =
@@ -125,9 +136,7 @@
       '</div>' +
       selectCb +
       '</div>' +
-      (images.length > 1
-        ? '<div class="card-thumbnails">' + thumbsHtml + '</div>'
-        : '') +
+      (images.length > 1 ? '<div class="card-thumbnails">' + thumbsHtml + '</div>' : '') +
       '<div class="card-body">' +
       '<h3 class="card-title">' +
       title +
@@ -208,10 +217,12 @@
           const idx = parseInt(thumb.dataset.idx || '0', 10);
           if (imgEl) {
             const imgs = card._images || [];
-            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : (imgs[idx] || ''));
+            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx] || '');
             imgEl.src = safe;
           }
-          allThumbs.forEach(function(t){ t.classList.remove('active'); });
+          allThumbs.forEach(function (t) {
+            t.classList.remove('active');
+          });
           thumb.classList.add('active');
           return;
         }
@@ -267,11 +278,17 @@
     function show(i) {
       idx = (i + imgs.length) % imgs.length;
       img.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx]);
-      if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
+      if (counter) counter.textContent = idx + 1 + ' / ' + imgs.length;
     }
     show(0);
-    lb.querySelector('.pg-lb-prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
-    lb.querySelector('.pg-lb-next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
+    lb.querySelector('.pg-lb-prev').onclick = function (e) {
+      e.stopPropagation();
+      show(idx - 1);
+    };
+    lb.querySelector('.pg-lb-next').onclick = function (e) {
+      e.stopPropagation();
+      show(idx + 1);
+    };
     lb.classList.add('active');
     document.body.style.overflow = 'hidden';
     window._pgLightbox = lb;
@@ -376,7 +393,7 @@
           '<div class="sr-empty-card" data-query="phone accessories"><span>📱</span><span>Phone Accessories</span></div>',
           '<div class="sr-empty-card" data-query="fitness gadget"><span>💪</span><span>Fitness Gadget</span></div>',
           '</div>',
-          '</div>'
+          '</div>',
         ].join('');
       } else {
         titleEl.textContent = finalTitle;
@@ -659,7 +676,16 @@
               if (loadingEl) loadingEl.style.display = 'flex';
               // Use optimized attributes when available
               var opt = {};
-              try { opt = UI.getOptimizedImageAttributes ? UI.getOptimizedImageAttributes(imgUrls[0], '', { sizes: '(max-width: 768px) 100vw, 33vw', fetchpriority: 'high' }) : { src: imgUrls[0] }; } catch(e) { opt = { src: imgUrls[0] }; }
+              try {
+                opt = UI.getOptimizedImageAttributes
+                  ? UI.getOptimizedImageAttributes(imgUrls[0], '', {
+                      sizes: '(max-width: 768px) 100vw, 33vw',
+                      fetchpriority: 'high',
+                    })
+                  : { src: imgUrls[0] };
+              } catch (e) {
+                opt = { src: imgUrls[0] };
+              }
               if (opt.srcset) imgEl.setAttribute('srcset', opt.srcset);
               if (opt.sizes) imgEl.setAttribute('sizes', opt.sizes);
               imgEl.setAttribute('fetchpriority', opt.fetchpriority || 'high');

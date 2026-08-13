@@ -2033,9 +2033,16 @@
   animation: shDetailIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* Reset for v3 full-page panel — styles defined in supplier-hub-v3.css with !important */
-#shDetailPanel { align-items: normal; justify-content: normal; }
-#shDetailPanel .sh-detail-content { all: revert; }
-#shDetailPanel .sh-detail-overlay { all: revert; }
+#shDetailPanel {
+  align-items: normal;
+  justify-content: normal;
+}
+#shDetailPanel .sh-detail-content {
+  all: revert;
+}
+#shDetailPanel .sh-detail-overlay {
+  all: revert;
+}
 @keyframes shDetailIn {
   from {
     transform: scale(0.92);

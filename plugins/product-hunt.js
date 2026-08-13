@@ -110,11 +110,17 @@
     function show(i) {
       idx = (i + imgs.length) % imgs.length;
       img.src = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx]);
-      if (counter) counter.textContent = (idx + 1) + ' / ' + imgs.length;
+      if (counter) counter.textContent = idx + 1 + ' / ' + imgs.length;
     }
     show(0);
-    lb.querySelector('.ph-lb-prev').onclick = function (e) { e.stopPropagation(); show(idx - 1); };
-    lb.querySelector('.ph-lb-next').onclick = function (e) { e.stopPropagation(); show(idx + 1); };
+    lb.querySelector('.ph-lb-prev').onclick = function (e) {
+      e.stopPropagation();
+      show(idx - 1);
+    };
+    lb.querySelector('.ph-lb-next').onclick = function (e) {
+      e.stopPropagation();
+      show(idx + 1);
+    };
     lb.classList.add('active');
     document.body.style.overflow = 'hidden';
     window._phLightbox = lb;
@@ -1035,7 +1041,7 @@
         const buyPrice = (p.arbitrage?.buyPrice || p.price).toFixed(2);
         const sellPrice = (p.arbitrage?.sellPrice || p.platformPrices?.amazon || p.price * 3).toFixed(2);
 
-        const images = (p.images || []);
+        const images = p.images || [];
         const thumbCount = Math.min(images.length, 4);
         const overflow = images.length > 4 ? images.length - 4 : 0;
 
@@ -1045,11 +1051,19 @@
           thumbsHtml +=
             '<img src="' +
             esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(images[i], '') : images[i]) +
-            '" class="ph-thumb' + (isActive ? ' active' : '') + '" data-idx="' + i + '" alt="">';
+            '" class="ph-thumb' +
+            (isActive ? ' active' : '') +
+            '" data-idx="' +
+            i +
+            '" alt="">';
         }
         if (overflow > 0) {
           thumbsHtml +=
-            '<div class="ph-thumb ph-thumb-overflow" data-idx="4" title="' + images.length + ' images total">+' + overflow + '</div>';
+            '<div class="ph-thumb ph-thumb-overflow" data-idx="4" title="' +
+            images.length +
+            ' images total">+' +
+            overflow +
+            '</div>';
         }
 
         return `
@@ -1108,10 +1122,12 @@
           const idx = parseInt(thumb.dataset.idx || '0', 10);
           if (imgEl) {
             const imgs = card._images || [];
-            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : (imgs[idx] || ''));
+            const safe = esc(UI.normalizeImageUrl ? UI.normalizeImageUrl(imgs[idx], '') : imgs[idx] || '');
             imgEl.src = safe;
           }
-          allThumbs.forEach(function(t){ t.classList.remove('active'); });
+          allThumbs.forEach(function (t) {
+            t.classList.remove('active');
+          });
           thumb.classList.add('active');
           return;
         }
@@ -1129,7 +1145,7 @@
     });
 
     // Attach images arrays to cards
-    products.forEach(function(p) {
+    products.forEach(function (p) {
       const card = grid.querySelector('.ph-card[data-id="' + esc(String(p.id)) + '"]');
       if (card) card._images = p.images || [];
     });

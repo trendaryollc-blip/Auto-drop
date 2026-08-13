@@ -606,7 +606,11 @@
 
     unmount(_ctx) {
       _listeners.forEach(function (off) {
-        try { off(); } catch { /* ignored */ }
+        try {
+          off();
+        } catch {
+          /* ignored */
+        }
       });
       _listeners = [];
       if (_section) {

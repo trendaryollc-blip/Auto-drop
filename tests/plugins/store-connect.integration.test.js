@@ -14,13 +14,27 @@ describe('Store Connect frontend integration', () => {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: {} }) });
       }
       if (url.endsWith('/connect')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: { platform: 'trendaryo', config: opts && JSON.parse(opts.body).config } }) });
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: { platform: 'trendaryo', config: opts && JSON.parse(opts.body).config },
+            }),
+        });
       }
       if (url.endsWith('/test')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: { status: 'ok' } }) });
       }
       if (url.endsWith('/push')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: { status: 'ok', pushed: JSON.parse(opts.body).products.length, results: [{ success: true }] } }) });
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: { status: 'ok', pushed: JSON.parse(opts.body).products.length, results: [{ success: true }] },
+            }),
+        });
       }
       if (url.endsWith('/history')) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, data: [] }) });

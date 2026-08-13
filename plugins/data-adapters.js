@@ -211,11 +211,7 @@
 
       if (!trimmedQuery) return true;
 
-      const haystacks = [
-        product.title,
-        product.category,
-        ...(Array.isArray(product.keywords) ? product.keywords : []),
-      ]
+      const haystacks = [product.title, product.category, ...(Array.isArray(product.keywords) ? product.keywords : [])]
         .filter(Boolean)
         .map((value) => String(value).toLowerCase());
 

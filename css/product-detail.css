@@ -891,8 +891,12 @@
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.4);
 }
-.pd-lb-prev { left: 18px; }
-.pd-lb-next { right: 18px; }
+.pd-lb-prev {
+  left: 18px;
+}
+.pd-lb-next {
+  right: 18px;
+}
 .pd-lb-counter {
   position: absolute;
   bottom: 24px;

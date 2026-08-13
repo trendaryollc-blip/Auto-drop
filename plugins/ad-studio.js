@@ -165,13 +165,21 @@
       getKey: function (providerId) {
         var p = this.providers[providerId];
         if (!p) return '';
-        try { return window.HuntDrop.Config.get(p.keyConfig) || ''; } catch { return ''; }
+        try {
+          return window.HuntDrop.Config.get(p.keyConfig) || '';
+        } catch {
+          return '';
+        }
       },
 
       setKey: function (providerId, key) {
         var p = this.providers[providerId];
         if (!p) return;
-        try { window.HuntDrop.Config.set(p.keyConfig, key); } catch { /* ignored */ }
+        try {
+          window.HuntDrop.Config.set(p.keyConfig, key);
+        } catch {
+          /* ignored */
+        }
       },
 
       hasKey: function (providerId) {
@@ -182,7 +190,12 @@
         var result = {};
         var self = this;
         Object.keys(this.providers).forEach(function (id) {
-          result[id] = { name: self.providers[id].name, connected: self.hasKey(id), color: self.providers[id].color, tier: self.providers[id].tier };
+          result[id] = {
+            name: self.providers[id].name,
+            connected: self.hasKey(id),
+            color: self.providers[id].color,
+            tier: self.providers[id].tier,
+          };
         });
         return result;
       },
@@ -213,12 +226,25 @@
         if (opts.image) body.initImage = opts.image;
         var resp = await fetch(provider.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key, 'X-Runway-Version': '2024-11-06' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + key,
+            'X-Runway-Version': '2024-11-06',
+          },
           body: JSON.stringify(body),
         });
-        if (!resp.ok) { var err = await resp.text(); throw new Error('Runway API ' + resp.status + ': ' + err); }
+        if (!resp.ok) {
+          var err = await resp.text();
+          throw new Error('Runway API ' + resp.status + ': ' + err);
+        }
         var data = await resp.json();
-        return { ok: true, jobId: data.id, status: 'submitted', provider: 'runway', pollUrl: 'https://api.dev.runwayml.com/v1/generations/' + data.id };
+        return {
+          ok: true,
+          jobId: data.id,
+          status: 'submitted',
+          provider: 'runway',
+          pollUrl: 'https://api.dev.runwayml.com/v1/generations/' + data.id,
+        };
       },
 
       _callPika: async function (provider, key, prompt, opts) {
@@ -231,10 +257,13 @@
         if (opts.image) body.image = opts.image;
         var resp = await fetch(provider.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
           body: JSON.stringify(body),
         });
-        if (!resp.ok) { var err = await resp.text(); throw new Error('Pika API ' + resp.status + ': ' + err); }
+        if (!resp.ok) {
+          var err = await resp.text();
+          throw new Error('Pika API ' + resp.status + ': ' + err);
+        }
         var data = await resp.json();
         return { ok: true, jobId: data.id, status: 'submitted', provider: 'pika' };
       },
@@ -248,10 +277,13 @@
         if (opts.image) body.image_url = opts.image;
         var resp = await fetch(provider.endpoint, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + key },
           body: JSON.stringify(body),
         });
-        if (!resp.ok) { var err = await resp.text(); throw new Error('Luma API ' + resp.status + ': ' + err); }
+        if (!resp.ok) {
+          var err = await resp.text();
+          throw new Error('Luma API ' + resp.status + ': ' + err);
+        }
         var data = await resp.json();
         return { ok: true, jobId: data.id, status: 'submitted', provider: 'luma' };
       },
@@ -261,16 +293,30 @@
         if (!key) return { ok: false, error: 'No API key' };
         try {
           if (providerId === 'runway') {
-            var resp = await fetch('https://api.dev.runwayml.com/v1/generations/' + jobId, { headers: { 'Authorization': 'Bearer ' + key, 'X-Runway-Version': '2024-11-06' } });
+            var resp = await fetch('https://api.dev.runwayml.com/v1/generations/' + jobId, {
+              headers: { Authorization: 'Bearer ' + key, 'X-Runway-Version': '2024-11-06' },
+            });
             if (!resp.ok) return { ok: false, error: 'Poll failed' };
             var data = await resp.json();
-            return { ok: true, status: data.status, progress: data.progress || 0, videoUrl: data.output && data.output[0] ? data.output[0] : null };
+            return {
+              ok: true,
+              status: data.status,
+              progress: data.progress || 0,
+              videoUrl: data.output && data.output[0] ? data.output[0] : null,
+            };
           }
           if (providerId === 'luma') {
-            var resp2 = await fetch('https://api.lumalabs.ai/dream-machine/v1/generations/' + jobId, { headers: { 'Authorization': 'Bearer ' + key } });
+            var resp2 = await fetch('https://api.lumalabs.ai/dream-machine/v1/generations/' + jobId, {
+              headers: { Authorization: 'Bearer ' + key },
+            });
             if (!resp2.ok) return { ok: false, error: 'Poll failed' };
             var data2 = await resp2.json();
-            return { ok: true, status: data2.state, progress: data2.state === 'completed' ? 100 : 50, videoUrl: data2.assets && data2.assets.video ? data2.assets.video : null };
+            return {
+              ok: true,
+              status: data2.state,
+              progress: data2.state === 'completed' ? 100 : 50,
+              videoUrl: data2.assets && data2.assets.video ? data2.assets.video : null,
+            };
           }
           return { ok: true, status: 'unknown', progress: 0 };
         } catch (e) {
@@ -600,11 +646,27 @@
       multiPlatform: function (product) {
         return (
           'You are a platform-native ad specialist. Generate platform-SPECIFIC ad sets for each platform below. ' +
-          'Each platform must have UNIQUE copy optimized for that platform\'s algorithm, audience behavior, and format.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\nRating: ' + product.rating + '/5 (' + product.reviews + ' reviews)\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n' +
-          'Margin: ' + product.margin + '%\n\n' +
+          "Each platform must have UNIQUE copy optimized for that platform's algorithm, audience behavior, and format.\n\n" +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\nRating: ' +
+          product.rating +
+          '/5 (' +
+          product.reviews +
+          ' reviews)\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n' +
+          'Margin: ' +
+          product.margin +
+          '%\n\n' +
           'OUTPUT FORMAT:\n' +
           '## FACEBOOK (Feed + Stories)\n### Primary Text\n[long-form social proof, 125+ words]\n### Headline\n[benefit-driven, 40 chars max]\n### Description\n[urgency + social proof]\n### CTA\n[Shop Now / Learn More]\n### Best Practices: [FB-specific tips]\n\n' +
           '## TIKTOK (Native Ads)\n### Hook (0-2s)\n[scroll-stopping pattern interrupt]\n### Script (2-15s)\n[raw, authentic, trend-jacking]\n### CTA\n["Link in bio" style]\n### Caption\n[hashtag strategy, 5-8 hashtags]\n### Sound/Music: [trending audio suggestion]\n\n' +
@@ -617,9 +679,16 @@
       hookAnalyzer: function (product, hook) {
         return (
           'You are a viral content analyst. Analyze this ad hook for effectiveness.\n\n' +
-          'HOOK TO ANALYZE: "' + hook + '"\n\n' +
-          'Product: ' + product.title + '\nCategory: ' + product.category + '\nAudience: ' +
-          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n\n' +
+          'HOOK TO ANALYZE: "' +
+          hook +
+          '"\n\n' +
+          'Product: ' +
+          product.title +
+          '\nCategory: ' +
+          product.category +
+          '\nAudience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n\n' +
           'OUTPUT FORMAT:\n' +
           '## OVERALL SCORE\n[Score /100 with grade: S/A/B/C/D/F]\n\n' +
           '## HOOK BREAKDOWN\n' +
@@ -641,10 +710,22 @@
       adScore: function (product, copy) {
         return (
           'You are an advertising performance predictor. Score this ad copy for predicted effectiveness.\n\n' +
-          'AD COPY:\n' + copy + '\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Target: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n' +
-          'Margin: ' + product.margin + '%\n\n' +
+          'AD COPY:\n' +
+          copy +
+          '\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Target: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n' +
+          'Margin: ' +
+          product.margin +
+          '%\n\n' +
           'OUTPUT FORMAT:\n' +
           '## OVERALL SCORE: [X/100]\n[Large score with letter grade S/A/B/C/D/F]\n\n' +
           '## CATEGORY SCORES (each /10)\n' +
@@ -662,17 +743,27 @@
           '- Estimated CPA: [range]\n' +
           '- Cost Per Sale: [estimate]\n\n' +
           '## TOP 3 WEAKNESSES\n[specific issues with exact fixes]\n\n' +
-          '## TOP 3 STRENGTHS\n[what\'s working well]\n\n' +
+          "## TOP 3 STRENGTHS\n[what's working well]\n\n" +
           '## OPTIMIZED VERSION\n[Rewrite the ad with all weaknesses fixed, maintaining the core message]'
         );
       },
 
       copyTransformer: function (product, copy, style) {
         return (
-          'You are a world-class copywriter. Transform this ad copy into the "' + style + '" style.\n\n' +
-          'ORIGINAL AD:\n' + copy + '\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\n\n' +
+          'You are a world-class copywriter. Transform this ad copy into the "' +
+          style +
+          '" style.\n\n' +
+          'ORIGINAL AD:\n' +
+          copy +
+          '\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\n\n' +
           'STYLE RULES:\n' +
           '- Short-form: Under 90 chars, punchy, zero fluff\n' +
           '- Long-form: 200+ words, storytelling, emotional depth\n' +
@@ -689,10 +780,26 @@
       continuity: function (product) {
         return (
           'You are a full-funnel advertising strategist. Create a complete 5-stage ad sequence that takes a cold prospect to a loyal customer.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Margin: ' + product.margin + '%\nRating: ' + product.rating + '/5 (' + product.reviews + ' reviews)\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Margin: ' +
+          product.margin +
+          '%\nRating: ' +
+          product.rating +
+          '/5 (' +
+          product.reviews +
+          ' reviews)\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\n\n' +
           'OUTPUT FORMAT:\n' +
           '## STAGE 1: AWARENESS (Day 1-5)\n### Goal: Brand introduction, curiosity\n### Audience: Cold — interest-based targeting\n### FB/IG Ad: [full copy]\n### TikTok Script: [full script with hook]\n### Headline: [headline]\n### CTA: [button text]\n### Creative Direction: [visual concept]\n### Budget: [% of total]\n\n' +
           '## STAGE 2: CONSIDERATION (Day 5-10)\n### Goal: Build desire, overcome skepticism\n### Audience: Engaged — video viewers, page engagers\n### FB/IG Ad: [full copy]\n### TikTok Script: [full script]\n### Headline: [headline]\n### CTA: [button text]\n### Creative Direction: [visual concept]\n### Budget: [% of total]\n\n' +
@@ -705,12 +812,26 @@
 
       storyboard: function (product, duration) {
         return (
-          'You are a video ad director. Create a detailed scene-by-scene storyboard for a ' + duration + ' second video ad.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\n\n' +
+          'You are a video ad director. Create a detailed scene-by-scene storyboard for a ' +
+          duration +
+          ' second video ad.\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\n\n' +
           'OUTPUT FORMAT:\n' +
-          '## STORYBOARD OVERVIEW\n- Duration: ' + duration + 's\n- Style: [UGC / Cinematic / Motion Graphics / Mixed]\n- Mood: [energetic / calm / dramatic / playful]\n- Music: [genre + BPM suggestion]\n- Color Palette: [3-4 colors]\n\n' +
+          '## STORYBOARD OVERVIEW\n- Duration: ' +
+          duration +
+          's\n- Style: [UGC / Cinematic / Motion Graphics / Mixed]\n- Mood: [energetic / calm / dramatic / playful]\n- Music: [genre + BPM suggestion]\n- Color Palette: [3-4 colors]\n\n' +
           '## SCENE BREAKDOWN\n[For each scene:]\n' +
           '### Scene [N] ([timestamp range])\n' +
           '- Visual: [exactly what the viewer sees — camera angle, framing, movement]\n' +
@@ -727,10 +848,24 @@
       dynamicVars: function (product, count) {
         return (
           'You are a direct-response copywriter creating a dynamic creative variable matrix.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\nRating: ' + product.rating + '/5\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n\n' +
-          'Generate ' + count + ' variable sets for Facebook Dynamic Creative / TikTok Smart Creative testing.\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\nRating: ' +
+          product.rating +
+          '/5\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n\n' +
+          'Generate ' +
+          count +
+          ' variable sets for Facebook Dynamic Creative / TikTok Smart Creative testing.\n\n' +
           'OUTPUT FORMAT:\n' +
           '## HEADLINES (generate 10)\n[1-10: each headline, max 40 chars]\n\n' +
           '## PRIMARY TEXTS (generate 10)\n[1-10: each primary text, varying length 90-280 chars]\n\n' +
@@ -745,13 +880,27 @@
 
       adSequence: function (product) {
         return (
-          'You are a performance marketer. Create a 3-ad sequence where each ad builds on the previous one\'s messaging.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Margin: ' + product.margin + '%\nRating: ' + product.rating + '/5 (' + product.reviews + ' reviews)\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n\n' +
+          "You are a performance marketer. Create a 3-ad sequence where each ad builds on the previous one's messaging.\n\n" +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Margin: ' +
+          product.margin +
+          '%\nRating: ' +
+          product.rating +
+          '/5 (' +
+          product.reviews +
+          ' reviews)\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n\n' +
           'OUTPUT FORMAT:\n' +
           '## AD 1: THE HOOK (Cold Traffic)\n### Purpose: Pattern interrupt + curiosity\n### Headline\n### Primary Text (FB/IG)\n### TikTok Script (hook + 15s)\n### Visual Direction\n### CTA\n### Key Message Thread: [one core message this ad introduces]\n\n' +
-          '## AD 2: THE PROOF (Warm Traffic — saw Ad 1)\n### Purpose: Validate the promise from Ad 1\n### Headline\n### Primary Text (FB/IG)\n### TikTok Script\n### Visual Direction\n### CTA\n### Key Message Thread: [builds on Ad 1\'s message with evidence]\n\n' +
+          "## AD 2: THE PROOF (Warm Traffic — saw Ad 1)\n### Purpose: Validate the promise from Ad 1\n### Headline\n### Primary Text (FB/IG)\n### TikTok Script\n### Visual Direction\n### CTA\n### Key Message Thread: [builds on Ad 1's message with evidence]\n\n" +
           '## AD 3: THE CLOSE (Hot Traffic — saw Ad 1+2)\n### Purpose: Convert with urgency + best offer\n### Headline\n### Primary Text (FB/IG)\n### TikTok Script\n### Visual Direction\n### CTA\n### Key Message Thread: [closes the loop, strongest offer]\n\n' +
           '## SEQUENCE STRATEGY\n- Targeting between stages\n- Time gaps between ads\n- Budget split across the 3 ads\n- Success metrics per stage\n- When to move someone to the next ad'
         );
@@ -759,14 +908,38 @@
 
       videoAd: function (product, duration, style) {
         return (
-          'You are a video ad director. Create a complete video ad script optimized for ' + (duration || '30') + '-second ' + (style || 'UGC') + ' style.\n\n' +
-          'Product: ' + product.title + '\nPrice: $' + product.price + '\nCategory: ' + product.category + '\n' +
-          'Rating: ' + product.rating + '/5 (' + product.reviews + ' reviews)\n' +
-          'Audience: ' + (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') + '\n' +
-          'Keywords: ' + (product.keywords || []).join(', ') + '\n' +
-          'Margin: ' + product.margin + '%\n\n' +
+          'You are a video ad director. Create a complete video ad script optimized for ' +
+          (duration || '30') +
+          '-second ' +
+          (style || 'UGC') +
+          ' style.\n\n' +
+          'Product: ' +
+          product.title +
+          '\nPrice: $' +
+          product.price +
+          '\nCategory: ' +
+          product.category +
+          '\n' +
+          'Rating: ' +
+          product.rating +
+          '/5 (' +
+          product.reviews +
+          ' reviews)\n' +
+          'Audience: ' +
+          (product.audience ? product.audience.age + ' ' + product.audience.gender : 'General') +
+          '\n' +
+          'Keywords: ' +
+          (product.keywords || []).join(', ') +
+          '\n' +
+          'Margin: ' +
+          product.margin +
+          '%\n\n' +
           'OUTPUT FORMAT:\n' +
-          '## VIDEO OVERVIEW\n- Duration: ' + (duration || '30') + 's\n- Style: ' + (style || 'UGC') + '\n- Platform: TikTok/IG Reels (9:16 vertical)\n- Music: [genre + mood]\n- Color Palette: [3-4 colors]\n\n' +
+          '## VIDEO OVERVIEW\n- Duration: ' +
+          (duration || '30') +
+          's\n- Style: ' +
+          (style || 'UGC') +
+          '\n- Platform: TikTok/IG Reels (9:16 vertical)\n- Music: [genre + mood]\n- Color Palette: [3-4 colors]\n\n' +
           '## VOICEOVER / DIALOGUE SCRIPT\n[Full word-for-word script with timestamps]\n\n' +
           '## SCENE BREAKDOWN (for each scene)\n### Scene [N] ([timestamp])\n' +
           '- Visual Description: [what the viewer sees — for AI image/video generation]\n' +
@@ -1636,35 +1809,108 @@
         const lines = [];
         lines.push('## FACEBOOK (Feed + Stories)');
         lines.push('### Primary Text');
-        lines.push('Stop scrolling. ' + reviews + '+ people switched to the ' + title + ' \u2014 and haven\'t looked back.\n\nRated ' + rating + '/5 stars. Premium ' + kw + ' quality at ' + disc + '% off.\n\n\u2705 Free shipping\n\u2705 30-day guarantee\n\u2705 ' + rating + '/5 from ' + reviews + ' reviews\n\nDon\'t overpay for ' + kw + ' that doesn\'t deliver. This is the one everyone\'s switching to.\n\n\u23F0 Limited time: ' + disc + '% OFF');
+        lines.push(
+          'Stop scrolling. ' +
+            reviews +
+            '+ people switched to the ' +
+            title +
+            " \u2014 and haven't looked back.\n\nRated " +
+            rating +
+            '/5 stars. Premium ' +
+            kw +
+            ' quality at ' +
+            disc +
+            '% off.\n\n\u2705 Free shipping\n\u2705 30-day guarantee\n\u2705 ' +
+            rating +
+            '/5 from ' +
+            reviews +
+            " reviews\n\nDon't overpay for " +
+            kw +
+            " that doesn't deliver. This is the one everyone's switching to.\n\n\u23F0 Limited time: " +
+            disc +
+            '% OFF'
+        );
         lines.push('### Headline: ' + title + ' \u2014 ' + disc + '% Off Today');
-        lines.push('### Description: ' + reviews + '+ happy customers can\'t be wrong. Free shipping + 30-day guarantee.');
+        lines.push(
+          '### Description: ' + reviews + "+ happy customers can't be wrong. Free shipping + 30-day guarantee."
+        );
         lines.push('### CTA: Shop Now');
         lines.push('### Best Practices: Use carousel format, add social proof overlay, test 3 headlines');
         lines.push('');
         lines.push('## TIKTOK (Native Ads)');
         lines.push('### Hook (0-2s): "POV: You found the ' + kw + ' that actually delivers..."');
-        lines.push('### Script (2-15s): Show product unboxing \u2192 close-up quality \u2192 reviews on screen \u2192 price reveal');
+        lines.push(
+          '### Script (2-15s): Show product unboxing \u2192 close-up quality \u2192 reviews on screen \u2192 price reveal'
+        );
         lines.push('### CTA: "Link in bio \uD83D\uDC47 before it sells out"');
-        lines.push('### Caption: the ' + kw + ' everyone\'s been asking about \uD83E\uDD29 #trending #musthave #' + kw.replace(/\s/g, ''));
+        lines.push(
+          '### Caption: the ' +
+            kw +
+            " everyone's been asking about \uD83E\uDD29 #trending #musthave #" +
+            kw.replace(/\s/g, '')
+        );
         lines.push('### Sound: Use trending sound or lo-fi beat');
         lines.push('');
         lines.push('## INSTAGRAM (Reels + Feed + Stories)');
         lines.push('### Reel Hook: "Wait for it... the ' + kw + ' that broke the internet \uD83D\uDD25"');
         lines.push('### Reel Script: Aesthetic product shots \u2192 lifestyle use \u2192 reaction \u2192 link in bio');
-        lines.push('### Feed Caption: The ' + kw + ' that ' + reviews + '+ people chose this month. Rated ' + rating + '/5 \u2B50 Link in bio!');
+        lines.push(
+          '### Feed Caption: The ' +
+            kw +
+            ' that ' +
+            reviews +
+            '+ people chose this month. Rated ' +
+            rating +
+            '/5 \u2B50 Link in bio!'
+        );
         lines.push('### Stories CTA: Poll "Worth it?" \u2192 Swipe up to shop');
-        lines.push('### Hashtags: #' + kw.replace(/\s/g, '') + ' #trending #viral #shopping #musthave #deal #fyp #shopnow');
+        lines.push(
+          '### Hashtags: #' + kw.replace(/\s/g, '') + ' #trending #viral #shopping #musthave #deal #fyp #shopnow'
+        );
         lines.push('');
         lines.push('## YOUTUBE (Pre-roll + Shorts)');
-        lines.push('### Pre-roll (15s): "Still wasting money on bad ' + kw + '? ' + reviews + '+ people found the solution. ' + title + ' \u2014 ' + disc + '% off. Link below."');
-        lines.push('### Shorts Script: "I tested 10 ' + kw + ' brands. This one won by a landslide." [Show product, features, reviews]');
+        lines.push(
+          '### Pre-roll (15s): "Still wasting money on bad ' +
+            kw +
+            '? ' +
+            reviews +
+            '+ people found the solution. ' +
+            title +
+            ' \u2014 ' +
+            disc +
+            '% off. Link below."'
+        );
+        lines.push(
+          '### Shorts Script: "I tested 10 ' +
+            kw +
+            ' brands. This one won by a landslide." [Show product, features, reviews]'
+        );
         lines.push('### Title: I Found The BEST ' + kw + ' of 2026 (Honest Review)');
-        lines.push('### Description: After testing ' + reviews + '+ reviews worth of data, the ' + title + ' is the top-rated ' + kw + ' of 2026. ' + disc + '% off for a limited time.');
+        lines.push(
+          '### Description: After testing ' +
+            reviews +
+            '+ reviews worth of data, the ' +
+            title +
+            ' is the top-rated ' +
+            kw +
+            ' of 2026. ' +
+            disc +
+            '% off for a limited time.'
+        );
         lines.push('');
         lines.push('## PINTEREST (Pins + Idea Pins)');
         lines.push('### Pin Title: Best ' + kw + ' 2026 \u2014 ' + disc + '% Off + Free Shipping');
-        lines.push('### Pin Description: Discover why ' + reviews + '+ customers rated this ' + kw + ' ' + rating + '/5 stars. Premium quality, free shipping, 30-day guarantee. Limited time ' + disc + '% off.');
+        lines.push(
+          '### Pin Description: Discover why ' +
+            reviews +
+            '+ customers rated this ' +
+            kw +
+            ' ' +
+            rating +
+            '/5 stars. Premium quality, free shipping, 30-day guarantee. Limited time ' +
+            disc +
+            '% off.'
+        );
         lines.push('### Board Name: Best ' + kw.replace(/\s/g, '') + ' Deals 2026');
         lines.push('### SEO Keywords: ' + kw + ', best ' + kw + ', ' + kw + ' deal, buy ' + kw + ', ' + kw + ' review');
         return lines.join('\n');
@@ -1693,15 +1939,31 @@
         lines.push('');
         lines.push('## 3 IMPROVED VERSIONS');
         lines.push('### Version 1: Add Social Proof');
-        lines.push('"' + product.reviews + '+ people bought this ' + kw + ' last month. Here\'s why..." [Score: 85/100]');
+        lines.push(
+          '"' + product.reviews + '+ people bought this ' + kw + ' last month. Here\'s why..." [Score: 85/100]'
+        );
         lines.push('### Version 2: Add Urgency');
-        lines.push('"This ' + kw + ' just sold out twice. Only ' + Math.floor(Math.random() * 30 + 10) + ' left..." [Score: 88/100]');
+        lines.push(
+          '"This ' +
+            kw +
+            ' just sold out twice. Only ' +
+            Math.floor(Math.random() * 30 + 10) +
+            ' left..." [Score: 88/100]'
+        );
         lines.push('### Version 3: Pattern Interrupt + Specificity');
-        lines.push('"I found a ' + kw + ' that\'s rated ' + product.rating + '/5 and it\'s ' + (product.discount || 30) + '% off right now..." [Score: 90/100]');
+        lines.push(
+          '"I found a ' +
+            kw +
+            " that's rated " +
+            product.rating +
+            "/5 and it's " +
+            (product.discount || 30) +
+            '% off right now..." [Score: 90/100]'
+        );
         lines.push('');
         lines.push('## PLATFORM SUITABILITY');
         lines.push('- Facebook: 6/10 \u2014 Works but needs more context for feed scroll');
-        lines.push('- TikTok: 9/10 \u2014 Perfect for the platform\'s fast-paced style');
+        lines.push("- TikTok: 9/10 \u2014 Perfect for the platform's fast-paced style");
         lines.push('- Instagram: 8/10 \u2014 Great for Reels, good for Stories');
         lines.push('- YouTube: 5/10 \u2014 Too short for pre-roll, works for Shorts');
         return lines.join('\n');
@@ -1728,8 +1990,16 @@
         lines.push('- Cost Per Sale: $12-$18');
         lines.push('');
         lines.push('## TOP 3 WEAKNESSES');
-        lines.push('1. CTA is generic ("Shop Now") \u2192 Fix: Use "Get Yours \u2014 ' + (product.discount || 30) + '% Off Ends Tonight"');
-        lines.push('2. No urgency/scarcity \u2192 Fix: Add "Only ' + Math.floor(Math.random() * 30 + 10) + ' left" or countdown language');
+        lines.push(
+          '1. CTA is generic ("Shop Now") \u2192 Fix: Use "Get Yours \u2014 ' +
+            (product.discount || 30) +
+            '% Off Ends Tonight"'
+        );
+        lines.push(
+          '2. No urgency/scarcity \u2192 Fix: Add "Only ' +
+            Math.floor(Math.random() * 30 + 10) +
+            ' left" or countdown language'
+        );
         lines.push('3. Platform-agnostic \u2192 Fix: Add native elements (emoji, line breaks, hashtags for IG)');
         lines.push('');
         lines.push('## TOP 3 STRENGTHS');
@@ -1738,7 +2008,21 @@
         lines.push('3. Appropriate length for Facebook feed');
         lines.push('');
         lines.push('## OPTIMIZED VERSION');
-        lines.push('\u23F0 Only ' + Math.floor(Math.random() * 30 + 10) + ' left at this price!\n\nThe ' + product.title.split('\u2014')[0].trim() + ' \u2014 rated ' + product.rating + '/5 by ' + product.reviews + '+ verified buyers.\n\n\u2705 Premium quality\n\u2705 Free shipping\n\u2705 30-day guarantee\n\nStop overpaying for ' + (product.keywords[0] || product.category) + ' that doesn\'t deliver.\n\n\u2728 ' + (product.discount || 30) + '% off \u2192 Link in bio');
+        lines.push(
+          '\u23F0 Only ' +
+            Math.floor(Math.random() * 30 + 10) +
+            ' left at this price!\n\nThe ' +
+            product.title.split('\u2014')[0].trim() +
+            ' \u2014 rated ' +
+            product.rating +
+            '/5 by ' +
+            product.reviews +
+            '+ verified buyers.\n\n\u2705 Premium quality\n\u2705 Free shipping\n\u2705 30-day guarantee\n\nStop overpaying for ' +
+            (product.keywords[0] || product.category) +
+            " that doesn't deliver.\n\n\u2728 " +
+            (product.discount || 30) +
+            '% off \u2192 Link in bio'
+        );
         return lines.join('\n');
       },
 
@@ -1756,28 +2040,109 @@
             lines.push(title + ' \u2014 ' + disc + '% off. ' + rating + '/5 stars. Link in bio.');
             break;
           case 'Long-form':
-            lines.push('Let me tell you about the ' + title + ' \u2014 the ' + kw + ' that\'s changed how ' + reviews + '+ people approach their daily routine.\n\nRated ' + rating + '/5 stars by real customers, this isn\'t just another product. It\'s THE product.\n\n\u2705 Premium construction that outlasts competitors at 3x the price\n\u2705 Results you can see from day one\n\u2705 Free express shipping on every order\n\u2705 30-day risk-free guarantee\n\nThe best part? It\'s ' + disc + '% off right now. But this price won\'t last \u2014 we\'ve already sold through 3 batches this month.\n\nJoin ' + reviews + '+ happy customers who made the switch.');
+            lines.push(
+              'Let me tell you about the ' +
+                title +
+                ' \u2014 the ' +
+                kw +
+                " that's changed how " +
+                reviews +
+                '+ people approach their daily routine.\n\nRated ' +
+                rating +
+                "/5 stars by real customers, this isn't just another product. It's THE product.\n\n\u2705 Premium construction that outlasts competitors at 3x the price\n\u2705 Results you can see from day one\n\u2705 Free express shipping on every order\n\u2705 30-day risk-free guarantee\n\nThe best part? It's " +
+                disc +
+                "% off right now. But this price won't last \u2014 we've already sold through 3 batches this month.\n\nJoin " +
+                reviews +
+                '+ happy customers who made the switch.'
+            );
             break;
           case 'Gen Z':
-            lines.push('ok so this ' + kw + ' is actually insane?? ' + reviews + '+ ppl gave it ' + rating + '/5 stars and it\'s ' + disc + '% off rn \uD83D\uDD25\n\nnot me adding to cart for the third time \uD83E\uDD2F link in bio before it sells out again');
+            lines.push(
+              'ok so this ' +
+                kw +
+                ' is actually insane?? ' +
+                reviews +
+                '+ ppl gave it ' +
+                rating +
+                "/5 stars and it's " +
+                disc +
+                '% off rn \uD83D\uDD25\n\nnot me adding to cart for the third time \uD83E\uDD2F link in bio before it sells out again'
+            );
             break;
           case 'Professional':
-            lines.push('The data speaks for itself: ' + reviews + '+ verified customers. ' + rating + '/5 average rating. ' + title + ' delivers measurable results.\n\nKey differentiators:\n\u2022 Premium materials and construction\n\u2022 Proven ' + rating + '/5 customer satisfaction\n\u2022 Risk-free 30-day trial period\n\nCurrent offer: ' + disc + '% off. Limited availability.');
+            lines.push(
+              'The data speaks for itself: ' +
+                reviews +
+                '+ verified customers. ' +
+                rating +
+                '/5 average rating. ' +
+                title +
+                ' delivers measurable results.\n\nKey differentiators:\n\u2022 Premium materials and construction\n\u2022 Proven ' +
+                rating +
+                '/5 customer satisfaction\n\u2022 Risk-free 30-day trial period\n\nCurrent offer: ' +
+                disc +
+                '% off. Limited availability.'
+            );
             break;
           case 'Storytelling':
-            lines.push('Sarah was tired of ' + kw + ' that promised everything and delivered nothing.\n\nShe\'d tried 5 different brands. None lasted more than a month.\n\nThen she found the ' + title + '.\n\n\u201CIt was different from the first use,\u201D she said. \u201C' + rating + '/5 stars isn\'t enough \u2014 I\'d give it 6.\u201D\n\nNow ' + reviews + '+ customers agree. Join them.');
+            lines.push(
+              'Sarah was tired of ' +
+                kw +
+                " that promised everything and delivered nothing.\n\nShe'd tried 5 different brands. None lasted more than a month.\n\nThen she found the " +
+                title +
+                '.\n\n\u201CIt was different from the first use,\u201D she said. \u201C' +
+                rating +
+                "/5 stars isn't enough \u2014 I'd give it 6.\u201D\n\nNow " +
+                reviews +
+                '+ customers agree. Join them.'
+            );
             break;
           case 'Urgency':
-            lines.push('\u23F0 \u23F0 \u23F0 FINAL HOURS \u23F0 \u23F0 \u23F0\n\nThe ' + title + ' is ' + disc + '% OFF \u2014 but only for the next ' + Math.floor(Math.random() * 12 + 6) + ' hours!\n\n' + reviews + '+ people grabbed theirs this week.\nOnly ' + Math.floor(Math.random() * 30 + 10) + ' left in stock.\n\n\u274C After tonight, full price. No exceptions.\n\n\u2B50 ' + rating + '/5 stars | \u2705 Free shipping | \u2705 30-day guarantee');
+            lines.push(
+              '\u23F0 \u23F0 \u23F0 FINAL HOURS \u23F0 \u23F0 \u23F0\n\nThe ' +
+                title +
+                ' is ' +
+                disc +
+                '% OFF \u2014 but only for the next ' +
+                Math.floor(Math.random() * 12 + 6) +
+                ' hours!\n\n' +
+                reviews +
+                '+ people grabbed theirs this week.\nOnly ' +
+                Math.floor(Math.random() * 30 + 10) +
+                ' left in stock.\n\n\u274C After tonight, full price. No exceptions.\n\n\u2B50 ' +
+                rating +
+                '/5 stars | \u2705 Free shipping | \u2705 30-day guarantee'
+            );
             break;
           case 'Luxury':
-            lines.push('Introducing the ' + title + ' \u2014 where premium meets perfection.\n\nCrafted for those who accept nothing less than extraordinary.\n\n\u2728 ' + rating + '/5 from ' + reviews + '+ discerning customers\n\u2728 Premium materials, timeless design\n\u2728 Exclusive ' + disc + '% introductory offer\n\nThis isn\'t a purchase. It\'s an investment in quality.');
+            lines.push(
+              'Introducing the ' +
+                title +
+                ' \u2014 where premium meets perfection.\n\nCrafted for those who accept nothing less than extraordinary.\n\n\u2728 ' +
+                rating +
+                '/5 from ' +
+                reviews +
+                '+ discerning customers\n\u2728 Premium materials, timeless design\n\u2728 Exclusive ' +
+                disc +
+                "% introductory offer\n\nThis isn't a purchase. It's an investment in quality."
+            );
             break;
           case 'Minimalist':
-            lines.push(title + '.\n' + rating + '/5 stars.\n' + reviews + '+ reviews.\n' + disc + '% off.\nFree shipping.\n30-day guarantee.\n\nLink in bio.');
+            lines.push(
+              title +
+                '.\n' +
+                rating +
+                '/5 stars.\n' +
+                reviews +
+                '+ reviews.\n' +
+                disc +
+                '% off.\nFree shipping.\n30-day guarantee.\n\nLink in bio.'
+            );
             break;
           default:
-            lines.push(title + ' \u2014 ' + disc + '% off. ' + rating + '/5 stars. ' + reviews + '+ reviews. Link in bio.');
+            lines.push(
+              title + ' \u2014 ' + disc + '% off. ' + rating + '/5 stars. ' + reviews + '+ reviews. Link in bio.'
+            );
         }
         return lines.join('\n');
       },
@@ -1792,16 +2157,40 @@
         lines.push('## STAGE 1: AWARENESS (Day 1-5)');
         lines.push('### Goal: Brand introduction, curiosity');
         lines.push('### Audience: Cold \u2014 interest-based targeting');
-        lines.push('### FB/IG Ad: Meet the ' + title + ' \u2014 the ' + kw + ' that ' + reviews + '+ people are switching to. Why? One use and you\'ll get it. ' + disc + '% off for early adopters. Link below \u2192');
-        lines.push('### TikTok Script: "POV: You found the ' + kw + ' everyone\'s been talking about..." [Unbox, react, show feature]');
-        lines.push('### Headline: The ' + kw + ' That\'s Going Viral');
+        lines.push(
+          '### FB/IG Ad: Meet the ' +
+            title +
+            ' \u2014 the ' +
+            kw +
+            ' that ' +
+            reviews +
+            "+ people are switching to. Why? One use and you'll get it. " +
+            disc +
+            '% off for early adopters. Link below \u2192'
+        );
+        lines.push(
+          '### TikTok Script: "POV: You found the ' +
+            kw +
+            ' everyone\'s been talking about..." [Unbox, react, show feature]'
+        );
+        lines.push('### Headline: The ' + kw + " That's Going Viral");
         lines.push('### CTA: Learn More');
         lines.push('### Budget: 25% of total');
         lines.push('');
         lines.push('## STAGE 2: CONSIDERATION (Day 5-10)');
         lines.push('### Goal: Build desire, overcome skepticism');
         lines.push('### Audience: Engaged \u2014 video viewers, page engagers');
-        lines.push('### FB/IG Ad: Still thinking about the ' + title + '? Here\'s why ' + reviews + '+ customers rated it ' + rating + '/5 stars. Premium quality. Free shipping. 30-day guarantee. ' + disc + '% off ends soon.');
+        lines.push(
+          '### FB/IG Ad: Still thinking about the ' +
+            title +
+            "? Here's why " +
+            reviews +
+            '+ customers rated it ' +
+            rating +
+            '/5 stars. Premium quality. Free shipping. 30-day guarantee. ' +
+            disc +
+            '% off ends soon.'
+        );
         lines.push('### TikTok Script: "I was skeptical too, but look at this..." [Show quality, features, reviews]');
         lines.push('### Headline: See Why ' + reviews + '+ People Love It');
         lines.push('### CTA: Shop Now');
@@ -1810,7 +2199,17 @@
         lines.push('## STAGE 3: INTENT (Day 10-15)');
         lines.push('### Goal: Push toward purchase');
         lines.push('### Audience: High intent \u2014 add-to-cart, product viewers');
-        lines.push('### FB/IG Ad: You left something good behind. The ' + title + ' is rated ' + rating + '/5 by ' + reviews + '+ verified buyers. ' + disc + '% off + free shipping. Complete your order before this deal disappears.');
+        lines.push(
+          '### FB/IG Ad: You left something good behind. The ' +
+            title +
+            ' is rated ' +
+            rating +
+            '/5 by ' +
+            reviews +
+            '+ verified buyers. ' +
+            disc +
+            '% off + free shipping. Complete your order before this deal disappears.'
+        );
         lines.push('### Headline: Your ' + title + ' is Waiting');
         lines.push('### CTA: Complete Your Order');
         lines.push('### Budget: 20% of total');
@@ -1818,7 +2217,17 @@
         lines.push('## STAGE 4: CONVERSION (Day 15-20)');
         lines.push('### Goal: Close the sale');
         lines.push('### Audience: Cart abandoners');
-        lines.push('### FB/IG Ad: \u23F0 FINAL NOTICE: ' + disc + '% off the ' + title + ' ends at midnight. ' + reviews + '+ people already grabbed theirs. ' + rating + '/5 stars. Free shipping + 30-day guarantee. This is the lowest price we\'ve offered.');
+        lines.push(
+          '### FB/IG Ad: \u23F0 FINAL NOTICE: ' +
+            disc +
+            '% off the ' +
+            title +
+            ' ends at midnight. ' +
+            reviews +
+            '+ people already grabbed theirs. ' +
+            rating +
+            "/5 stars. Free shipping + 30-day guarantee. This is the lowest price we've offered."
+        );
         lines.push('### Headline: LAST CHANCE \u2014 ' + disc + '% Off Ends Tonight');
         lines.push('### CTA: Buy Now');
         lines.push('### Budget: 20% of total');
@@ -1826,7 +2235,11 @@
         lines.push('## STAGE 5: RETENTION (Day 20-30)');
         lines.push('### Goal: Repeat purchase, referrals');
         lines.push('### Audience: Existing customers');
-        lines.push('### Message: Thanks for your order! Love your ' + title + '? Share with a friend and get 15% off your next order. Leave a review and get a free gift!');
+        lines.push(
+          '### Message: Thanks for your order! Love your ' +
+            title +
+            '? Share with a friend and get 15% off your next order. Leave a review and get a free gift!'
+        );
         lines.push('### Budget: 10% of total');
         lines.push('');
         lines.push('## TOTAL: Budget split 25/25/20/20/10 across stages');
@@ -1852,7 +2265,9 @@
         lines.push('## SCENE BREAKDOWN');
         lines.push('');
         lines.push('### Scene 1 (0-3s) \u2014 THE HOOK');
-        lines.push('- Visual: Close-up of person\'s face, surprised expression. Handheld, slightly shaky for authenticity');
+        lines.push(
+          "- Visual: Close-up of person's face, surprised expression. Handheld, slightly shaky for authenticity"
+        );
         lines.push('- Text Overlay: "Is it worth the hype?" \u2014 Bold white, center screen');
         lines.push('- Audio: "Okay so this ' + kw + ' just arrived..." (excited tone)');
         lines.push('- Transition: Hard cut');
@@ -1926,16 +2341,112 @@
         lines.push('10. Your ' + kw + ' Upgrade Starts Here');
         lines.push('');
         lines.push('## PRIMARY TEXTS (10)');
-        lines.push('1. Stop scrolling. ' + reviews + '+ people switched to the ' + title + '. Rated ' + rating + '/5. ' + disc + '% off today only. Free shipping + 30-day guarantee. Link in bio \u2192');
-        lines.push('2. Still wasting money on ' + kw + ' that doesn\'t deliver? The ' + title + ' is rated ' + rating + '/5 by real customers. ' + disc + '% off this week. Try it risk-free.');
-        lines.push('3. \uD83D\uDD25 This ' + kw + ' just sold out twice. ' + reviews + '+ customers can\'t be wrong. ' + rating + '/5 stars. ' + disc + '% off + free shipping. Don\'t miss this.');
-        lines.push('4. I was skeptical at first, but the ' + title + ' literally changed my routine. ' + rating + '/5 from ' + reviews + '+ reviews. ' + disc + '% off right now. Link in bio.');
-        lines.push('5. Premium ' + kw + ' quality at a fraction of the price. ' + title + ' \u2014 rated ' + rating + '/5. ' + reviews + '+ happy customers. Free shipping + guarantee.');
-        lines.push('6. \u23F0 FLASH SALE: ' + disc + '% OFF the ' + title + ' for the next 24 hours. ' + rating + '/5 stars. Free shipping. This won\'t come around again.');
-        lines.push('7. Compare: Brand ' + kw + ': $80+. ' + title + ': Same quality, fraction of the price. ' + reviews + '+ customers already made the switch. ' + disc + '% off.');
-        lines.push('8. The ' + kw + ' everyone\'s been asking about \uD83E\uDD29 ' + title + ' is rated ' + rating + '/5. ' + disc + '% off + 30-day guarantee. Link in bio.');
-        lines.push('9. We tested 20+ ' + kw + ' brands. The ' + title + ' won by a landslide. ' + rating + '/5 from ' + reviews + ' real reviews. No gimmicks.');
-        lines.push('10. There\'s a ' + kw + ' that ' + reviews + '+ people are ordering every day. The ' + title + '. Get it before everyone else does \u2192');
+        lines.push(
+          '1. Stop scrolling. ' +
+            reviews +
+            '+ people switched to the ' +
+            title +
+            '. Rated ' +
+            rating +
+            '/5. ' +
+            disc +
+            '% off today only. Free shipping + 30-day guarantee. Link in bio \u2192'
+        );
+        lines.push(
+          '2. Still wasting money on ' +
+            kw +
+            " that doesn't deliver? The " +
+            title +
+            ' is rated ' +
+            rating +
+            '/5 by real customers. ' +
+            disc +
+            '% off this week. Try it risk-free.'
+        );
+        lines.push(
+          '3. \uD83D\uDD25 This ' +
+            kw +
+            ' just sold out twice. ' +
+            reviews +
+            "+ customers can't be wrong. " +
+            rating +
+            '/5 stars. ' +
+            disc +
+            "% off + free shipping. Don't miss this."
+        );
+        lines.push(
+          '4. I was skeptical at first, but the ' +
+            title +
+            ' literally changed my routine. ' +
+            rating +
+            '/5 from ' +
+            reviews +
+            '+ reviews. ' +
+            disc +
+            '% off right now. Link in bio.'
+        );
+        lines.push(
+          '5. Premium ' +
+            kw +
+            ' quality at a fraction of the price. ' +
+            title +
+            ' \u2014 rated ' +
+            rating +
+            '/5. ' +
+            reviews +
+            '+ happy customers. Free shipping + guarantee.'
+        );
+        lines.push(
+          '6. \u23F0 FLASH SALE: ' +
+            disc +
+            '% OFF the ' +
+            title +
+            ' for the next 24 hours. ' +
+            rating +
+            "/5 stars. Free shipping. This won't come around again."
+        );
+        lines.push(
+          '7. Compare: Brand ' +
+            kw +
+            ': $80+. ' +
+            title +
+            ': Same quality, fraction of the price. ' +
+            reviews +
+            '+ customers already made the switch. ' +
+            disc +
+            '% off.'
+        );
+        lines.push(
+          '8. The ' +
+            kw +
+            " everyone's been asking about \uD83E\uDD29 " +
+            title +
+            ' is rated ' +
+            rating +
+            '/5. ' +
+            disc +
+            '% off + 30-day guarantee. Link in bio.'
+        );
+        lines.push(
+          '9. We tested 20+ ' +
+            kw +
+            ' brands. The ' +
+            title +
+            ' won by a landslide. ' +
+            rating +
+            '/5 from ' +
+            reviews +
+            ' real reviews. No gimmicks.'
+        );
+        lines.push(
+          "10. There's a " +
+            kw +
+            ' that ' +
+            reviews +
+            '+ people are ordering every day. The ' +
+            title +
+            '. Get it before everyone else does \u2192'
+        );
         lines.push('');
         lines.push('## DESCRIPTIONS (5)');
         lines.push('1. ' + disc + '% Off + Free Shipping');
@@ -1970,8 +2481,24 @@
         lines.push('## AD 1: THE HOOK (Cold Traffic)');
         lines.push('### Purpose: Pattern interrupt + curiosity');
         lines.push('### Headline: The ' + kw + ' That ' + reviews + '+ People Switched To');
-        lines.push('### Primary Text: Stop wasting money on ' + kw + ' that doesn\'t deliver. The ' + title + ' is rated ' + rating + '/5 by ' + reviews + '+ verified buyers. ' + disc + '% off for early adopters. See what the hype is about \u2192');
-        lines.push('### TikTok Script: "POV: You found the ' + kw + ' everyone\'s been asking about..." [Unbox, react, show key feature, price reveal, CTA]');
+        lines.push(
+          '### Primary Text: Stop wasting money on ' +
+            kw +
+            " that doesn't deliver. The " +
+            title +
+            ' is rated ' +
+            rating +
+            '/5 by ' +
+            reviews +
+            '+ verified buyers. ' +
+            disc +
+            '% off for early adopters. See what the hype is about \u2192'
+        );
+        lines.push(
+          '### TikTok Script: "POV: You found the ' +
+            kw +
+            ' everyone\'s been asking about..." [Unbox, react, show key feature, price reveal, CTA]'
+        );
         lines.push('### Visual: UGC unboxing, genuine reaction');
         lines.push('### CTA: Learn More');
         lines.push('### Key Message: Introduces the product as a trending solution');
@@ -1979,8 +2506,20 @@
         lines.push('## AD 2: THE PROOF (Warm Traffic)');
         lines.push('### Purpose: Validate the promise with evidence');
         lines.push('### Headline: See Why ' + reviews + '+ People Gave It ' + rating + '/5 Stars');
-        lines.push('### Primary Text: Still thinking about the ' + title + '? Here\'s what ' + reviews + '+ customers say: "Best ' + kw + ' I\'ve ever owned." Premium quality. Free shipping. 30-day guarantee. ' + disc + '% off. Join them \u2192');
-        lines.push('### TikTok Script: "I was skeptical too, but look at these reviews..." [Show reviews on phone, product in use, feature highlights]');
+        lines.push(
+          '### Primary Text: Still thinking about the ' +
+            title +
+            "? Here's what " +
+            reviews +
+            '+ customers say: "Best ' +
+            kw +
+            ' I\'ve ever owned." Premium quality. Free shipping. 30-day guarantee. ' +
+            disc +
+            '% off. Join them \u2192'
+        );
+        lines.push(
+          '### TikTok Script: "I was skeptical too, but look at these reviews..." [Show reviews on phone, product in use, feature highlights]'
+        );
         lines.push('### Visual: Reviews overlay, product lifestyle shots');
         lines.push('### CTA: Shop Now');
         lines.push('### Key Message: Adds social proof and validation to the initial hook');
@@ -1988,8 +2527,22 @@
         lines.push('## AD 3: THE CLOSE (Hot Traffic)');
         lines.push('### Purpose: Convert with urgency + best offer');
         lines.push('### Headline: LAST CHANCE \u2014 ' + disc + '% Off Ends Tonight');
-        lines.push('### Primary Text: \u23F0 FINAL HOURS: The ' + title + ' deal expires at midnight. ' + disc + '% off + free shipping. ' + rating + '/5 from ' + reviews + '+ reviews. 30-day guarantee. After tonight, full price. No exceptions. Grab yours \u2192');
-        lines.push('### TikTok Script: "FINAL HOURS. The ' + kw + ' deal expires at midnight..." [Show countdown, price comparison, limited stock, urgent CTA]');
+        lines.push(
+          '### Primary Text: \u23F0 FINAL HOURS: The ' +
+            title +
+            ' deal expires at midnight. ' +
+            disc +
+            '% off + free shipping. ' +
+            rating +
+            '/5 from ' +
+            reviews +
+            '+ reviews. 30-day guarantee. After tonight, full price. No exceptions. Grab yours \u2192'
+        );
+        lines.push(
+          '### TikTok Script: "FINAL HOURS. The ' +
+            kw +
+            ' deal expires at midnight..." [Show countdown, price comparison, limited stock, urgent CTA]'
+        );
         lines.push('### Visual: Countdown timer, bold text, urgency overlays');
         lines.push('### CTA: Buy Now');
         lines.push('### Key Message: Closes the loop with strongest offer and urgency');
@@ -2022,15 +2575,23 @@
         lines.push('## VOICEOVER / DIALOGUE SCRIPT');
         lines.push('[0-3s] "Okay so this ' + kw + ' just arrived and I\'m literally shaking..."');
         lines.push('[3-6s] "Let me open this... oh wow, the packaging is actually premium"');
-        lines.push('[6-12s] "Okay first impression \u2014 this feels amazing. Look at this quality... and it\'s only $' + price + '?! ' + disc + '% off right now"');
+        lines.push(
+          '[6-12s] "Okay first impression \u2014 this feels amazing. Look at this quality... and it\'s only $' +
+            price +
+            '?! ' +
+            disc +
+            '% off right now"'
+        );
         lines.push('[12-18s] "And it has ' + rating + ' stars from ' + reviews + '+ reviews. That\'s insane"');
-        lines.push('[18-24s] "Link in bio if you want to grab one \u2014 but honestly don\'t wait, these sell out fast"');
+        lines.push(
+          '[18-24s] "Link in bio if you want to grab one \u2014 but honestly don\'t wait, these sell out fast"'
+        );
         lines.push('[24-' + dur + 's] " seriously though, get it before it\'s gone"');
         lines.push('');
         lines.push('## SCENE BREAKDOWN');
         lines.push('');
         lines.push('### Scene 1 (0-3s) \u2014 HOOK');
-        lines.push('- Visual: Close-up of person\'s face, excited expression, package visible in background');
+        lines.push("- Visual: Close-up of person's face, excited expression, package visible in background");
         lines.push('- Text Overlay: "Is it worth the hype?" (bold white, center)');
         lines.push('- Camera: Handheld close-up, slight shake');
         lines.push('- Transition: Hard cut');
@@ -2065,16 +2626,28 @@
         lines.push('- Duration: ' + (dur - 18) + 's');
         lines.push('');
         lines.push('## AI IMAGE PROMPTS (per scene)');
-        lines.push('Scene 1: "Excited person unboxing package, warm lighting, close-up portrait, authentic reaction, lifestyle photography"');
-        lines.push('Scene 2: "Hands opening premium product packaging, top-down shot, clean background, unboxing moment"');
-        lines.push('Scene 3: "Product lifestyle shot, multiple angles, soft natural lighting, premium feel, 4K detail"');
+        lines.push(
+          'Scene 1: "Excited person unboxing package, warm lighting, close-up portrait, authentic reaction, lifestyle photography"'
+        );
+        lines.push(
+          'Scene 2: "Hands opening premium product packaging, top-down shot, clean background, unboxing moment"'
+        );
+        lines.push(
+          'Scene 3: "Product lifestyle shot, multiple angles, soft natural lighting, premium feel, 4K detail"'
+        );
         lines.push('Scene 4: "Phone screen showing 5-star reviews, product rating display, social proof, clean UI"');
         lines.push('Scene 5: "Product hero shot, dramatic lighting, premium feel, call to action overlay"');
         lines.push('');
         lines.push('## AI VIDEO PROMPTS (for Runway/Pika/Luma)');
-        lines.push('Scene 1: "Person excitedly opening a package, close-up reaction shot, warm lighting, authentic UGC style, vertical 9:16"');
-        lines.push('Scene 2: "Smooth unboxing sequence, hands revealing premium product, top-down angle, satisfying reveal"');
-        lines.push('Scene 3: "Product showcase montage, multiple angles, detail close-ups, lifestyle context, dynamic movement"');
+        lines.push(
+          'Scene 1: "Person excitedly opening a package, close-up reaction shot, warm lighting, authentic UGC style, vertical 9:16"'
+        );
+        lines.push(
+          'Scene 2: "Smooth unboxing sequence, hands revealing premium product, top-down angle, satisfying reveal"'
+        );
+        lines.push(
+          'Scene 3: "Product showcase montage, multiple angles, detail close-ups, lifestyle context, dynamic movement"'
+        );
         lines.push('Scene 4: "Phone screen zoom showing 5-star rating and reviews, social proof moment"');
         lines.push('Scene 5: "Product beauty shot with dramatic lighting, pull-back reveal, call to action moment"');
         lines.push('');
@@ -2093,43 +2666,49 @@
     // ============================================================================
     const TAB_CATEGORIES = [
       {
-        id: 'copywriting', label: '\uD83D\uDCDD Copywriting', open: true,
+        id: 'copywriting',
+        label: '\uD83D\uDCDD Copywriting',
+        open: true,
         tabs: [
           { id: 'copy', label: '\uD83E\uDDE0 Ad Copy' },
           { id: 'platforms', label: '\uD83C\uDFAF Multi-Platform' },
           { id: 'transformer', label: '\uD83D\uDD04 Copy Transformer' },
           { id: 'variations', label: '\uD83E\uDDEA Variations' },
-        ]
+        ],
       },
       {
-        id: 'analysis', label: '\uD83D\uDD0D Analysis & Scoring',
+        id: 'analysis',
+        label: '\uD83D\uDD0D Analysis & Scoring',
         tabs: [
           { id: 'hooks', label: '\uD83D\uDD25 Hooks' },
           { id: 'hookAnalyzer', label: '\uD83D\uDD0D Hook Score' },
           { id: 'score', label: '\u2B50 Ad Score' },
           { id: 'compliance', label: '\u2705 Compliance' },
-        ]
+        ],
       },
       {
-        id: 'creative', label: '\uD83C\uDFA8 Creative & Video',
+        id: 'creative',
+        label: '\uD83C\uDFA8 Creative & Video',
         tabs: [
           { id: 'ugc', label: '\uD83C\uDFAC UGC Scripts' },
           { id: 'videoAd', label: '\uD83C\uDFA5 Video Ad Creator' },
           { id: 'storyboard', label: '\uD83C\uDFAC Storyboard' },
           { id: 'continuity', label: '\uD83D\uDD17 Ad Sequence' },
-        ]
+        ],
       },
       {
-        id: 'campaigns', label: '\uD83D\uDCCA Campaigns & Testing',
+        id: 'campaigns',
+        label: '\uD83D\uDCCA Campaigns & Testing',
         tabs: [
           { id: 'abtest', label: '\uD83D\uDCCA A/B Tests' },
           { id: 'retarget', label: '\uD83D\uDD04 Retargeting' },
           { id: 'fatigue', label: '\uD83D\uDCA1 Fatigue' },
           { id: 'dynamicVars', label: '\uD83D\uDD35 Dynamic Vars' },
-        ]
+        ],
       },
       {
-        id: 'intelligence', label: '\uD83D\uDCCB Intelligence & Planning',
+        id: 'intelligence',
+        label: '\uD83D\uDCCB Intelligence & Planning',
         tabs: [
           { id: 'swipe', label: '\uD83C\uDFC6 Swipe Library' },
           { id: 'roas', label: '\uD83D\uDCC8 ROAS' },
@@ -2137,13 +2716,15 @@
           { id: 'briefs', label: '\uD83D\uDCF1 Creative Briefs' },
           { id: 'seasonal', label: '\u23F0 Seasonal' },
           { id: 'lp', label: '\uD83D\uDCCB LP Matcher' },
-        ]
+        ],
       },
     ];
 
     const TABS = [];
     TAB_CATEGORIES.forEach(function (cat) {
-      cat.tabs.forEach(function (t) { TABS.push(t); });
+      cat.tabs.forEach(function (t) {
+        TABS.push(t);
+      });
     });
 
     const FRAMEWORKS = ['PAS', 'AIDA', 'Before/After Bridge', "4U's", 'Star-Story-Solution'];
@@ -2234,7 +2815,12 @@
         let tabsHtml = '';
         TAB_CATEGORIES.forEach(function (cat) {
           tabsHtml += '<div class="ads-cat' + (cat.open ? ' open' : '') + '" data-cat="' + cat.id + '">';
-          tabsHtml += '<div class="ads-cat-header"><span class="ads-cat-chevron">\u25B6</span><span class="ads-cat-label">' + cat.label + '</span><span class="ads-cat-count">' + cat.tabs.length + '</span></div>';
+          tabsHtml +=
+            '<div class="ads-cat-header"><span class="ads-cat-chevron">\u25B6</span><span class="ads-cat-label">' +
+            cat.label +
+            '</span><span class="ads-cat-count">' +
+            cat.tabs.length +
+            '</span></div>';
           tabsHtml += '<div class="ads-cat-items">';
           cat.tabs.forEach(function (t) {
             tabsHtml += '<button class="ads-tab" data-tab="' + t.id + '">' + t.label + '</button>';
@@ -2400,8 +2986,18 @@
               '<h3>\uD83D\uDD04 Copy Transformer</h3><p class="ads-input-desc">Paste one ad and rewrite it in a different style instantly</p>';
             h +=
               '<div class="ads-input-row"><textarea id="adsTransformInput" class="ads-textarea" placeholder="Paste your ad copy to transform..." rows="4"></textarea></div>';
-            h += '<div class="ads-input-row"><label class="ads-label">Style:</label><select id="adsTransformStyle" class="ads-select">';
-            ['Short-form', 'Long-form', 'Gen Z', 'Professional', 'Storytelling', 'Urgency', 'Luxury', 'Minimalist'].forEach(function (s) {
+            h +=
+              '<div class="ads-input-row"><label class="ads-label">Style:</label><select id="adsTransformStyle" class="ads-select">';
+            [
+              'Short-form',
+              'Long-form',
+              'Gen Z',
+              'Professional',
+              'Storytelling',
+              'Urgency',
+              'Luxury',
+              'Minimalist',
+            ].forEach(function (s) {
               h += '<option value="' + s + '">' + s + '</option>';
             });
             h += '</select>' + btn('transformCopy', 'Transform Copy') + '</div>';
@@ -2414,7 +3010,8 @@
           case 'storyboard':
             h +=
               '<h3>\uD83C\uDFAC Video Storyboard</h3><p class="ads-input-desc">Generate a scene-by-scene visual storyboard for your video ad</p>';
-            h += '<div class="ads-input-row"><label class="ads-label">Duration (sec):</label><select id="adsStoryboardDur" class="ads-select">';
+            h +=
+              '<div class="ads-input-row"><label class="ads-label">Duration (sec):</label><select id="adsStoryboardDur" class="ads-select">';
             ['15', '30', '60', '90'].forEach(function (d) {
               h += '<option value="' + d + '"' + (d === '30' ? ' selected' : '') + '>' + d + 's</option>';
             });
@@ -2423,7 +3020,8 @@
           case 'dynamicVars':
             h +=
               '<h3>\uD83D\uDD35 Dynamic Creative Variables</h3><p class="ads-input-desc">Generate headline/text/CTA variable sets for Facebook/TikTok Dynamic Creative testing</p>';
-            h += '<div class="ads-input-row"><label class="ads-label">Variables:</label><select id="adsDynCount" class="ads-select">';
+            h +=
+              '<div class="ads-input-row"><label class="ads-label">Variables:</label><select id="adsDynCount" class="ads-select">';
             ['5', '10', '15', '20'].forEach(function (c) {
               h += '<option value="' + c + '"' + (c === '10' ? ' selected' : '') + '>' + c + ' sets</option>';
             });
@@ -2432,7 +3030,8 @@
           case 'videoAd':
             h +=
               '<h3>\uD83C\uDFA5 AI Video Ad Creator</h3><p class="ads-input-desc">Generate a complete video ad with AI script, scene breakdown, image prompts, and video prompts. Then compose it into an actual video.</p>';
-            h += '<div class="ads-input-row"><label class="ads-label">Duration:</label><select id="adsVideoDur" class="ads-select">';
+            h +=
+              '<div class="ads-input-row"><label class="ads-label">Duration:</label><select id="adsVideoDur" class="ads-select">';
             ['15', '30', '60', '90'].forEach(function (d) {
               h += '<option value="' + d + '"' + (d === '30' ? ' selected' : '') + '>' + d + 's</option>';
             });
@@ -2452,7 +3051,10 @@
               h += '<span class="ads-vp-name">' + vp.name + '</span>';
               h += '<span class="ads-vp-tier">' + vp.tier.toUpperCase() + '</span>';
               if (!vp.connected) {
-                h += '<button class="ads-vp-setup" data-ads-action="setupVideoProvider" data-provider="' + pid + '">Setup</button>';
+                h +=
+                  '<button class="ads-vp-setup" data-ads-action="setupVideoProvider" data-provider="' +
+                  pid +
+                  '">Setup</button>';
               } else {
                 h += '<span class="ads-vp-connected">\u2713 Ready</span>';
               }
@@ -2461,16 +3063,22 @@
             h += '</div>';
             h += '<div class="ads-video-composer" id="adsVideoComposer" style="display:none">';
             h += '<div class="ads-video-divider"></div>';
-            h += '<h3>\uD83C\uDFAC Video Compositor</h3><p class="ads-input-desc">Compose your script into an actual video with animated text, Ken Burns effects, and transitions</p>';
-            h += '<div class="ads-video-preview" id="adsVideoPreview"><canvas id="adsVideoCanvas" width="1080" height="1920"></canvas></div>';
+            h +=
+              '<h3>\uD83C\uDFAC Video Compositor</h3><p class="ads-input-desc">Compose your script into an actual video with animated text, Ken Burns effects, and transitions</p>';
+            h +=
+              '<div class="ads-video-preview" id="adsVideoPreview"><canvas id="adsVideoCanvas" width="1080" height="1920"></canvas></div>';
             h += '<div class="ads-video-controls">';
-            h += '<button class="ads-action-btn" data-ads-action="previewVideo" title="Preview video">\u25B6 Preview</button>';
-            h += '<button class="ads-action-btn" data-ads-action="renderVideo" title="Render and export video">\uD83C\uDFA5 Render MP4</button>';
-            h += '<select id="adsVideoFormat" class="ads-select"><option value="9:16">9:16 Vertical</option><option value="16:9">16:9 Landscape</option><option value="1:1">1:1 Square</option></select>';
+            h +=
+              '<button class="ads-action-btn" data-ads-action="previewVideo" title="Preview video">\u25B6 Preview</button>';
+            h +=
+              '<button class="ads-action-btn" data-ads-action="renderVideo" title="Render and export video">\uD83C\uDFA5 Render MP4</button>';
+            h +=
+              '<select id="adsVideoFormat" class="ads-select"><option value="9:16">9:16 Vertical</option><option value="16:9">16:9 Landscape</option><option value="1:1">1:1 Square</option></select>';
             h += '</div>';
             h += '<div class="ads-video-ai-gen" id="adsVideoAIGen">';
             h += '<div class="ads-video-divider"></div>';
-            h += '<h3>\u2728 AI Video Generation</h3><p class="ads-input-desc">Generate real video clips using AI video providers (Runway, Pika, Luma)</p>';
+            h +=
+              '<h3>\u2728 AI Video Generation</h3><p class="ads-input-desc">Generate real video clips using AI video providers (Runway, Pika, Luma)</p>';
             h += '<div class="ads-ai-gen-grid" id="adsAIGenGrid"></div>';
             h += '<div class="ads-video-gen-status" id="adsVideoGenStatus"></div>';
             h += '</div>';
@@ -3027,11 +3635,51 @@
         var price = product.price;
         var disc = product.discount || 30;
         this._videoScenes = [
-          { bg: '#1a1a2e', text: 'Is it worth the hype?', sub: '', duration: 3, effect: 'zoom-in', textColor: '#ffffff', overlay: 'rgba(0,0,0,0.3)' },
-          { bg: '#16213e', text: title, sub: 'Unboxing', duration: 3, effect: 'zoom-out', textColor: '#ffffff', overlay: 'rgba(0,0,0,0.2)' },
-          { bg: '#0f3460', text: '$' + price, sub: disc + '% OFF', duration: 6, effect: 'pan-right', textColor: '#00e5ff', overlay: 'rgba(0,0,0,0.2)' },
-          { bg: '#1a1a2e', text: rating + '/5 Stars', sub: reviews + '+ Reviews', duration: 6, effect: 'zoom-in', textColor: '#ffd700', overlay: 'rgba(0,0,0,0.3)' },
-          { bg: '#e94560', text: 'LINK IN BIO', sub: 'Limited Stock \u2014 ' + disc + '% Off', duration: 6, effect: 'zoom-out', textColor: '#ffffff', overlay: 'rgba(0,0,0,0.2)' }
+          {
+            bg: '#1a1a2e',
+            text: 'Is it worth the hype?',
+            sub: '',
+            duration: 3,
+            effect: 'zoom-in',
+            textColor: '#ffffff',
+            overlay: 'rgba(0,0,0,0.3)',
+          },
+          {
+            bg: '#16213e',
+            text: title,
+            sub: 'Unboxing',
+            duration: 3,
+            effect: 'zoom-out',
+            textColor: '#ffffff',
+            overlay: 'rgba(0,0,0,0.2)',
+          },
+          {
+            bg: '#0f3460',
+            text: '$' + price,
+            sub: disc + '% OFF',
+            duration: 6,
+            effect: 'pan-right',
+            textColor: '#00e5ff',
+            overlay: 'rgba(0,0,0,0.2)',
+          },
+          {
+            bg: '#1a1a2e',
+            text: rating + '/5 Stars',
+            sub: reviews + '+ Reviews',
+            duration: 6,
+            effect: 'zoom-in',
+            textColor: '#ffd700',
+            overlay: 'rgba(0,0,0,0.3)',
+          },
+          {
+            bg: '#e94560',
+            text: 'LINK IN BIO',
+            sub: 'Limited Stock \u2014 ' + disc + '% Off',
+            duration: 6,
+            effect: 'zoom-out',
+            textColor: '#ffffff',
+            overlay: 'rgba(0,0,0,0.2)',
+          },
         ];
         var fmt = this.section ? this.section.querySelector('#adsVideoFormat') : null;
         if (fmt && fmt.value === '16:9') {
@@ -3093,7 +3741,9 @@
         self._videoPlaying = true;
         var scenes = self._videoScenes;
         if (!scenes.length) return;
-        var totalFrames = scenes.reduce(function (sum, s) { return sum + s.duration * 30; }, 0);
+        var totalFrames = scenes.reduce(function (sum, s) {
+          return sum + s.duration * 30;
+        }, 0);
         var frame = 0;
         var sceneIdx = 0;
         var frameInScene = 0;
@@ -3195,7 +3845,9 @@
           var stream = canvas.captureStream(30);
           var chunks = [];
           var recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5000000 });
-          recorder.ondataavailable = function (e) { if (e.data.size > 0) chunks.push(e.data); };
+          recorder.ondataavailable = function (e) {
+            if (e.data.size > 0) chunks.push(e.data);
+          };
           recorder.onstop = function () {
             var blob = new Blob(chunks, { type: 'video/webm' });
             var url = URL.createObjectURL(blob);
@@ -3206,12 +3858,16 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            if (statusEl) statusEl.textContent = '\u2705 Video exported! Downloaded as .webm file. Use CloudConvert to convert to MP4 if needed.';
+            if (statusEl)
+              statusEl.textContent =
+                '\u2705 Video exported! Downloaded as .webm file. Use CloudConvert to convert to MP4 if needed.';
           };
           recorder.start();
           self._videoPlaying = true;
           var scenes = self._videoScenes;
-          var totalFrames = scenes.reduce(function (sum, s) { return sum + s.duration * 30; }, 0);
+          var totalFrames = scenes.reduce(function (sum, s) {
+            return sum + s.duration * 30;
+          }, 0);
           var frame = 0;
           var sceneIdx = 0;
           var frameInScene = 0;
@@ -3237,7 +3893,8 @@
           requestAnimationFrame(renderFrame);
         } catch (e) {
           self._videoPlaying = false;
-          if (statusEl) statusEl.textContent = '\u274C Render failed: ' + e.message + '. Try Chrome or Edge for best support.';
+          if (statusEl)
+            statusEl.textContent = '\u274C Render failed: ' + e.message + '. Try Chrome or Edge for best support.';
         }
       },
 
@@ -3256,7 +3913,10 @@
             items.forEach(function (item) {
               if (item.getAttribute('data-provider') === providerId) {
                 var dot = item.querySelector('.ads-vp-dot');
-                if (dot) { dot.className = 'ads-vp-dot ais-fa-dot-live'; dot.style.background = prov.color; }
+                if (dot) {
+                  dot.className = 'ads-vp-dot ais-fa-dot-live';
+                  dot.style.background = prov.color;
+                }
                 var setupBtn = item.querySelector('.ads-vp-setup');
                 if (setupBtn) {
                   var span = document.createElement('span');
@@ -3282,12 +3942,32 @@
         var html = '';
         scenes.forEach(function (scene, idx) {
           html += '<div class="ads-ai-gen-scene">';
-          html += '<div class="ads-ai-gen-scene-label">Scene ' + (idx + 1) + ': ' + (scene.text || '').substring(0, 30) + '...</div>';
+          html +=
+            '<div class="ads-ai-gen-scene-label">Scene ' +
+            (idx + 1) +
+            ': ' +
+            (scene.text || '').substring(0, 30) +
+            '...</div>';
           html += '<div class="ads-ai-gen-btns">';
           Object.keys(vidAI.providers).forEach(function (pid) {
             var p = vidAI.providers[pid];
             var hasKey = vidAI.hasKey(pid);
-            html += '<button class="ads-ai-gen-btn' + (hasKey ? '' : ' disabled') + '" data-ads-action="generateAIVideo" data-scene="' + idx + '" data-provider="' + pid + '"' + (hasKey ? '' : ' disabled title="Setup ' + p.name + ' API key first"') + ' style="border-color:' + p.color + ';color:' + p.color + '">' + p.name + '</button>';
+            html +=
+              '<button class="ads-ai-gen-btn' +
+              (hasKey ? '' : ' disabled') +
+              '" data-ads-action="generateAIVideo" data-scene="' +
+              idx +
+              '" data-provider="' +
+              pid +
+              '"' +
+              (hasKey ? '' : ' disabled title="Setup ' + p.name + ' API key first"') +
+              ' style="border-color:' +
+              p.color +
+              ';color:' +
+              p.color +
+              '">' +
+              p.name +
+              '</button>';
           });
           html += '</div>';
           html += '<div class="ads-ai-gen-result" id="adsAIGenResult' + idx + '"></div>';
@@ -3309,15 +3989,22 @@
         var prompt = 'Create a ' + ratio + ' video ad scene: ' + scene.text;
         if (scene.sub) prompt += ' — ' + scene.sub;
         prompt += '. Style: professional product advertisement, high quality, smooth motion.';
-        if (resultEl) resultEl.innerHTML = '<span class="ads-gen-loading">\u23F3 Generating with ' + vidAI.providers[providerId].name + '...</span>';
+        if (resultEl)
+          resultEl.innerHTML =
+            '<span class="ads-gen-loading">\u23F3 Generating with ' + vidAI.providers[providerId].name + '...</span>';
         if (statusEl) statusEl.textContent = '\u23F3 Sending to ' + vidAI.providers[providerId].name + '...';
         var res = await vidAI.generate(providerId, prompt, { ratio: ratio === '1:1' ? '1:1' : ratio, duration: 4 });
         if (res.ok) {
-          if (resultEl) resultEl.innerHTML = '<span class="ads-gen-submitted">\u2705 Video submitted! Job ID: ' + res.jobId + '</span>';
-          if (statusEl) statusEl.textContent = '\u2705 Job submitted to ' + vidAI.providers[providerId].name + '. Polling for result...';
+          if (resultEl)
+            resultEl.innerHTML =
+              '<span class="ads-gen-submitted">\u2705 Video submitted! Job ID: ' + res.jobId + '</span>';
+          if (statusEl)
+            statusEl.textContent =
+              '\u2705 Job submitted to ' + vidAI.providers[providerId].name + '. Polling for result...';
           self._pollVideoJob(providerId, res.jobId, sceneIndex);
         } else {
-          if (resultEl) resultEl.innerHTML = '<span class="ads-gen-error">\u274C ' + (res.error || 'Generation failed') + '</span>';
+          if (resultEl)
+            resultEl.innerHTML = '<span class="ads-gen-error">\u274C ' + (res.error || 'Generation failed') + '</span>';
           if (statusEl) statusEl.textContent = '\u274C ' + (res.error || 'Generation failed');
         }
       },
@@ -3332,7 +4019,11 @@
         var poll = async function () {
           attempts++;
           if (attempts > maxAttempts) {
-            if (resultEl) resultEl.innerHTML = '<span class="ads-gen-error">\u274C Timeout — check ' + vidAI.providers[providerId].name + ' dashboard</span>';
+            if (resultEl)
+              resultEl.innerHTML =
+                '<span class="ads-gen-error">\u274C Timeout — check ' +
+                vidAI.providers[providerId].name +
+                ' dashboard</span>';
             if (statusEl) statusEl.textContent = '\u274C Generation timed out';
             return;
           }
@@ -3340,10 +4031,20 @@
           if (res.ok) {
             if (res.status === 'completed' || res.status === 'SUCCEEDED') {
               if (res.videoUrl) {
-                if (resultEl) resultEl.innerHTML = '<video src="' + res.videoUrl + '" controls class="ads-gen-video"></video><a href="' + res.videoUrl + '" target="_blank" class="ads-action-btn" style="margin-top:8px;display:inline-block">\uD83D\uDD17 Open Video</a>';
+                if (resultEl)
+                  resultEl.innerHTML =
+                    '<video src="' +
+                    res.videoUrl +
+                    '" controls class="ads-gen-video"></video><a href="' +
+                    res.videoUrl +
+                    '" target="_blank" class="ads-action-btn" style="margin-top:8px;display:inline-block">\uD83D\uDD17 Open Video</a>';
                 if (statusEl) statusEl.textContent = '\u2705 Video ready!';
               } else {
-                if (resultEl) resultEl.innerHTML = '<span class="ads-gen-done">\u2705 Complete — check your ' + vidAI.providers[providerId].name + ' dashboard</span>';
+                if (resultEl)
+                  resultEl.innerHTML =
+                    '<span class="ads-gen-done">\u2705 Complete — check your ' +
+                    vidAI.providers[providerId].name +
+                    ' dashboard</span>';
                 if (statusEl) statusEl.textContent = '\u2705 Video generation complete';
               }
               return;
@@ -3353,7 +4054,9 @@
               if (statusEl) statusEl.textContent = '\u274C Video generation failed';
               return;
             }
-            if (resultEl) resultEl.innerHTML = '<span class="ads-gen-loading">\u23F3 Processing... ' + (res.progress || 0) + '%</span>';
+            if (resultEl)
+              resultEl.innerHTML =
+                '<span class="ads-gen-loading">\u23F3 Processing... ' + (res.progress || 0) + '%</span>';
             if (statusEl) statusEl.textContent = '\u23F3 Generating... ' + (res.progress || 0) + '%';
           }
           setTimeout(poll, 5000);
@@ -3365,7 +4068,10 @@
         try {
           const el = this.section ? this.section.querySelector('#adsResults') : null;
           if (!el) return;
-          if (!html) { el.innerHTML = ''; return; }
+          if (!html) {
+            el.innerHTML = '';
+            return;
+          }
           const actionsHtml =
             '<div class="ads-result-actions">' +
             '<button class="ads-action-btn" data-ads-action="copyAll" title="Copy to clipboard">\uD83D\uDCCB Copy All</button>' +
@@ -3380,19 +4086,26 @@
               if (!content) return;
               var text = content.innerText || content.textContent;
               if (action === 'copyAll') {
-                navigator.clipboard.writeText(text).then(function () {
-                  btn.textContent = '\u2705 Copied!';
-                  setTimeout(function () { btn.textContent = '\uD83D\uDCCB Copy All'; }, 2000);
-                }).catch(function () {
-                  var ta = document.createElement('textarea');
-                  ta.value = text;
-                  document.body.appendChild(ta);
-                  ta.select();
-                  document.execCommand('copy');
-                  document.body.removeChild(ta);
-                  btn.textContent = '\u2705 Copied!';
-                  setTimeout(function () { btn.textContent = '\uD83D\uDCCB Copy All'; }, 2000);
-                });
+                navigator.clipboard
+                  .writeText(text)
+                  .then(function () {
+                    btn.textContent = '\u2705 Copied!';
+                    setTimeout(function () {
+                      btn.textContent = '\uD83D\uDCCB Copy All';
+                    }, 2000);
+                  })
+                  .catch(function () {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    btn.textContent = '\u2705 Copied!';
+                    setTimeout(function () {
+                      btn.textContent = '\uD83D\uDCCB Copy All';
+                    }, 2000);
+                  });
               } else if (action === 'exportCSV') {
                 var blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
                 var url = URL.createObjectURL(blob);
@@ -3404,7 +4117,9 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 btn.textContent = '\u2705 Exported!';
-                setTimeout(function () { btn.textContent = '\uD83D\uDCE5 Export'; }, 2000);
+                setTimeout(function () {
+                  btn.textContent = '\uD83D\uDCE5 Export';
+                }, 2000);
               }
             });
           });

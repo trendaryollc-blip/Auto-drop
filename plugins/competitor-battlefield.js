@@ -76,7 +76,12 @@
 
   function fmtMoney(n) {
     if (n == null || isNaN(n)) return '$0';
-    return '$' + Number(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return (
+      '$' +
+      Number(n)
+        .toFixed(0)
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    );
   }
   function fmtNum(n) {
     if (n == null || isNaN(n)) return '0';
@@ -138,7 +143,7 @@
       <span class="cb-price-old">$${p.oldPrice.toFixed(2)}</span>
       <span class="cb-price-arrow">${isDown ? '↓' : '↑'}</span>
       <span class="cb-price-new" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">$${p.newPrice.toFixed(2)}</span>
-      <span class="cb-price-pct" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">${p.change === 0 ? '' : (isDown ? '' : '+')}${p.change}%</span>
+      <span class="cb-price-pct" style="color:${isDown ? 'var(--accent-green)' : 'var(--accent-red)'}">${p.change === 0 ? '' : isDown ? '' : '+'}${p.change}%</span>
     </div>
     <div class="cb-price-impact cb-impact-${(p.impact || '').toLowerCase()}">${p.impact || ''}</div>
     <div class="cb-price-time">${p.time}</div>
@@ -308,7 +313,9 @@
     if (existing) existing.destroy();
     const spend = Data.getAdSpend();
     const sorted = [...spend].sort(
-      (a, b) => (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
+      (a, b) =>
+        (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) -
+        (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
     );
     new Chart(el, {
       type: 'bar',
@@ -943,7 +950,8 @@
         : '0';
       const topSpender = [...spend].sort(
         (a, b) =>
-          (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
+          (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) -
+          (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
       )[0];
       return `
       <div class="cb-adspend-summary">
@@ -960,7 +968,8 @@
           ${[...spend]
             .sort(
               (a, b) =>
-                (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
+                (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) -
+                (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
             )
             .map(
               (s) => `
@@ -1011,7 +1020,11 @@
     renderHeadToHead() {
       const comps = Data.getCompetitors();
       if (comps.length < 2) {
-        return '<div class="cb-h2h-intro"><h3 class="cb-section-title">Head-to-Head Comparison</h3><p class="cb-h2h-desc">Need at least 2 competitors for comparison. Current: ' + comps.length + '</p></div>';
+        return (
+          '<div class="cb-h2h-intro"><h3 class="cb-section-title">Head-to-Head Comparison</h3><p class="cb-h2h-desc">Need at least 2 competitors for comparison. Current: ' +
+          comps.length +
+          '</p></div>'
+        );
       }
       const sorted = [...comps].sort((a, b) => b.revenue - a.revenue);
       return `
@@ -1159,12 +1172,18 @@
         const sortBy = sortSelect.value || 'revenue';
         let comps = Data.getCompetitors();
         if (q) {
-          comps = comps.filter((c) => c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q) || (c.cat || '').toLowerCase().includes(q));
+          comps = comps.filter(
+            (c) =>
+              c.name.toLowerCase().includes(q) ||
+              c.url.toLowerCase().includes(q) ||
+              (c.cat || '').toLowerCase().includes(q)
+          );
         }
         comps.sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0));
-        listEl.innerHTML = comps.map((c, i) => {
-          const sorted0 = comps[0] || c;
-          return `<div class="cb-lb-row" data-id="${c.id}">
+        listEl.innerHTML = comps
+          .map((c, i) => {
+            const sorted0 = comps[0] || c;
+            return `<div class="cb-lb-row" data-id="${c.id}">
           <div class="cb-lb-rank">#${i + 1}</div>
           <div class="cb-lb-avatar" style="background:${c.color}22;color:${c.color}">${esc(c.avatar)}</div>
           <div class="cb-lb-info">
@@ -1184,7 +1203,8 @@
           </div>
           <div class="cb-lb-active"><span class="cb-comp-active-dot"></span>${esc(c.lastActive)}</div>
         </div>`;
-        }).join('');
+          })
+          .join('');
         self.attachRowClicks();
       }
       searchInput.addEventListener('input', filterAndRender);
@@ -1206,7 +1226,8 @@
       const topSpender = spend.length
         ? [...spend].sort(
             (a, b) =>
-              (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) - (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
+              (parseInt(b.totalSpend, 10) || parseInt(b.daily, 10) || 0) -
+              (parseInt(a.totalSpend, 10) || parseInt(a.daily, 10) || 0)
           )[0]
         : null;
 

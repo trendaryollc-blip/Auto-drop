@@ -2569,9 +2569,10 @@
     'section-refund-supplier-risk': ['plugins/refund-supplier-risk.js'],
     'section-cash-flow': ['plugins/cash-flow.js'],
     'section-listing-optimizer': ['plugins/listing-optimizer.js'],
-    'section-store-connect': ['plugins/store-connect.js'],
+
     'section-ad-studio': ['plugins/ai-key-manager.js', 'plugins/ad-studio.js'],
     'section-health': ['plugins/store-health.js'],
+    'section-store-connect': ['plugins/store-connect.js'],
     'section-coach': [
       'plugins/ai-key-manager.js',
       'plugins/ai-web-search.js',

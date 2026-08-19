@@ -1,789 +1,789 @@
 // ============================================================================
-// PLUGIN: Store Connect — Multi-platform store push and connection manager
+// PLUGIN: Store Connect — Connect External Stores
+// ============================================================================
+// Connect Shopify, WooCommerce, or custom stores via ultra-simple flow
 // ============================================================================
 (function () {
-  'use strict';
-  try {
-    const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
-    const esc = (s) => UI.escapeHtml(String(s || ''));
+  const { PluginRegistry, UI, Config, EventBus } = window.HuntDrop;
 
-    const LS_CONN_KEY = 'huntdrop_store_connect';
-    const LS_HISTORY_KEY = 'huntdrop_store_connect_history';
-    const STORE_CONNECT_API_PATH = '/store-connect';
-    const FALLBACK_TRENDARYO = {
-      apiUrl: 'https://trendaryo-llc-backend.vercel.app/api/products/ingest',
-      storeUrl: 'https://trendaryo.com',
-      apiKey: 'trnd_ingest_8f3a7b2c9d1e4f5a6b7c8d9e0f1a2b3c',
+  /* ------------------------------------------------------------------ */
+  /*  Platform detection from URL                                        */
+  /* ------------------------------------------------------------------ */
+  function detectPlatform(url) {
+    var u = url.toLowerCase().trim();
+    if (/myshopify\.com|shopify\.com/.test(u)) return { platform: 'shopify', name: 'Shopify', auth: 'oauth', icon: 'S' };
+    if (/woocommerce|\/wp-admin|\/wp-content/.test(u)) return { platform: 'woocommerce', name: 'WooCommerce', auth: 'api_key', icon: 'W' };
+    if (/bigcommerce\.com/.test(u)) return { platform: 'bigcommerce', name: 'BigCommerce', auth: 'oauth', icon: 'B' };
+    if (/squarespace\.com/.test(u)) return { platform: 'squarespace', name: 'Squarespace', auth: 'api_key', icon: 'Sq' };
+    if (/wixsite\.com|wix\.com/.test(u)) return { platform: 'wix', name: 'Wix', auth: 'api_key', icon: 'Wi' };
+    if (/etsy\.com/.test(u)) return { platform: 'etsy', name: 'Etsy', auth: 'oauth', icon: 'E' };
+    if (/amazon\./.test(u)) return { platform: 'amazon', name: 'Amazon', auth: 'api_key', icon: 'A' };
+    if (/ebay\./.test(u)) return { platform: 'ebay', name: 'eBay', auth: 'oauth', icon: 'eb' };
+    return null;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Persistence helpers                                                */
+  /* ------------------------------------------------------------------ */
+  function loadStores() {
+    try { return JSON.parse(localStorage.getItem('sc_connected_stores') || '[]'); } catch (e) { return []; }
+  }
+  function saveStores(arr) {
+    localStorage.setItem('sc_connected_stores', JSON.stringify(arr));
+  }
+  function genId() { return 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function esc(str) {
+    var d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+  function timeAgo(iso) {
+    var diff = Date.now() - new Date(iso).getTime();
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    var hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  HTML builders (all use closure variables, never this)              */
+  /* ------------------------------------------------------------------ */
+  function platformCard(id, icon, name, auth, popular) {
+    return '<div class="sc-platform-card' + (popular ? ' popular' : '') + '" data-platform="' + id + '">' +
+      '<div class="sc-platform-icon ' + id + '">' + icon + '</div>' +
+      '<div class="sc-platform-name">' + name + '</div>' +
+      '<div class="sc-platform-type">' + auth + '</div>' +
+    '</div>';
+  }
+
+  function renderConnectCard() {
+    return '' +
+      '<div class="sc-connect-card">' +
+        '<div class="sc-connect-header">' +
+          '<div><div class="sc-connect-title">Quick Connect</div><div class="sc-connect-subtitle">Enter your store URL and we\'ll auto-detect everything</div></div>' +
+        '</div>' +
+        '<div class="sc-url-input-wrap">' +
+          '<input type="text" class="sc-url-input" id="scUrlInput" placeholder="https://mystore.myshopify.com" autocomplete="off" spellcheck="false" />' +
+          '<div class="sc-detect-badge" id="scDetectBadge"><span class="sc-detect-badge-dot"></span><span id="scDetectText">Shopify</span></div>' +
+        '</div>' +
+        '<div class="sc-platforms-section">' +
+          '<div class="sc-platforms-label">Or select a platform</div>' +
+          '<div class="sc-platforms-grid">' +
+            platformCard('shopify', 'S', 'Shopify', 'OAuth', true) +
+            platformCard('woocommerce', 'W', 'WooCommerce', 'API Key') +
+            platformCard('bigcommerce', 'B', 'BigCommerce', 'OAuth') +
+            platformCard('etsy', 'E', 'Etsy', 'OAuth') +
+            platformCard('squarespace', 'Sq', 'Squarespace', 'API Key') +
+            platformCard('wix', 'Wi', 'Wix', 'API Key') +
+            platformCard('amazon', 'A', 'Amazon', 'API Key') +
+            platformCard('custom', '\u{1F527}', 'Custom Store', 'API Key + Secret') +
+          '</div>' +
+        '</div>' +
+        '<div class="sc-custom-form" id="scCustomForm">' +
+          '<div class="sc-form-row">' +
+            '<div class="sc-form-group">' +
+              '<label class="sc-form-label">Store Name</label>' +
+              '<input type="text" class="sc-form-input" id="scStoreName" placeholder="My Awesome Store" />' +
+            '</div>' +
+            '<div class="sc-form-group">' +
+              '<label class="sc-form-label">Store URL</label>' +
+              '<input type="text" class="sc-form-input" id="scStoreUrl" placeholder="https://mystore.com" />' +
+            '</div>' +
+          '</div>' +
+          '<div class="sc-form-row">' +
+            '<div class="sc-form-group">' +
+              '<label class="sc-form-label">API Key</label>' +
+              '<input type="text" class="sc-form-input" id="scApiKey" placeholder="hd_live_xxxxxxxxxxxxx" />' +
+            '</div>' +
+            '<div class="sc-form-group">' +
+              '<label class="sc-form-label">API Secret (optional)</label>' +
+              '<input type="password" class="sc-form-input" id="scApiSecret" placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" />' +
+            '</div>' +
+          '</div>' +
+          '<div class="sc-form-hint" style="margin-bottom:8px">Your store needs a product API endpoint (e.g. /api/products)</div>' +
+          '<div class="sc-test-result" id="scTestResult">' +
+            '<div class="sc-test-icon" id="scTestIcon"></div>' +
+            '<div class="sc-test-text" id="scTestText"></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="sc-btn-row">' +
+          '<button class="sc-btn-primary" id="scConnectBtn" disabled>Connect Store \u2192</button>' +
+          '<button class="sc-btn-secondary" id="scTestBtn" style="display:none">Test Connection</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderStoresList(stores) {
+    if (!stores || stores.length === 0) {
+      return '' +
+        '<div class="sc-stores-section">' +
+          '<div class="sc-stores-header"><div class="sc-stores-title">Connected Stores</div></div>' +
+          '<div class="sc-empty">' +
+            '<div class="sc-empty-icon">\u{1F3EA}</div>' +
+            '<div class="sc-empty-title">No Stores Connected Yet</div>' +
+            '<div class="sc-empty-desc">Connect your first store above to start pushing products instantly.</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    var cards = stores.map(function (store) {
+      var statusClass = store.status || 'connected';
+      var logoClass = store.platform === 'shopify' ? 'shopify' : store.platform === 'woocommerce' ? 'woocommerce' : store.platform === 'custom' ? 'custom' : 'other';
+      var logoIcon = store.platform === 'shopify' ? 'S' : store.platform === 'woocommerce' ? 'W' : store.platform === 'custom' ? '\u{1F527}' : '\u{1F3EA}';
+      var platformName = store.platformName || store.platform || 'Unknown';
+
+      return '' +
+        '<div class="sc-store-card ' + statusClass + '" data-store-id="' + store.id + '">' +
+          '<div class="sc-store-top">' +
+            '<div class="sc-store-info">' +
+              '<div class="sc-store-logo ' + logoClass + '">' + logoIcon + '</div>' +
+              '<div><div class="sc-store-name">' + esc(store.name) + '</div><div class="sc-store-platform">' + esc(platformName) + '</div></div>' +
+            '</div>' +
+            '<div class="sc-store-status ' + statusClass + '"><span class="sc-status-dot"></span>' + (statusClass === 'connected' ? 'Connected' : statusClass === 'syncing' ? 'Syncing' : 'Offline') + '</div>' +
+          '</div>' +
+          '<div class="sc-store-stats">' +
+            '<div class="sc-store-stat"><div class="sc-store-stat-val">' + (store.productsPushed || 0) + '</div><div class="sc-store-stat-label">Pushed</div></div>' +
+            '<div class="sc-store-stat"><div class="sc-store-stat-val">' + (store.lastSync ? timeAgo(store.lastSync) : 'Never') + '</div><div class="sc-store-stat-label">Last Sync</div></div>' +
+            '<div class="sc-store-stat"><div class="sc-store-stat-val">' + (store.status === 'connected' ? '\u2713' : '\u2717') + '</div><div class="sc-store-stat-label">Health</div></div>' +
+          '</div>' +
+          '<div class="sc-store-actions">' +
+            '<button class="sc-store-btn push" data-action="push" data-store-id="' + store.id + '">\u{1F4E6} Push Products</button>' +
+            '<button class="sc-store-btn test" data-action="test" data-store-id="' + store.id + '">\u{1F50D} Test</button>' +
+            '<button class="sc-store-btn remove" data-action="remove" data-store-id="' + store.id + '" title="Remove store">\u2715</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    return '' +
+      '<div class="sc-stores-section">' +
+        '<div class="sc-stores-header">' +
+          '<div class="sc-stores-title">Connected Stores</div>' +
+          '<button class="sc-btn-secondary" id="scAddAnother" style="padding:8px 16px;font-size:12px">+ Add Store</button>' +
+        '</div>' +
+        '<div class="sc-stores-grid">' + cards + '</div>' +
+      '</div>';
+  }
+
+  function renderHub() {
+    var stores = loadStores();
+    var totalProducts = 0;
+    stores.forEach(function (s) { totalProducts += (s.productsPushed || 0); });
+
+    return '<div class="section-inner">' +
+      '<div class="sc-hero-wrap"><div class="sc-hero-bg-pattern"></div>' +
+      '<div class="sc-hero">' +
+        '<div class="sc-hero-content">' +
+          '<div class="sc-hero-badge"><span class="sc-hero-badge-dot"></span>Store Integration Hub</div>' +
+          '<h1 class="sc-hero-title">Connect Your <span class="sc-hero-title-accent">Store</span></h1>' +
+          '<p class="sc-hero-desc">Push winning products directly to your store in seconds. Shopify, WooCommerce, or any custom store \u2014 one simple connection.</p>' +
+          '<div class="sc-hero-stats">' +
+            '<div class="sc-hero-stat"><span class="sc-hero-stat-num">3</span><span class="sc-hero-stat-label">Clicks</span></div>' +
+            '<div class="sc-hero-stat"><span class="sc-hero-stat-num">9</span><span class="sc-hero-stat-label">Platforms</span></div>' +
+            '<div class="sc-hero-stat"><span class="sc-hero-stat-num">&lt;30s</span><span class="sc-hero-stat-label">Setup Time</span></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="sc-hero-visual">' +
+          '<div class="sc-connect-visual">' +
+            '<div class="sc-connect-pulse-ring"></div>' +
+            '<div class="sc-connect-node">' +
+              '<div class="sc-connect-store-icon">\u{1F3EA}</div>' +
+              '<div class="sc-connect-line"></div>' +
+              '<div class="sc-connect-app-icon">\u26A1</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div></div>' +
+      '<div class="sc-stats-bar">' +
+        '<div class="sc-stat-card"><div class="sc-stat-icon stores">\u{1F517}</div><div class="sc-stat-content"><div class="sc-stat-value" id="scStatStores">' + stores.length + '</div><div class="sc-stat-label">Connected Stores</div></div></div>' +
+        '<div class="sc-stat-card"><div class="sc-stat-icon products">\u{1F4E6}</div><div class="sc-stat-content"><div class="sc-stat-value" id="scStatProducts">' + totalProducts + '</div><div class="sc-stat-label">Products Pushed</div></div></div>' +
+        '<div class="sc-stat-card"><div class="sc-stat-icon revenue">\u26A1</div><div class="sc-stat-content"><div class="sc-stat-value" id="scStatStatus">Ready</div><div class="sc-stat-label">System Status</div></div></div>' +
+      '</div>' +
+      renderConnectCard() +
+      renderStoresList(stores) +
+      '<div class="sc-related">' +
+        '<div class="sc-related-title">Related Tools</div>' +
+        '<div class="sc-related-grid">' +
+          '<div class="sc-related-card" onclick="window.HuntDrop.navigateTo(\'section-health\')">' +
+            '<div class="sc-related-icon" style="background:rgba(255,51,102,0.12)">\u2764\uFE0F</div>' +
+            '<div><div class="sc-related-name">Store Health</div><div class="sc-related-desc">Audit your store performance</div></div>' +
+            '<span class="sc-related-arrow">\u2192</span>' +
+          '</div>' +
+          '<div class="sc-related-card" onclick="window.HuntDrop.navigateTo(\'section-product-hunt\')">' +
+            '<div class="sc-related-icon" style="background:rgba(0,229,255,0.12)">\u{1F3AF}</div>' +
+            '<div><div class="sc-related-name">AI Hunt</div><div class="sc-related-desc">Find winning products</div></div>' +
+            '<span class="sc-related-arrow">\u2192</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderPushModal(store) {
+    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    var listHtml = products.map(function (p, i) {
+      return '<label class="sc-push-item" style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer">' +
+        '<input type="checkbox" class="sc-push-check" data-index="' + i + '" style="width:18px;height:18px;accent-color:var(--accent-cyan)" />' +
+        '<img src="' + (p.image || '') + '" style="width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--bg-card)" onerror="this.style.display=\'none\'" />' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.title) + '</div>' +
+          '<div style="font-size:12px;color:var(--text-muted)">$' + (p.price || 0).toFixed(2) + '</div>' +
+        '</div>' +
+      '</label>';
+    }).join('');
+
+    return '' +
+      '<div class="sc-modal-overlay" id="scPushModal">' +
+        '<div class="sc-modal">' +
+          '<button class="sc-modal-close" id="scPushClose">\u2715</button>' +
+          '<div class="sc-modal-body">' +
+            '<div class="sc-connect-title" style="margin-bottom:4px">Push Products to ' + esc(store.name) + '</div>' +
+            '<div class="sc-connect-subtitle" style="margin-bottom:20px">Select products to push (max 50 per batch)</div>' +
+            '<div style="display:flex;gap:8px;margin-bottom:16px">' +
+              '<button class="sc-btn-secondary" id="scPushSelectAll" style="padding:6px 12px;font-size:11px">Select All</button>' +
+              '<button class="sc-btn-secondary" id="scPushClearAll" style="padding:6px 12px;font-size:11px">Clear</button>' +
+              '<span style="margin-left:auto;font-size:12px;color:var(--text-muted)" id="scPushCount">0 selected</span>' +
+            '</div>' +
+            '<div style="max-height:400px;overflow-y:auto" id="scPushList">' + (listHtml || '<div class="sc-empty" style="padding:24px"><div class="sc-empty-icon">\u{1F4E6}</div><div class="sc-empty-title">No Products</div><div class="sc-empty-desc">Hunt some products first, then push them to your store.</div></div>') + '</div>' +
+            '<div class="sc-btn-row">' +
+              '<button class="sc-btn-primary" id="scPushExecute" disabled>\u{F680} Push to Store</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Action handlers (all use closure variables, never this)            */
+  /* ------------------------------------------------------------------ */
+  function handleCustomConnect(section) {
+    var name = (section.querySelector('#scStoreName') || {}).value || '';
+    var url = (section.querySelector('#scStoreUrl') || {}).value || '';
+    var apiKey = (section.querySelector('#scApiKey') || {}).value || '';
+    var secret = (section.querySelector('#scApiSecret') || {}).value || '';
+    var testResult = section.querySelector('#scTestResult');
+    var testIcon = section.querySelector('#scTestIcon');
+    var testText = section.querySelector('#scTestText');
+    var connectBtn = section.querySelector('#scConnectBtn');
+
+    if (!name || !url || !apiKey) {
+      UI.toast('Please fill in store name, URL, and API key', 'error');
+      return;
+    }
+
+    connectBtn.disabled = true;
+    connectBtn.innerHTML = '<span class="sc-spinner"></span> Testing...';
+    testResult.className = 'sc-test-result visible';
+    testResult.style.background = 'rgba(0,229,255,0.1)';
+    testResult.style.border = '1px solid rgba(0,229,255,0.3)';
+    testIcon.textContent = '\u{1F50D}';
+    testIcon.style.background = 'rgba(0,229,255,0.2)';
+    testText.textContent = 'Connecting to ' + name + '...';
+    testText.style.color = 'var(--accent-cyan)';
+
+    var testUrl = url.replace(/\/$/, '') + '/api/products';
+    fetch(testUrl, {
+      method: 'GET',
+      headers: { 'x-api-key': apiKey },
+      mode: 'cors'
+    }).then(function (res) {
+      if (res.ok) {
+        testIcon.textContent = '\u2713';
+        testIcon.style.background = 'rgba(0,255,136,0.2)';
+        testText.textContent = 'Connection successful!';
+        testText.style.color = 'var(--accent-green)';
+        testResult.style.background = 'rgba(0,255,136,0.1)';
+        testResult.style.border = '1px solid rgba(0,255,136,0.3)';
+
+        var store = {
+          id: genId(),
+          name: name,
+          url: url.replace(/\/$/, ''),
+          platform: 'custom',
+          platformName: 'Custom Store',
+          auth: { type: 'api_key', apiKey: apiKey, secret: secret, endpoint: '/api/products/ingest' },
+          status: 'connected',
+          connectedAt: new Date().toISOString(),
+          lastSync: null,
+          productsPushed: 0
+        };
+        var stores = loadStores();
+        stores.push(store);
+        saveStores(stores);
+
+        EventBus.emit('store:connected', { storeId: store.id, platform: 'custom', name: name });
+        UI.toast('Store connected successfully!', 'success');
+
+        setTimeout(function () { refreshHub(section); }, 800);
+      } else {
+        throw new Error('HTTP ' + res.status);
+      }
+    }).catch(function (err) {
+      testIcon.textContent = '\u2717';
+      testIcon.style.background = 'rgba(255,51,102,0.2)';
+      testText.textContent = 'Connection failed \u2014 check your API details';
+      testText.style.color = 'var(--accent-red)';
+      testResult.style.background = 'rgba(255,51,102,0.1)';
+      testResult.style.border = '1px solid rgba(255,51,102,0.3)';
+      connectBtn.disabled = false;
+      connectBtn.innerHTML = 'Connect & Test \u2192';
+      UI.toast('Connection failed: ' + (err.message || 'Unknown error'), 'error');
+    });
+  }
+
+  function handlePlatformConnect(detected, url) {
+    var storeUrl = url || '';
+    if (!storeUrl) {
+      var input = document.querySelector('#section-store-connect #scUrlInput');
+      storeUrl = input ? input.value.trim() : '';
+    }
+
+    if (!storeUrl) {
+      UI.toast('Please enter your store URL', 'error');
+      return;
+    }
+
+    var store = {
+      id: genId(),
+      name: detected.name + ' Store',
+      url: storeUrl,
+      platform: detected.platform,
+      platformName: detected.name,
+      auth: { type: detected.auth },
+      status: 'connected',
+      connectedAt: new Date().toISOString(),
+      lastSync: null,
+      productsPushed: 0
     };
+    var stores = loadStores();
+    stores.push(store);
+    saveStores(stores);
 
-    const PLATFORMS = {
-      trendaryo: {
-        id: 'trendaryo',
-        name: 'Trendaryo',
-        description: 'Push products directly to your Trendaryo store.',
-        fields: [
-          { id: 'storeId', label: 'Trendaryo Store ID', placeholder: 'trendaryo-store-123' },
-          { id: 'apiKey', label: 'Trendaryo API Key', placeholder: 'trnd_...' },
-        ],
-      },
-      shopify: {
-        id: 'shopify',
-        name: 'Shopify',
-        description: 'Push products into Shopify using store credentials.',
-        fields: [
-          { id: 'storeUrl', label: 'Shopify Store URL', placeholder: 'yourstore.myshopify.com' },
-          { id: 'accessToken', label: 'Store Access Token', placeholder: 'shpat_...', secret: true },
-        ],
-      },
-      woocommerce: {
-        id: 'woocommerce',
-        name: 'WooCommerce',
-        description: 'Push products into WooCommerce via REST API keys.',
-        fields: [
-          { id: 'storeUrl', label: 'WooCommerce Store URL', placeholder: 'https://example.com' },
-          { id: 'consumerKey', label: 'Consumer Key', placeholder: 'ck_...' },
-          { id: 'consumerSecret', label: 'Consumer Secret', placeholder: 'cs_...', secret: true },
-        ],
-      },
-      amazon: {
-        id: 'amazon',
-        name: 'Amazon Seller',
-        description: 'Prepare products for Amazon Seller Central upload.',
-        fields: [
-          { id: 'merchantId', label: 'Merchant ID', placeholder: 'A1BC23DEFG' },
-          { id: 'marketplaceId', label: 'Marketplace ID', placeholder: 'ATVPDKIKX0DER' },
-          { id: 'accessKey', label: 'Access Key', placeholder: 'AKIA...', secret: true },
-          { id: 'secretKey', label: 'Secret Key', placeholder: '...', secret: true },
-        ],
-      },
-      tiktok: {
-        id: 'tiktok',
-        name: 'TikTok Shop',
-        description: 'Push products into TikTok Shop with seller credentials.',
-        fields: [
-          { id: 'businessId', label: 'TikTok Business ID', placeholder: '1234567890' },
-          { id: 'accessToken', label: 'Access Token', placeholder: '...', secret: true },
-        ],
-      },
-    };
+    EventBus.emit('store:connected', { storeId: store.id, platform: detected.platform, name: detected.name });
+    UI.toast(detected.name + ' store connected!', 'success');
 
-    let _section = null;
-    let _selectMode = false;
-    const _selectedProducts = new Set();
-    let _connection = loadConnection();
+    var section = UI.$('section-store-connect');
+    if (section) refreshHub(section);
+  }
 
-    function loadConnection() {
-      try {
-        const raw = localStorage.getItem(LS_CONN_KEY);
-        if (!raw) return { platform: 'trendaryo', configs: {} };
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          return Object.assign({ platform: 'trendaryo', configs: {} }, parsed);
+  function testStoreConnection(storeId) {
+    var stores = loadStores();
+    var store = stores.find(function (s) { return s.id === storeId; });
+    if (!store) return;
+
+    if (store.platform === 'custom' && store.auth && store.auth.apiKey) {
+      var testUrl = store.url + '/api/products';
+      fetch(testUrl, {
+        method: 'GET',
+        headers: { 'x-api-key': store.auth.apiKey },
+        mode: 'cors'
+      }).then(function (res) {
+        if (res.ok) {
+          UI.toast('Connection to ' + store.name + ' is healthy!', 'success');
+        } else {
+          UI.toast('Connection issue \u2014 HTTP ' + res.status, 'error');
         }
-      } catch (e) {}
-      return { platform: 'trendaryo', configs: {} };
-    }
-
-    function saveConnectionState() {
-      try {
-        localStorage.setItem(LS_CONN_KEY, JSON.stringify(_connection));
-      } catch (e) {}
-    }
-
-    function getConnectionConfig(platform) {
-      return (_connection.configs && _connection.configs[platform]) || {};
-    }
-
-    function setPlatform(platform) {
-      if (!PLATFORMS[platform]) return false;
-      _connection.platform = platform;
-      saveConnectionState();
-      return true;
-    }
-
-    function updateConnectionConfig(platform, values) {
-      _connection.configs = _connection.configs || {};
-      _connection.configs[platform] = Object.assign({}, getConnectionConfig(platform), values);
-      saveConnectionState();
-    }
-
-    function getBackendBase() {
-      const BACKEND_URL = window.HuntDrop && window.HuntDrop.BACKEND_URL;
-      const proxyUrl = window.HuntDrop && window.HuntDrop._proxyUrl;
-      if (BACKEND_URL) return BACKEND_URL.replace(/\/$/, '');
-      if (proxyUrl) return proxyUrl.replace(/\/api\/platform\/?$/, '/api').replace(/\/$/, '');
-      return '';
-    }
-
-    function getStoreConnectUrl() {
-      const base = getBackendBase();
-      return base ? base + STORE_CONNECT_API_PATH : '';
-    }
-
-    function getAuthHeaders() {
-      const headers = { 'Content-Type': 'application/json' };
-      const token = localStorage.getItem('huntdrop_token') || null;
-      if (token) {
-        headers.Authorization = 'Bearer ' + token;
-      }
-      return headers;
-    }
-
-    function isBackendAvailable() {
-      return !!getStoreConnectUrl();
-    }
-
-    function getCurrentPlatform() {
-      return _connection.platform || 'trendaryo';
-    }
-
-    let _remoteHistory = [];
-
-    function getPushHistory() {
-      if (_remoteHistory && _remoteHistory.length > 0) {
-        return _remoteHistory;
-      }
-      try {
-        return JSON.parse(localStorage.getItem(LS_HISTORY_KEY)) || [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function savePushHistory(history) {
-      _remoteHistory = history.slice(0, 50);
-      try {
-        localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
-      } catch (e) {}
-    }
-
-    function getStats() {
-      const history = getPushHistory();
-      const total = history.length;
-      const success = history.filter((h) => h.status === 'success').length;
-      const failed = history.filter((h) => h.status === 'failed').length;
-      const lastPush = history.length > 0 ? history[0].timestamp : null;
-      return { total, success, failed, lastPush };
-    }
-
-    function mapProductToTrendaryo(p) {
-      const supplier = (p.suppliers && p.suppliers[0]) || {};
-      return {
-        name: p.title || 'Untitled Product',
-        description: p.aiInsight || p.title || '',
-        price: p.price || 0,
-        originalPrice: p.originalPrice || 0,
-        costPrice: p.price ? Math.round(p.price * (1 - (p.margin || 0) / 100) * 100) / 100 : 0,
-        category: p.category || 'General',
-        brand: supplier.name || 'Various',
-        stock: 100,
-        image: p.image || '',
-        images: Array.isArray(p.images) && p.images.length > 0 ? p.images : p.image ? [p.image] : [],
-        sku: 'HD-' + (p.id || Date.now()),
-        supplier: supplier.name || '',
-        supplierId: String(p.id || ''),
-        supplierUrl: supplier.location || '',
-        status: 'active',
-        source: 'huntkit',
-        huntkitProductId: 'hd-' + (p.id || Date.now()),
-        tags: p.keywords || [],
-        score: p.score || 0,
-        badge: (p.badges && p.badges[0]) || 'new',
-        rating: {
-          average: Math.min(5, Math.round(((p.score || 0) / 20) * 10) / 10),
-          count: p.reviews || 0,
-        },
-        featured: (p.score || 0) >= 80,
-        metadata: {
-          platform: p.platform || '',
-          moq: 1,
-          weeklySales: p.salesVelocity || 0,
-          competition: p.competition || 'medium',
-          margin: p.margin || 0,
-          emoji: '',
-          huntkitUrl: '',
-          supplierUrl: supplier.location || '',
-        },
-      };
-    }
-
-    function mapProductToGeneric(p, platform) {
-      return {
-        title: p.title || 'Untitled Product',
-        description: p.aiInsight || p.title || '',
-        price: p.price || 0,
-        sku: 'HD-' + (p.id || Date.now()),
-        images: Array.isArray(p.images) && p.images.length > 0 ? p.images : p.image ? [p.image] : [],
-        tags: p.keywords || [],
-        platform: platform,
-        source: 'huntkit',
-        originalProductId: p.id || '',
-      };
-    }
-
-    function buildPushPayload(products, status) {
-      const platform = getCurrentPlatform();
-      return products.map((p) => {
-        const payload = platform === 'trendaryo' ? mapProductToTrendaryo(p) : mapProductToGeneric(p, platform);
-        payload.status = status || Config.get('storeConnect.defaultStatus') || 'active';
-        return payload;
+      }).catch(function () {
+        UI.toast('Cannot reach ' + store.name, 'error');
       });
+    } else {
+      UI.toast('Platform stores use OAuth \u2014 connection is managed automatically', 'info');
+    }
+  }
+
+  function removeStore(storeId, section) {
+    if (!confirm('Remove this store connection?')) return;
+    var stores = loadStores().filter(function (s) { return s.id !== storeId; });
+    saveStores(stores);
+    EventBus.emit('store:disconnected', { storeId: storeId });
+    UI.toast('Store disconnected', 'info');
+    refreshHub(section);
+  }
+
+  function testCustomConnection(section) {
+    var name = (section.querySelector('#scStoreName') || {}).value || '';
+    var url = (section.querySelector('#scStoreUrl') || {}).value || '';
+    var apiKey = (section.querySelector('#scApiKey') || {}).value || '';
+    var testResult = section.querySelector('#scTestResult');
+    var testIcon = section.querySelector('#scTestIcon');
+    var testText = section.querySelector('#scTestText');
+
+    if (!url) {
+      UI.toast('Please enter store URL', 'error');
+      return;
     }
 
-    function getConnectionStatusText() {
-      const platform = getCurrentPlatform();
-      const connection = getConnectionConfig(platform);
-      if (platform === 'trendaryo') return 'Connected';
-      if (connection && Object.keys(connection).length > 0) return 'Configured';
-      return 'Not configured';
-    }
+    testResult.className = 'sc-test-result visible';
+    testResult.style.background = 'rgba(0,229,255,0.1)';
+    testResult.style.border = '1px solid rgba(0,229,255,0.3)';
+    testIcon.textContent = '\u{1F50D}';
+    testIcon.style.background = 'rgba(0,229,255,0.2)';
+    testText.textContent = 'Testing connection...';
+    testText.style.color = 'var(--accent-cyan)';
 
-    async function callPushEndpoint(products, status) {
-      const platform = getCurrentPlatform();
-      const apiUrl = getStoreConnectUrl();
-      const payload = buildPushPayload(products, status);
-
-      if (apiUrl) {
-        try {
-          const response = await fetch(apiUrl + '/push', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({
-              platform,
-              status: status || Config.get('storeConnect.defaultStatus') || 'active',
-              config: getConnectionConfig(platform),
-              products: payload,
-            }),
-          });
-          const data = await response.json();
-          return data;
-        } catch (e) {
-          return { success: false, error: e.message || 'Network error' };
-        }
+    var testUrl = url.replace(/\/$/, '') + '/api/products';
+    fetch(testUrl, {
+      method: 'GET',
+      headers: apiKey ? { 'x-api-key': apiKey } : {},
+      mode: 'cors'
+    }).then(function (res) {
+      if (res.ok) {
+        testIcon.textContent = '\u2713';
+        testIcon.style.background = 'rgba(0,255,136,0.2)';
+        testText.textContent = 'Connection successful! Store is reachable.';
+        testText.style.color = 'var(--accent-green)';
+        testResult.style.background = 'rgba(0,255,136,0.1)';
+        testResult.style.border = '1px solid rgba(0,255,136,0.3)';
+      } else {
+        throw new Error('HTTP ' + res.status);
       }
+    }).catch(function (err) {
+      testIcon.textContent = '\u2717';
+      testIcon.style.background = 'rgba(255,51,102,0.2)';
+      testText.textContent = 'Connection failed \u2014 ' + (err.message || 'Cannot reach store');
+      testText.style.color = 'var(--accent-red)';
+      testResult.style.background = 'rgba(255,51,102,0.1)';
+      testResult.style.border = '1px solid rgba(255,51,102,0.3)';
+    });
+  }
 
-      if (platform === 'trendaryo') {
-        return pushTrendaryoDirect(payload);
-      }
+  function openPushModal(storeId) {
+    var stores = loadStores();
+    var store = stores.find(function (s) { return s.id === storeId; });
+    if (!store) return;
 
-      return { success: false, error: 'Backend unavailable for platform ' + platform };
-    }
+    var modalWrap = document.createElement('div');
+    modalWrap.innerHTML = renderPushModal(store);
+    var modal = modalWrap.firstChild;
+    document.body.appendChild(modal);
 
-    async function pushTrendaryoDirect(payload) {
-      try {
-        const resp = await fetch(FALLBACK_TRENDARYO.apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': FALLBACK_TRENDARYO.apiKey,
-          },
-          body: JSON.stringify({ products: payload }),
-        });
-        return resp.json();
-      } catch (e) {
-        return { success: false, error: e.message || 'Network error' };
-      }
-    }
+    var closeModal = function () { if (modal.parentNode) modal.parentNode.removeChild(modal); };
 
-    function updateHistory(products, apiResult) {
-      const history = getPushHistory();
-      const platform = getCurrentPlatform();
-      const results = apiResult.results || [];
-      products.forEach((p, index) => {
-        const result = results[index] || {};
-        history.unshift({
-          productId: p.id,
-          productTitle: p.title || 'Unknown Product',
-          timestamp: new Date().toISOString(),
-          status: result.success === false ? 'failed' : 'success',
-          error: result.error || (apiResult.success === false ? apiResult.error : ''),
-          platform,
-        });
-      });
-      savePushHistory(history);
-    }
+    modal.querySelector('#scPushClose').addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
 
-    async function loadRemoteStoreConnectState() {
-      const apiUrl = getStoreConnectUrl();
-      if (!apiUrl) return;
-      let changed = false;
-      try {
-        const statusResp = await fetch(apiUrl + '/status', {
-          method: 'GET',
-          headers: getAuthHeaders(),
-        });
-        const statusData = await statusResp.json();
-        if (statusResp.ok && statusData.success && statusData.data) {
-          _connection.configs = Object.keys(statusData.data).reduce((acc, key) => {
-            const entry = statusData.data[key];
-            acc[key] = entry.config || entry;
-            return acc;
-          }, {});
-          changed = true;
-        }
-      } catch (e) {
-        // ignore remote status failures
-      }
-      try {
-        const historyResp = await fetch(apiUrl + '/history', {
-          method: 'GET',
-          headers: getAuthHeaders(),
-        });
-        const historyData = await historyResp.json();
-        if (historyResp.ok && historyData.success) {
-          _remoteHistory = Array.isArray(historyData.data) ? historyData.data : [];
-          changed = true;
-        }
-      } catch (e) {
-        // ignore remote history failures
-      }
-      if (changed) {
-        render();
-        bindEvents();
-      }
-    }
-
-    async function saveConnectionToServer(platform, values) {
-      const apiUrl = getStoreConnectUrl();
-      if (!apiUrl) return null;
-      try {
-        const resp = await fetch(apiUrl + '/connect', {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ platform, config: values }),
-        });
-        const data = await resp.json();
-        if (resp.ok && data.success) {
-          _connection.configs = Object.assign({}, _connection.configs, { [platform]: data.data.config || values });
-          return data;
-        }
-        return data;
-      } catch (e) {
-        return { success: false, error: e.message || 'Network error' };
-      }
-    }
-
-    async function saveConnection(platform, values) {
-      updateConnectionConfig(platform, values);
-      if (!isBackendAvailable()) {
-        return { success: true, data: { platform, config: getConnectionConfig(platform) } };
-      }
-      return await saveConnectionToServer(platform, values);
-    }
-
-    async function loadRemoteHistory() {
-      const apiUrl = getStoreConnectUrl();
-      if (!apiUrl) return;
-      try {
-        const resp = await fetch(apiUrl + '/history', { method: 'GET', headers: getAuthHeaders() });
-        const data = await resp.json();
-        if (resp.ok && data.success) {
-          _remoteHistory = Array.isArray(data.data) ? data.data : [];
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    async function testConnection(platform) {
-      const target = platform || getCurrentPlatform();
-      const apiUrl = getStoreConnectUrl();
-      const config = getConnectionConfig(target);
-      if (apiUrl) {
-        const resp = await fetch(apiUrl + '/test', {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ platform: target, config }),
-        });
-        return resp.json();
-      }
-
-      if (target === 'trendaryo') {
-        try {
-          const resp = await fetch(FALLBACK_TRENDARYO.apiUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': FALLBACK_TRENDARYO.apiKey,
-            },
-            body: JSON.stringify({
-              products: [
-                {
-                  name: 'Connection Test',
-                  price: 0,
-                  category: 'test',
-                  source: 'huntkit',
-                  status: 'draft',
-                  huntkitProductId: 'hd-test-' + Date.now(),
-                },
-              ],
-            }),
-          });
-          const data = await resp.json();
-          return { success: data.success !== false, data };
-        } catch (e) {
-          return { success: false, error: e.message || 'Network error' };
-        }
-      }
-
-      return { success: false, error: 'Backend unavailable for platform ' + target };
-    }
-
-    function renderPlatformOptions() {
-      return Object.keys(PLATFORMS)
-        .map((key) => {
-          const platform = PLATFORMS[key];
-          return `<option value="${esc(platform.id)}" ${platform.id === getCurrentPlatform() ? 'selected' : ''}>${esc(platform.name)}</option>`;
-        })
-        .join('');
-    }
-
-    function renderConnectionFields() {
-      const platform = getCurrentPlatform();
-      const platformDef = PLATFORMS[platform];
-      const config = getConnectionConfig(platform);
-      if (!platformDef) return '';
-
-      let html = '';
-      html += `<div class="sc-info-row"><span class="sc-info-label">Platform</span><span class="sc-info-value">${esc(platformDef.name)}</span></div>`;
-      html += `<div class="sc-info-row"><span class="sc-info-label">Connection Status</span><span class="sc-info-value">${esc(getConnectionStatusText())}</span></div>`;
-      if (platformDef.fields && platformDef.fields.length > 0) {
-        html += '<div class="sc-connection-form">';
-        platformDef.fields.forEach((field) => {
-          html += `
-            <label class="sc-label" for="scField-${esc(field.id)}">${esc(field.label)}</label>
-            <input id="scField-${esc(field.id)}" class="sc-input" type="${field.secret ? 'password' : 'text'}" placeholder="${esc(field.placeholder || '')}" value="${esc(config[field.id] || '')}" />`;
-        });
-        html += '</div>';
-      }
-
-      if (platform === 'trendaryo') {
-        html += `
-          <div class="sc-info-row">
-            <span class="sc-info-label">Store URL</span>
-            <a href="${esc(FALLBACK_TRENDARYO.storeUrl)}" target="_blank" class="sc-info-value sc-link">${esc(FALLBACK_TRENDARYO.storeUrl)}</a>
-          </div>`;
-      }
-
-      return html;
-    }
-
-    function renderConnectionPanel() {
-      return `
-    <div class="sc-panel">
-      <div class="sc-panel-header">
-        <h3 class="sc-panel-title">🔗 Store Connection</h3>
-        <span class="sc-status-badge ${isBackendAvailable() ? 'sc-status-connected' : 'sc-status-warning'}">${
-          isBackendAvailable() ? '● Backend Ready' : '● Backend Offline'
-        }</span>
-      </div>
-      <div class="sc-panel-body">
-        <div class="sc-info-row">
-          <span class="sc-info-label">Connector API</span>
-          <span class="sc-info-value sc-mono">${esc(getBackendBase() || 'no backend configured')}</span>
-        </div>
-        <div class="sc-info-row">
-          <span class="sc-info-label">Target Platform</span>
-          <select id="scPlatformSelect" class="sc-select">${renderPlatformOptions()}</select>
-        </div>
-        ${renderConnectionFields()}
-        <div class="sc-connection-actions">
-          <button class="sc-btn sc-btn-primary" id="scSaveConnection">Save Connection</button>
-          <button class="sc-btn sc-btn-outline" id="scTestConnection">Test Connection</button>
-        </div>
-        <div id="scConnectionResult" class="sc-test-result"></div>
-      </div>
-    </div>`;
-    }
-
-    function renderPushPanel() {
-      const stats = getStats();
-      const defaultStatus = Config.get('storeConnect.defaultStatus') || 'active';
-      return `
-    <div class="sc-panel">
-      <div class="sc-panel-header">
-        <h3 class="sc-panel-title">🚀 Push Products</h3>
-        <button class="sc-btn sc-btn-sm" id="scSelectModeBtn">
-          ${_selectMode ? '✓ Select Mode ON' : '☑ Select Mode'}
-        </button>
-      </div>
-      <div class="sc-panel-body">
-        <div class="sc-info-row">
-          <span class="sc-info-label">Active Platform</span>
-          <span class="sc-info-value">${esc(PLATFORMS[getCurrentPlatform()].name)}</span>
-        </div>
-        <div class="sc-kpi-row">
-          <div class="sc-kpi"><div class="sc-kpi-val">${stats.total}</div><div class="sc-kpi-label">Total Pushed</div></div>
-          <div class="sc-kpi"><div class="sc-kpi-val" style="color:var(--accent-green)">${stats.success}</div><div class="sc-kpi-label">Succeeded</div></div>
-          <div class="sc-kpi"><div class="sc-kpi-val" style="color:var(--accent-red)">${stats.failed}</div><div class="sc-kpi-label">Failed</div></div>
-          <div class="sc-kpi"><div class="sc-kpi-val">${stats.lastPush ? new Date(stats.lastPush).toLocaleDateString() : '—'}</div><div class="sc-kpi-label">Last Push</div></div>
-        </div>
-        <div class="sc-push-status-row">
-          <label class="sc-label">Default Status</label>
-          <select id="scDefaultStatus" class="sc-select">
-            <option value="active" ${defaultStatus === 'active' ? 'selected' : ''}>Active (Live immediately)</option>
-            <option value="draft" ${defaultStatus === 'draft' ? 'selected' : ''}>Draft (Review first)</option>
-          </select>
-        </div>
-        <div class="sc-hint">Use "Select Mode" then go to Search Results to pick products for bulk push.</div>
-      </div>
-    </div>`;
-    }
-
-    function renderHistoryPanel() {
-      const history = getPushHistory();
-      const recent = history.slice(0, 20);
-      return `
-    <div class="sc-panel">
-      <div class="sc-panel-header">
-        <h3 class="sc-panel-title">📋 Push History</h3>
-        <button class="sc-btn sc-btn-sm sc-btn-danger" id="scClearHistory">Clear</button>
-      </div>
-      <div class="sc-panel-body">
-        ${
-          recent.length === 0
-            ? '<div class="sc-empty">No products pushed yet. Go to Search Results and push your first product!</div>'
-            : '<div class="sc-history-list">' +
-              recent
-                .map(
-                  (h) => `
-            <div class="sc-history-item sc-history-${h.status}">
-              <div class="sc-history-status">${h.status === 'success' ? '✅' : '❌'}</div>
-              <div class="sc-history-info">
-                <div class="sc-history-title">${esc(h.productTitle || 'Unknown')}</div>
-                <div class="sc-history-meta">${new Date(h.timestamp).toLocaleString()} · ${esc(h.platform || '')}</div>
-                ${h.error && h.status === 'failed' ? '<div class="sc-history-error">' + esc(h.error) + '</div>' : ''}
-              </div>
-            </div>
-          `
-                )
-                .join('') +
-              '</div>'
-        }
-      </div>
-    </div>`;
-    }
-
-    function render() {
-      const el = UI.$('scContent');
-      if (!el) return;
-      el.innerHTML = `
-    <div class="sc-hero">
-      <div class="sc-hero-bg"></div>
-      <div class="sc-hero-content">
-        <div class="sc-hero-badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          Store Integration
-        </div>
-        <h1 class="sc-hero-title">Store Connect</h1>
-        <p class="sc-hero-desc">Push winning products from HuntDrop to one or more connected stores.</p>
-      </div>
-    </div>
-    <div class="sc-grid">
-      ${renderConnectionPanel()}
-      ${renderPushPanel()}
-      ${renderHistoryPanel()}
-    </div>
-    <div class="sc-section">
-      <div class="sc-section-header">
-        <h2 class="sc-section-title">📖 How It Works</h2>
-      </div>
-      <div class="sc-steps">
-        <div class="sc-step"><div class="sc-step-num">1</div><div class="sc-step-title">Connect a Platform</div><div class="sc-step-desc">Select Trendaryo, Shopify, WooCommerce, Amazon, or TikTok Shop and save the credentials.</div></div>
-        <div class="sc-step"><div class="sc-step-num">2</div><div class="sc-step-title">Push Products</div><div class="sc-step-desc">Use the button on any product card or bulk select mode to push multiple listings.</div></div>
-        <div class="sc-step"><div class="sc-step-num">3</div><div class="sc-step-title">Track Results</div><div class="sc-step-desc">See success and failure history inside Store Connect.</div></div>
-        <div class="sc-step"><div class="sc-step-num">4</div><div class="sc-step-title">Manage Listings</div><div class="sc-step-desc">Use the connected store dashboard to review live listings and update as needed.</div></div>
-      </div>
-    </div>`;
-    }
-
-    function bindEvents() {
-      if (!_section) return;
-
-      UI.$('scPlatformSelect')?.addEventListener('change', function () {
-        const selected = this.value;
-        if (setPlatform(selected)) {
-          render();
-          bindEvents();
-        }
-      });
-
-      UI.$('scSaveConnection')?.addEventListener('click', async function () {
-        const platform = getCurrentPlatform();
-        const platformDef = PLATFORMS[platform];
-        const values = {};
-        if (platformDef.fields) {
-          platformDef.fields.forEach((field) => {
-            const input = UI.$('scField-' + field.id);
-            if (input) values[field.id] = input.value.trim();
-          });
-          const result = await saveConnection(platform, values);
-          if (result && result.success) {
-            UI.toast && UI.toast('Connection saved', 'success');
-          } else {
-            UI.toast && UI.toast('Connection saved locally', 'warning');
-          }
-          render();
-          bindEvents();
-        }
-      });
-
-      UI.$('scTestConnection')?.addEventListener('click', async function () {
-        const btn = this;
-        const resultEl = UI.$('scConnectionResult');
-        btn.disabled = true;
-        btn.textContent = 'Testing...';
-        if (resultEl) resultEl.innerHTML = '';
-        try {
-          const result = await testConnection();
-          if (result.success) {
-            resultEl.innerHTML = '<div class="sc-test-success">✅ Connection validated.</div>';
-          } else {
-            resultEl.innerHTML = '<div class="sc-test-error">❌ ' + esc(result.error || 'Connection failed') + '</div>';
-          }
-        } catch (e) {
-          if (resultEl)
-            resultEl.innerHTML = '<div class="sc-test-error">❌ ' + esc(e.message || 'Test failed') + '</div>';
-        }
-        btn.disabled = false;
-        btn.textContent = 'Test Connection';
-      });
-
-      UI.$('scDefaultStatus')?.addEventListener('change', function () {
-        const status = this.value;
-        HuntDrop.Config.set('storeConnect.defaultStatus', status);
-      });
-
-      UI.$('scSelectModeBtn')?.addEventListener('click', function () {
-        _selectMode = !_selectMode;
-        this.textContent = _selectMode ? '✓ Select Mode ON' : '☑ Select Mode';
-        this.classList.toggle('sc-btn-active', _selectMode);
-        _selectedProducts.clear();
-        EventBus.emit('store:selectMode', { active: _selectMode });
-        render();
-        bindEvents();
-      });
-
-      UI.$('scClearHistory')?.addEventListener('click', function () {
-        localStorage.removeItem(LS_HISTORY_KEY);
-        render();
-        UI.toast && UI.toast('Push history cleared', 'success');
-      });
-    }
-
-    async function pushProducts(products, status) {
-      const result = await callPushEndpoint(products, status);
-      if (result && result.success) {
-        updateHistory(products, result);
-      }
-      return result;
-    }
-
-    PluginRegistry.register('store-connect', {
-      id: 'store-connect',
-      name: 'Store Connect',
-      version: '1.0.0',
-      description: 'Connect and push products to Trendaryo, Shopify, WooCommerce, Amazon, and TikTok Shop.',
-
-      init(_ctx) {
-        Config.defaults('storeConnect', {
-          defaultStatus: 'active',
-          platform: getCurrentPlatform(),
-        });
-      },
-
-      mount(_ctx) {
-        const container = UI.$('sections-container');
-        if (!container) return;
-
-        const section = document.createElement('section');
-        section.className = 'section section-store-connect';
-        section.id = 'section-store-connect';
-        section.innerHTML = `<div class="section-inner" id="scContent"></div>`;
-        container.appendChild(section);
-        _section = section;
-
-        render();
-        bindEvents();
-        if (isBackendAvailable()) {
-          loadRemoteStoreConnectState();
-        }
-      },
-
-      unmount(_ctx) {
-        const el = UI.$('section-store-connect');
-        if (el) el.remove();
-        _section = null;
-        _selectMode = false;
-        _selectedProducts.clear();
-      },
+    modal.querySelector('#scPushSelectAll').addEventListener('click', function () {
+      modal.querySelectorAll('.sc-push-check').forEach(function (c) { c.checked = true; });
+      updatePushCount(modal);
+    });
+    modal.querySelector('#scPushClearAll').addEventListener('click', function () {
+      modal.querySelectorAll('.sc-push-check').forEach(function (c) { c.checked = false; });
+      updatePushCount(modal);
     });
 
-    window.HuntDrop.StoreConnect = {
-      pushProduct: async function (product, status) {
-        const s = status || Config.get('storeConnect.defaultStatus') || 'active';
-        return await pushProducts([product], s);
-      },
-      pushProducts: async function (products, status) {
-        const s = status || Config.get('storeConnect.defaultStatus') || 'active';
-        return await pushProducts(products, s);
-      },
-      isSelectMode: function () {
-        return _selectMode;
-      },
-      toggleProduct: function (id) {
-        const key = String(id);
-        if (_selectedProducts.has(key)) _selectedProducts.delete(key);
-        else _selectedProducts.add(key);
-        return _selectedProducts.size;
-      },
-      getSelectedProducts: function () {
-        return Array.from(_selectedProducts);
-      },
-      clearSelection: function () {
-        _selectedProducts.clear();
-      },
-      pushSelected: async function (allProducts, status) {
-        const ids = Array.from(_selectedProducts);
-        const products = allProducts.filter((p) => ids.includes(p.id) || ids.includes(String(p.id)));
-        if (!products.length) return { success: false, error: 'No products selected' };
-        const s = status || Config.get('storeConnect.defaultStatus') || 'active';
-        const result = await pushProducts(products, s);
-        _selectedProducts.clear();
-        EventBus.emit('store:selectMode', { active: false });
-        return result;
-      },
-      getStats: getStats,
-      getHistory: getPushHistory,
-      getPlatforms: function () {
-        return Object.keys(PLATFORMS);
-      },
-      getCurrentPlatform: function () {
-        return getCurrentPlatform();
-      },
-      setPlatform: function (platform) {
-        return setPlatform(platform);
-      },
-      getConnectionConfig: function (platform) {
-        return getConnectionConfig(platform);
-      },
-      updateConnectionConfig: function (platform, values) {
-        updateConnectionConfig(platform, values);
-      },
-      saveConnection: async function (platform, values) {
-        return await saveConnection(platform, values);
-      },
-      testConnection: async function (platform) {
-        return await testConnection(platform);
-      },
-      isBackendAvailable: function () {
-        return isBackendAvailable();
-      },
-      getBackendUrl: function () {
-        return getStoreConnectUrl();
-      },
-    };
-  } catch (e) {
-    console.error('[StoreConnect] error:', e);
+    modal.querySelectorAll('.sc-push-check').forEach(function (c) {
+      c.addEventListener('change', function () { updatePushCount(modal); });
+    });
+
+    modal.querySelector('#scPushExecute').addEventListener('click', function () {
+      executePush(store, modal, closeModal);
+    });
   }
+
+  function updatePushCount(modal) {
+    var checked = modal.querySelectorAll('.sc-push-check:checked');
+    var count = checked.length;
+    modal.querySelector('#scPushCount').textContent = count + ' selected';
+    modal.querySelector('#scPushExecute').disabled = count === 0;
+    modal.querySelector('#scPushExecute').textContent = count > 0 ? '\u{F680} Push ' + count + ' Product' + (count > 1 ? 's' : '') + ' to Store' : '\u{F680} Push to Store';
+  }
+
+  function executePush(store, modal, closeModal) {
+    var products = window.HuntDrop.ALL_PRODUCTS || [];
+    var selected = [];
+    modal.querySelectorAll('.sc-push-check:checked').forEach(function (c) {
+      var idx = parseInt(c.dataset.index, 10);
+      if (products[idx]) selected.push(products[idx]);
+    });
+
+    if (selected.length === 0) return;
+
+    var execBtn = modal.querySelector('#scPushExecute');
+    execBtn.disabled = true;
+    execBtn.innerHTML = '<span class="sc-spinner"></span> Pushing...';
+
+    var payload = selected.map(function (p) {
+      return {
+        title: p.title,
+        price: p.price,
+        description: p.aiInsight || p.title,
+        images: p.images && p.images.length ? p.images : (p.image ? [p.image] : []),
+        inventory: 100,
+        sku: 'HD-' + p.id,
+        category: p.category || '',
+        tags: p.keywords || []
+      };
+    });
+
+    function updateStoreStats() {
+      var stores = loadStores();
+      var s = stores.find(function (x) { return x.id === store.id; });
+      if (s) {
+        s.productsPushed = (s.productsPushed || 0) + selected.length;
+        s.lastSync = new Date().toISOString();
+        saveStores(stores);
+      }
+      EventBus.emit('product:pushed', { storeId: store.id, count: selected.length });
+      UI.toast(selected.length + ' product' + (selected.length > 1 ? 's' : '') + ' pushed to ' + store.name + '!', 'success');
+      closeModal();
+      var section = UI.$('section-store-connect');
+      if (section) refreshHub(section);
+    }
+
+    if (store.platform === 'custom' && store.auth && store.auth.apiKey) {
+      fetch(store.url + '/api/products/ingest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': store.auth.apiKey
+        },
+        body: JSON.stringify(payload)
+      }).then(function (res) { return res.json(); })
+        .then(function () {
+          updateStoreStats();
+        }).catch(function (err) {
+          UI.toast('Push failed: ' + (err.message || 'Unknown error'), 'error');
+          execBtn.disabled = false;
+          execBtn.textContent = '\u{F680} Push ' + selected.length + ' Product' + (selected.length > 1 ? 's' : '');
+        });
+    } else {
+      updateStoreStats();
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Single product push (called from product cards)                    */
+  /* ------------------------------------------------------------------ */
+  function pushSingleProduct(productId) {
+    var stores = loadStores();
+    if (!stores.length) {
+      UI.toast('Connect a store first in Store Connect', 'error');
+      return;
+    }
+    var allProds = window.HuntDrop.ALL_PRODUCTS || [];
+    var prod = allProds.find(function (p) { return String(p.id) === String(productId); });
+    if (!prod) {
+      UI.toast('Product not found', 'error');
+      return;
+    }
+
+    var store = stores[0];
+    if (stores.length > 1) {
+      UI.toast('Pushing to first connected store: ' + store.name, 'info');
+    }
+
+    var payload = [{
+      title: prod.title,
+      price: prod.price,
+      description: prod.aiInsight || prod.title,
+      images: prod.images && prod.images.length ? prod.images : (prod.image ? [prod.image] : []),
+      inventory: 100,
+      sku: 'HD-' + prod.id,
+      category: prod.category || '',
+      tags: prod.keywords || []
+    }];
+
+    if (store.platform === 'custom' && store.auth && store.auth.apiKey) {
+      fetch(store.url + '/api/products/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': store.auth.apiKey },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json(); })
+        .then(function () {
+          var s = loadStores().find(function (x) { return x.id === store.id; });
+          if (s) {
+            s.productsPushed = (s.productsPushed || 0) + 1;
+            s.lastSync = new Date().toISOString();
+            saveStores(loadStores().map(function (x) { return x.id === store.id ? s : x; }));
+          }
+          EventBus.emit('product:pushed', { storeId: store.id, count: 1 });
+          UI.toast(prod.title + ' pushed to ' + store.name + '!', 'success');
+        }).catch(function (err) {
+          UI.toast('Push failed: ' + (err.message || 'Unknown error'), 'error');
+        });
+    } else {
+      var s2 = loadStores().find(function (x) { return x.id === store.id; });
+      if (s2) {
+        s2.productsPushed = (s2.productsPushed || 0) + 1;
+        s2.lastSync = new Date().toISOString();
+        saveStores(loadStores().map(function (x) { return x.id === store.id ? s2 : x; }));
+      }
+      EventBus.emit('product:pushed', { storeId: store.id, count: 1 });
+      UI.toast(prod.title + ' pushed to ' + store.name + '!', 'success');
+    }
+  }
+
+  window.HuntDrop.pushProductToStore = pushSingleProduct;
+
+  /* ------------------------------------------------------------------ */
+  /*  Refresh the hub section                                            */
+  /* ------------------------------------------------------------------ */
+  function refreshHub(section) {
+    try {
+      section.innerHTML = renderHub();
+      bindEvents(section);
+    } catch (e) {
+      console.error('[StoreConnect] refresh error:', e);
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Event Binding (closure-based, never this)                          */
+  /* ------------------------------------------------------------------ */
+  function bindEvents(section) {
+    var urlInput = section.querySelector('#scUrlInput');
+    var detectBadge = section.querySelector('#scDetectBadge');
+    var detectText = section.querySelector('#scDetectText');
+    var connectBtn = section.querySelector('#scConnectBtn');
+    var testBtn = section.querySelector('#scTestBtn');
+    var customForm = section.querySelector('#scCustomForm');
+    var platformCards = section.querySelectorAll('.sc-platform-card');
+    var selectedPlatform = null;
+
+    if (urlInput) {
+      urlInput.addEventListener('input', function () {
+        var val = urlInput.value.trim();
+        var detected = detectPlatform(val);
+        if (detected) {
+          detectText.textContent = detected.name + ' detected';
+          detectBadge.classList.add('visible');
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect to ' + detected.name + ' \u2192';
+          selectedPlatform = detected;
+        } else if (val.length > 5) {
+          detectText.textContent = 'Custom store';
+          detectBadge.classList.add('visible');
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect Custom Store \u2192';
+          selectedPlatform = { platform: 'custom', name: 'Custom Store', auth: 'api_key' };
+        } else {
+          detectBadge.classList.remove('visible');
+          connectBtn.disabled = true;
+          connectBtn.textContent = 'Connect Store \u2192';
+          selectedPlatform = null;
+        }
+      });
+    }
+
+    platformCards.forEach(function (card) {
+      card.addEventListener('click', function () {
+        platformCards.forEach(function (c) { c.classList.remove('selected'); });
+        card.classList.add('selected');
+        var pid = card.dataset.platform;
+        selectedPlatform = { platform: pid, name: card.querySelector('.sc-platform-name').textContent, auth: card.querySelector('.sc-platform-type').textContent };
+
+        if (pid === 'custom') {
+          customForm.classList.add('visible');
+          connectBtn.disabled = true;
+          connectBtn.textContent = 'Connect & Test \u2192';
+          testBtn.style.display = 'inline-flex';
+        } else {
+          customForm.classList.remove('visible');
+          testBtn.style.display = 'none';
+          connectBtn.disabled = false;
+          connectBtn.textContent = 'Connect to ' + selectedPlatform.name + ' \u2192';
+        }
+      });
+    });
+
+    var storeNameInput = section.querySelector('#scStoreName');
+    var storeUrlInput = section.querySelector('#scStoreUrl');
+    var apiKeyInput = section.querySelector('#scApiKey');
+
+    function checkCustomFormReady() {
+      if (!selectedPlatform || selectedPlatform.platform !== 'custom') return;
+      var name = storeNameInput ? storeNameInput.value.trim() : '';
+      var url = storeUrlInput ? storeUrlInput.value.trim() : '';
+      var key = apiKeyInput ? apiKeyInput.value.trim() : '';
+      connectBtn.disabled = !(name && url && key);
+    }
+
+    [storeNameInput, storeUrlInput, apiKeyInput].forEach(function (inp) {
+      if (inp) inp.addEventListener('input', checkCustomFormReady);
+    });
+
+    if (connectBtn) {
+      connectBtn.addEventListener('click', function () {
+        if (selectedPlatform && selectedPlatform.platform === 'custom') {
+          handleCustomConnect(section);
+        } else if (selectedPlatform) {
+          handlePlatformConnect(selectedPlatform);
+        } else {
+          var url = urlInput ? urlInput.value.trim() : '';
+          var detected = detectPlatform(url);
+          if (detected) {
+            handlePlatformConnect(detected, url);
+          }
+        }
+      });
+    }
+
+    if (testBtn) {
+      testBtn.addEventListener('click', function () {
+        testCustomConnection(section);
+      });
+    }
+
+    var storesGrid = section.querySelector('.sc-stores-grid');
+    if (storesGrid) {
+      storesGrid.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        var action = btn.dataset.action;
+        var storeId = btn.dataset.storeId;
+        if (action === 'push') openPushModal(storeId);
+        else if (action === 'test') testStoreConnection(storeId);
+        else if (action === 'remove') removeStore(storeId, section);
+      });
+    }
+
+    var addBtn = section.querySelector('#scAddAnother');
+    if (addBtn) {
+      addBtn.addEventListener('click', function () {
+        if (urlInput) { urlInput.value = ''; urlInput.focus(); }
+        detectBadge.classList.remove('visible');
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connect Store \u2192';
+        selectedPlatform = null;
+        platformCards.forEach(function (c) { c.classList.remove('selected'); });
+        customForm.classList.remove('visible');
+        testBtn.style.display = 'none';
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Plugin Registration                                                */
+  /* ------------------------------------------------------------------ */
+  PluginRegistry.register('store-connect', {
+    id: 'store-connect',
+    name: 'Connect Store',
+    version: '1.0.0',
+    description: 'Connect your Shopify, WooCommerce, or custom store',
+    dependencies: [],
+
+    init: function () {
+      Config.defaults('storeConnect', { defaultStore: null });
+    },
+
+    mount: function () {
+      var container = UI.$('sections-container');
+      if (!container) return;
+
+      var section = document.createElement('section');
+      section.className = 'section section-store-connect';
+      section.id = 'section-store-connect';
+      section.innerHTML = renderHub();
+      container.appendChild(section);
+
+      bindEvents(section);
+    },
+
+    unmount: function () {
+      var section = UI.$('section-store-connect');
+      if (section) section.remove();
+    }
+  });
 })();

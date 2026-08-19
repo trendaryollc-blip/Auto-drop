@@ -209,31 +209,57 @@
             window.HuntDrop.pushProductToStore(pid);
           } else if (pid) {
             var stores = [];
-            try { stores = JSON.parse(localStorage.getItem('sc_connected_stores') || '[]'); } catch (ex) {}
+            try {
+              stores = JSON.parse(localStorage.getItem('sc_connected_stores') || '[]');
+            } catch (ex) {}
             if (!stores.length) {
               window.HuntDrop.UI.toast('Connect a store first in Store Connect', 'error');
               return;
             }
             var allProds = window.HuntDrop.ALL_PRODUCTS || [];
-            var prod = allProds.find(function (p) { return String(p.id) === String(pid); });
+            var prod = allProds.find(function (p) {
+              return String(p.id) === String(pid);
+            });
             if (!prod) return;
             var store = stores[0];
-            var payload = [{
-              title: prod.title, price: prod.price, description: prod.aiInsight || prod.title,
-              images: prod.images && prod.images.length ? prod.images : (prod.image ? [prod.image] : []),
-              inventory: 100, sku: 'HD-' + prod.id, category: prod.category || '', tags: prod.keywords || []
-            }];
+            var payload = [
+              {
+                title: prod.title,
+                price: prod.price,
+                description: prod.aiInsight || prod.title,
+                images: prod.images && prod.images.length ? prod.images : prod.image ? [prod.image] : [],
+                inventory: 100,
+                sku: 'HD-' + prod.id,
+                category: prod.category || '',
+                tags: prod.keywords || [],
+              },
+            ];
             fetch(store.url + '/api/products/ingest', {
-              method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': store.auth && store.auth.apiKey ? store.auth.apiKey : '' },
-              body: JSON.stringify(payload)
-            }).then(function (r) { return r.json(); }).then(function () {
-              var st = JSON.parse(localStorage.getItem('sc_connected_stores') || '[]');
-              var s = st.find(function (x) { return x.id === store.id; });
-              if (s) { s.productsPushed = (s.productsPushed || 0) + 1; s.lastSync = new Date().toISOString(); localStorage.setItem('sc_connected_stores', JSON.stringify(st)); }
-              window.HuntDrop.UI.toast(prod.title + ' pushed to ' + store.name + '!', 'success');
-            }).catch(function (err) {
-              window.HuntDrop.UI.toast('Push failed: ' + (err.message || 'Unknown error'), 'error');
-            });
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': store.auth && store.auth.apiKey ? store.auth.apiKey : '',
+              },
+              body: JSON.stringify(payload),
+            })
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function () {
+                var st = JSON.parse(localStorage.getItem('sc_connected_stores') || '[]');
+                var s = st.find(function (x) {
+                  return x.id === store.id;
+                });
+                if (s) {
+                  s.productsPushed = (s.productsPushed || 0) + 1;
+                  s.lastSync = new Date().toISOString();
+                  localStorage.setItem('sc_connected_stores', JSON.stringify(st));
+                }
+                window.HuntDrop.UI.toast(prod.title + ' pushed to ' + store.name + '!', 'success');
+              })
+              .catch(function (err) {
+                window.HuntDrop.UI.toast('Push failed: ' + (err.message || 'Unknown error'), 'error');
+              });
           }
           return;
         }
@@ -329,8 +355,6 @@
     lb.classList.remove('active');
     document.body.style.overflow = '';
   }
-
-
 
   function setEmptyState(mode, title, description) {
     const empty = document.getElementById('productsEmpty');
@@ -665,7 +689,6 @@
         })
       );
 
-
       _cleanups = c;
 
       // View toggle (grid/list)
@@ -697,8 +720,6 @@
           }
         });
       });
-
-
     },
 
     unmount(_ctx) {

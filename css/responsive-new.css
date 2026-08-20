@@ -1,0 +1,571 @@
+/* ===================================================================
+   RESPONSIVE — Mobile & Tablet Breakpoints
+   =================================================================== */
+
+/* ===== Tablet (max-width: 1024px) ===== */
+@media (max-width: 1024px) {
+  /* Navigation */
+  .topnav {
+    padding: 0 16px;
+  }
+  
+  .nav-links {
+    display: none;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    z-index: 500;
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 499;
+  }
+
+  .sidebar.open ~ .sidebar-backdrop {
+    display: block;
+  }
+
+  /* Main Content */
+  .main-content {
+    margin-left: 0;
+  }
+
+  /* Hero */
+  .hero-line-2 {
+    font-size: 36px;
+  }
+
+  /* KPI Bar */
+  .kpi-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Quick Tools */
+  .quick-launch {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .qt-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Sections */
+  .section-inner {
+    padding: 24px 16px 40px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-hero {
+    flex-direction: column;
+  }
+
+  .modal-image {
+    width: 100%;
+    height: 200px;
+  }
+
+  .modal-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .platform-comparison {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .supplier-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .demand-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Mobile (max-width: 768px) ===== */
+@media (max-width: 768px) {
+  /* Navigation */
+  .topnav {
+    padding: 0 12px;
+    height: 52px;
+  }
+
+  .logo-text {
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  .logo-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .nav-right {
+    gap: 8px;
+  }
+
+  .credits-badge {
+    display: none;
+  }
+
+  .btn-upgrade {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .theme-toggle {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Hero Search */
+  .hero-search {
+    padding: 24px 16px 16px;
+  }
+
+  .hero-line-1 {
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+
+  .hero-line-2 {
+    font-size: 28px;
+  }
+
+  .hero-sub {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .search-platform-select {
+    width: 100%;
+  }
+
+  .search-platform-select select {
+    width: 100%;
+  }
+
+  #searchInput {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .search-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .voice-search-btn {
+    display: none !important;
+  }
+
+  /* KPI Bar */
+  .kpi-bar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+  }
+
+  .kpi-value {
+    font-size: 20px;
+  }
+
+  .kpi-label {
+    font-size: 10px;
+  }
+
+  .kpi-spark {
+    display: none;
+  }
+
+  /* Quick Tools */
+  .quick-tools-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .quick-tools-tabs {
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+  }
+
+  .qt-tab {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .quick-launch {
+    grid-template-columns: 1fr;
+  }
+
+  .ql-card {
+    padding: 14px;
+  }
+
+  .ql-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ql-name {
+    font-size: 14px;
+  }
+
+  .ql-desc {
+    font-size: 11px;
+  }
+
+  .qt-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qt-card {
+    padding: 12px;
+  }
+
+  .qt-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .qt-name {
+    font-size: 13px;
+  }
+
+  .qt-desc {
+    font-size: 11px;
+    display: none;
+  }
+
+  /* Trending */
+  .trending-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .trending-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  /* Sections */
+  .section-inner {
+    padding: 16px 12px 32px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+
+  .section-desc {
+    font-size: 13px;
+  }
+
+  /* AI Signal Bar */
+  .ai-signal-bar {
+    padding: 8px 12px;
+  }
+
+  .signal-track {
+    display: none;
+  }
+
+  .signal-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 11px;
+  }
+
+  /* Modal */
+  .modal {
+    width: 98%;
+    border-radius: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-hero {
+    gap: 16px;
+  }
+
+  .modal-image {
+    height: 160px;
+  }
+
+  .modal-title {
+    font-size: 16px;
+  }
+
+  .modal-price {
+    font-size: 22px;
+  }
+
+  .modal-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .modal-section-title {
+    font-size: 13px;
+  }
+
+  .platform-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .demand-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* AI Analysis */
+  .ai-analysis-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .ai-metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Related Tools */
+  .related-tools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Toast */
+  .hd-toast-container {
+    right: 12px;
+    left: 12px;
+  }
+
+  .hd-toast {
+    width: 100%;
+  }
+
+  /* Command Palette */
+  .cmd-palette {
+    width: 95%;
+    max-height: 80vh;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+}
+
+/* ===== Small Mobile (max-width: 480px) ===== */
+@media (max-width: 480px) {
+  .topnav {
+    padding: 0 8px;
+  }
+
+  .logo-text {
+    font-size: 14px;
+  }
+
+  .hero-line-2 {
+    font-size: 24px;
+  }
+
+  .hero-sub {
+    font-size: 12px;
+  }
+
+  .search-box {
+    padding: 6px;
+  }
+
+  .kpi-card {
+    padding: 10px;
+  }
+
+  .kpi-value {
+    font-size: 18px;
+  }
+
+  .ql-card {
+    padding: 12px;
+  }
+
+  .section-inner {
+    padding: 12px 8px 24px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 12px;
+  }
+
+  .modal-close {
+    width: 30px;
+    height: 30px;
+    margin: 8px;
+  }
+
+  .modal-body {
+    padding: 12px;
+  }
+
+  .modal-title {
+    font-size: 14px;
+  }
+
+  .modal-price {
+    font-size: 20px;
+  }
+
+  .modal-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .modal-stat {
+    padding: 8px 4px;
+  }
+
+  .modal-stat-value {
+    font-size: 14px;
+  }
+
+  .modal-stat-label {
+    font-size: 8px;
+  }
+
+  .ai-features-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .ai-feature {
+    padding: 10px 6px;
+  }
+
+  .ai-feature-icon {
+    font-size: 16px;
+  }
+
+  .ai-feature span:last-child {
+    font-size: 9px;
+  }
+}
+
+/* ===== Touch Device Optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+  .kpi-card:hover,
+  .ql-card:hover,
+  .qt-card:hover,
+  .product-card:hover,
+  .related-tool-card:hover {
+    transform: none;
+  }
+
+  .btn:hover,
+  .search-btn:hover,
+  .ai-analyze-btn:hover {
+    transform: none;
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .topnav,
+  .sidebar,
+  .bg-grid,
+  .bg-glow,
+  .hero-bg-orbs,
+  .quick-tools,
+  .trending-section,
+  .recent-searches,
+  .card-quick-actions,
+  .modal-overlay,
+  .hd-toast-container,
+  .huntdrop-tooltip,
+  .nav-back-btn,
+  .theme-toggle,
+  .btn-upgrade,
+  .credits-badge,
+  .search-box,
+  .search-tags,
+  .voice-search-btn,
+  .feeling-lucky-btn,
+  .sr-filter-bar,
+  .sr-view-toggle,
+  .sr-skeleton,
+  .sr-related-tools,
+  .welcome-card,
+  #hd-error-banner {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .section {
+    display: block !important;
+    page-break-inside: avoid;
+  }
+
+  .section-inner {
+    padding: 20px;
+    max-width: 100%;
+  }
+
+  .product-card {
+    break-inside: avoid;
+    border: 1px solid #ccc;
+  }
+
+  a {
+    text-decoration: underline;
+    color: black;
+  }
+}

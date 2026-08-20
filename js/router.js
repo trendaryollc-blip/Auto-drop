@@ -2,60 +2,60 @@
    ROUTER — SPA Navigation Between Unified Pages
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, UI, Config } = window.HuntDrop;
 
   // ===== Route Definitions =====
   const routes = {
-    'dashboard': {
+    dashboard: {
       title: 'Dashboard',
       icon: '🏠',
-      section: 'section-dashboard'
+      section: 'section-dashboard',
     },
     'product-finder': {
       title: 'Find Products',
       icon: '🔍',
       section: 'section-product-finder',
-      breadcrumb: ['Dashboard', 'Find Products']
+      breadcrumb: ['Dashboard', 'Find Products'],
     },
     'profit-hub': {
       title: 'Profit Calculator',
       icon: '💰',
       section: 'section-profit-hub',
-      breadcrumb: ['Dashboard', 'Profit Hub']
+      breadcrumb: ['Dashboard', 'Profit Hub'],
     },
     'supplier-center': {
       title: 'Find Suppliers',
       icon: '🏭',
       section: 'section-supplier-center',
-      breadcrumb: ['Dashboard', 'Supplier Center']
+      breadcrumb: ['Dashboard', 'Supplier Center'],
     },
     'competitor-intel': {
       title: 'Competitor Spy',
       icon: '🕵️',
       section: 'section-competitor-intel',
-      breadcrumb: ['Dashboard', 'Competitor Intel']
+      breadcrumb: ['Dashboard', 'Competitor Intel'],
     },
     'marketing-hub': {
       title: 'Marketing',
       icon: '📢',
       section: 'section-marketing-hub',
-      breadcrumb: ['Dashboard', 'Marketing Hub']
+      breadcrumb: ['Dashboard', 'Marketing Hub'],
     },
     'store-builder': {
       title: 'Store Builder',
       icon: '🏪',
       section: 'section-store-builder',
-      breadcrumb: ['Dashboard', 'Store Builder']
+      breadcrumb: ['Dashboard', 'Store Builder'],
     },
     'ai-coach': {
       title: 'AI Coach',
       icon: '🧠',
       section: 'section-ai-coach',
-      breadcrumb: ['Dashboard', 'AI Coach']
-    }
+      breadcrumb: ['Dashboard', 'AI Coach'],
+    },
   };
 
   let currentRoute = 'dashboard';
@@ -83,9 +83,9 @@
 
     const route = routes[routeName];
     const sections = document.querySelectorAll('.section');
-    
+
     // Hide all sections
-    sections.forEach(s => s.classList.remove('active'));
+    sections.forEach((s) => s.classList.remove('active'));
 
     // Show target section
     const targetSection = document.getElementById(route.section);
@@ -117,19 +117,19 @@
   // ===== Update Nav Active States =====
   function updateNavActive(routeName) {
     // Update sidebar items
-    document.querySelectorAll('.sidebar-item').forEach(item => {
+    document.querySelectorAll('.sidebar-item').forEach((item) => {
       item.classList.remove('active');
     });
 
     // Update quick tools cards
-    document.querySelectorAll('.qt-card').forEach(card => {
+    document.querySelectorAll('.qt-card').forEach((card) => {
       card.classList.remove('active');
     });
 
     // Mark matching items as active
     const route = routes[routeName];
     if (route) {
-      document.querySelectorAll(`[data-route="${routeName}"]`).forEach(el => {
+      document.querySelectorAll(`[data-route="${routeName}"]`).forEach((el) => {
         el.classList.add('active');
       });
     }
@@ -165,11 +165,11 @@
     navigate: navigateToRoute,
     goBack: goBack,
     getCurrentRoute: () => currentRoute,
-    getRoutes: () => routes
+    getRoutes: () => routes,
   };
 
   // Also expose as navigateTo for backward compatibility
-  window.HuntDrop.navigateTo = function(sectionId) {
+  window.HuntDrop.navigateTo = function (sectionId) {
     // Map old section IDs to new routes
     const sectionToRoute = {
       'section-dashboard': 'dashboard',
@@ -179,7 +179,7 @@
       'section-competitor-intel': 'competitor-intel',
       'section-marketing-hub': 'marketing-hub',
       'section-store-builder': 'store-builder',
-      'section-ai-coach': 'ai-coach'
+      'section-ai-coach': 'ai-coach',
     };
 
     const route = sectionToRoute[sectionId] || 'dashboard';
@@ -187,5 +187,4 @@
   };
 
   window.HuntDrop.goBack = goBack;
-
 })();

@@ -2,7 +2,7 @@
    PROFIT HUB — Unified Profit Calculator Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -21,7 +21,7 @@
         shippingCost: 0,
         platformFee: 0,
         adCost: 0,
-        taxRate: 0
+        taxRate: 0,
       };
     },
 
@@ -237,7 +237,7 @@
 
     bindEvents() {
       const inputs = ['phSellingPrice', 'phProductCost', 'phShippingCost', 'phPlatformFee', 'phAdCost', 'phTaxRate'];
-      inputs.forEach(id => {
+      inputs.forEach((id) => {
         const el = document.getElementById(id);
         if (el) {
           el.addEventListener('input', () => this.calculateProfit());
@@ -247,11 +247,11 @@
       const shippingMethod = document.getElementById('phShippingMethod');
       if (shippingMethod) {
         shippingMethod.addEventListener('change', (e) => {
-          const costs = { epacket: 4.50, aliexpress: 3.00, dhl: 15.00, fedex: 12.00 };
+          const costs = { epacket: 4.5, aliexpress: 3.0, dhl: 15.0, fedex: 12.0 };
           const times = { epacket: '7-15 days', aliexpress: '15-30 days', dhl: '3-7 days', fedex: '5-10 days' };
           const costInput = document.getElementById('phShippingCost');
           const timeDisplay = document.getElementById('phDeliveryTime');
-          if (costInput) costInput.value = costs[e.target.value] || 4.50;
+          if (costInput) costInput.value = costs[e.target.value] || 4.5;
           if (timeDisplay) timeDisplay.textContent = times[e.target.value] || '7-15 days';
           this.calculateProfit();
         });
@@ -265,7 +265,7 @@
 
     loadProduct() {
       this.product = window.HuntDrop.selectedProduct || this.product;
-      
+
       const display = document.getElementById('phProductDisplay');
       const priceSection = document.getElementById('phPriceSection');
       const shippingSection = document.getElementById('phShippingSection');
@@ -280,9 +280,9 @@
       }
 
       if (emptyState) emptyState.style.display = 'none';
-      
+
       // Show all sections
-      [priceSection, shippingSection, feesSection, profitSection, forecastSection].forEach(s => {
+      [priceSection, shippingSection, feesSection, profitSection, forecastSection].forEach((s) => {
         if (s) s.style.display = 'block';
       });
 
@@ -321,7 +321,7 @@
       const tax = selling * (taxPercent / 100);
       const totalCost = cost + shipping + platformFee + adCost + tax;
       const netProfit = selling - totalCost;
-      const margin = selling > 0 ? ((netProfit / selling) * 100) : 0;
+      const margin = selling > 0 ? (netProfit / selling) * 100 : 0;
 
       // Update displays
       const updateEl = (id, value) => {
@@ -345,7 +345,8 @@
         netEl.style.color = netProfit >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
       }
       if (marginEl) {
-        marginEl.style.color = margin >= 30 ? 'var(--accent-green)' : margin >= 15 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+        marginEl.style.color =
+          margin >= 30 ? 'var(--accent-green)' : margin >= 15 ? 'var(--accent-yellow)' : 'var(--accent-red)';
       }
 
       // Profit bar
@@ -353,7 +354,8 @@
       if (profitBar && selling > 0) {
         const profitPercent = Math.max(0, Math.min(100, margin));
         profitBar.style.width = `${profitPercent}%`;
-        profitBar.style.background = margin >= 30 ? 'var(--accent-green)' : margin >= 15 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+        profitBar.style.background =
+          margin >= 30 ? 'var(--accent-green)' : margin >= 15 ? 'var(--accent-yellow)' : 'var(--accent-red)';
       }
 
       // Forecast
@@ -365,12 +367,11 @@
       updateEl('phForecastHigh', `$${monthlyHigh.toLocaleString()}`);
 
       // Optimal price range
-      const optimalLow = (cost + shipping + adCost) / (1 - (feePercent + taxPercent) / 100) * 1.3;
+      const optimalLow = ((cost + shipping + adCost) / (1 - (feePercent + taxPercent) / 100)) * 1.3;
       const optimalHigh = optimalLow * 1.5;
       updateEl('phOptimalRange', `$${optimalLow.toFixed(2)} - $${optimalHigh.toFixed(2)}`);
       const optimalEl = document.getElementById('phOptimalPrice');
       if (optimalEl && selling === 0) optimalEl.style.display = 'flex';
-    }
+    },
   });
-
 })();

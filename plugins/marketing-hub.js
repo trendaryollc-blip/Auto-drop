@@ -2,7 +2,7 @@
    MARKETING HUB — Unified Marketing Tools Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -140,9 +140,9 @@
       const budgetInput = document.getElementById('mhBudget');
       if (budgetInput) budgetInput.addEventListener('input', () => this.updateBudget());
 
-      document.querySelectorAll('.mh-tab').forEach(tab => {
+      document.querySelectorAll('.mh-tab').forEach((tab) => {
         tab.addEventListener('click', (e) => {
-          document.querySelectorAll('.mh-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.mh-tab').forEach((t) => t.classList.remove('active'));
           e.target.classList.add('active');
           this.generateAd();
         });
@@ -163,7 +163,9 @@
       }
 
       if (emptyState) emptyState.style.display = 'none';
-      [adSection, budgetSection, objectionSection].forEach(s => { if (s) s.style.display = 'block'; });
+      [adSection, budgetSection, objectionSection].forEach((s) => {
+        if (s) s.style.display = 'block';
+      });
 
       if (display) {
         display.innerHTML = `
@@ -183,13 +185,13 @@
     generateAd() {
       const output = document.getElementById('mhAdOutput');
       const activePlatform = document.querySelector('.mh-tab.active')?.dataset.platform || 'facebook';
-      
+
       if (!output || !this.product) return;
 
       const ads = {
         facebook: `🔥 Stop scrolling! This ${this.product.title} is selling out FAST.\n\n✅ Premium quality\n✅ Fast shipping\n✅ 30-day guarantee\n\nLimited time offer - 50% OFF today only!\n\n👆 Click "Shop Now" before it's gone!`,
         tiktok: `POV: You just found the product everyone's been looking for 😱\n\n${this.product.title} is here and it's AMAZING.\n\nLink in bio before it sells out! 🛒\n\n#trending #musthave #fyp`,
-        instagram: `✨ Introducing the ${this.product.title} ✨\n\nThe product that's breaking the internet. See why everyone is talking about it.\n\n📸 Tag someone who needs this!\n\n🔗 Link in bio\n\n#trending #viral #musthave`
+        instagram: `✨ Introducing the ${this.product.title} ✨\n\nThe product that's breaking the internet. See why everyone is talking about it.\n\n📸 Tag someone who needs this!\n\n🔗 Link in bio\n\n#trending #viral #musthave`,
       };
 
       output.innerHTML = `
@@ -217,18 +219,30 @@
       if (!list) return;
 
       const objections = [
-        { objection: '"It\'s too expensive"', response: 'Compare the value: our product lasts 3x longer than alternatives, saving you money long-term.' },
-        { objection: '"Does it actually work?"', response: 'Show social proof: 2,000+ happy customers, 4.8 star rating, and our 30-day money-back guarantee.' },
-        { objection: '"I can find it cheaper elsewhere"', response: 'Highlight unique features and quality guarantee that cheaper alternatives can\'t match.' }
+        {
+          objection: '"It\'s too expensive"',
+          response: 'Compare the value: our product lasts 3x longer than alternatives, saving you money long-term.',
+        },
+        {
+          objection: '"Does it actually work?"',
+          response: 'Show social proof: 2,000+ happy customers, 4.8 star rating, and our 30-day money-back guarantee.',
+        },
+        {
+          objection: '"I can find it cheaper elsewhere"',
+          response: "Highlight unique features and quality guarantee that cheaper alternatives can't match.",
+        },
       ];
 
-      list.innerHTML = objections.map(o => `
+      list.innerHTML = objections
+        .map(
+          (o) => `
         <div class="mh-objection-card">
           <div class="mh-objection-q">${o.objection}</div>
           <div class="mh-objection-a">💡 ${o.response}</div>
         </div>
-      `).join('');
-    }
+      `
+        )
+        .join('');
+    },
   });
-
 })();

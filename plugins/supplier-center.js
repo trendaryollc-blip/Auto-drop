@@ -2,7 +2,7 @@
    SUPPLIER CENTER — Unified Supplier Discovery Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -105,7 +105,7 @@
 
     loadProduct() {
       this.product = window.HuntDrop.selectedProduct || this.product;
-      
+
       const display = document.getElementById('scProductDisplay');
       const suppliersSection = document.getElementById('scSuppliersSection');
       const riskSection = document.getElementById('scRiskSection');
@@ -156,7 +156,7 @@
           deliveryTime: '7-12 days',
           verified: true,
           price: this.product?.price ? (this.product.price * 0.4).toFixed(2) : '8.50',
-          riskScore: 92
+          riskScore: 92,
         },
         {
           id: 2,
@@ -168,7 +168,7 @@
           deliveryTime: '10-18 days',
           verified: true,
           price: this.product?.price ? (this.product.price * 0.35).toFixed(2) : '7.20',
-          riskScore: 85
+          riskScore: 85,
         },
         {
           id: 3,
@@ -180,13 +180,15 @@
           deliveryTime: '15-25 days',
           verified: false,
           price: this.product?.price ? (this.product.price * 0.3).toFixed(2) : '6.80',
-          riskScore: 68
-        }
+          riskScore: 68,
+        },
       ];
 
       if (count) count.textContent = `${this.suppliers.length} suppliers`;
 
-      grid.innerHTML = this.suppliers.map((supplier, index) => `
+      grid.innerHTML = this.suppliers
+        .map(
+          (supplier, index) => `
         <div class="sc-supplier-card ${index === 0 ? 'best' : ''}" style="animation: fadeUp 0.4s ease ${index * 0.1}s both;">
           ${index === 0 ? '<div class="sc-best-badge">Best Value</div>' : ''}
           <div class="sc-supplier-header">
@@ -229,11 +231,15 @@
             <button class="unified-btn unified-btn-secondary">View Details</button>
           </div>
         </div>
-      `).join('');
+      `
+        )
+        .join('');
 
       // Risk assessment
       if (riskGrid) {
-        riskGrid.innerHTML = this.suppliers.map(supplier => `
+        riskGrid.innerHTML = this.suppliers
+          .map(
+            (supplier) => `
           <div class="sc-risk-item">
             <div class="sc-risk-info">
               <span class="sc-risk-name">${supplier.name}</span>
@@ -248,9 +254,10 @@
               ${supplier.riskScore >= 80 ? 'Low Risk' : supplier.riskScore >= 60 ? 'Medium Risk' : 'High Risk'}
             </span>
           </div>
-        `).join('');
+        `
+          )
+          .join('');
       }
-    }
+    },
   });
-
 })();

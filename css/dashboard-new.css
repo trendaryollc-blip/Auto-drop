@@ -231,12 +231,24 @@
 }
 
 /* ===== Stagger Animation ===== */
-.dashboard-action-card:nth-child(1) { animation: fadeUp 0.5s ease 0.1s both; }
-.dashboard-action-card:nth-child(2) { animation: fadeUp 0.5s ease 0.15s both; }
-.dashboard-action-card:nth-child(3) { animation: fadeUp 0.5s ease 0.2s both; }
-.dashboard-action-card:nth-child(4) { animation: fadeUp 0.5s ease 0.25s both; }
-.dashboard-action-card:nth-child(5) { animation: fadeUp 0.5s ease 0.3s both; }
-.dashboard-action-card:nth-child(6) { animation: fadeUp 0.5s ease 0.35s both; }
+.dashboard-action-card:nth-child(1) {
+  animation: fadeUp 0.5s ease 0.1s both;
+}
+.dashboard-action-card:nth-child(2) {
+  animation: fadeUp 0.5s ease 0.15s both;
+}
+.dashboard-action-card:nth-child(3) {
+  animation: fadeUp 0.5s ease 0.2s both;
+}
+.dashboard-action-card:nth-child(4) {
+  animation: fadeUp 0.5s ease 0.25s both;
+}
+.dashboard-action-card:nth-child(5) {
+  animation: fadeUp 0.5s ease 0.3s both;
+}
+.dashboard-action-card:nth-child(6) {
+  animation: fadeUp 0.5s ease 0.35s both;
+}
 
 /* ===== Empty State ===== */
 .dashboard-empty {

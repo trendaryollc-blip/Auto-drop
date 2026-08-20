@@ -2,7 +2,7 @@
    AI COACH — Dedicated Strategy & Learning Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -181,7 +181,7 @@
         });
       }
 
-      document.querySelectorAll('.ac-topic-card').forEach(card => {
+      document.querySelectorAll('.ac-topic-card').forEach((card) => {
         card.addEventListener('click', () => {
           const topic = card.dataset.topic;
           this.askAboutTopic(topic);
@@ -248,11 +248,11 @@
     askAboutTopic(topic) {
       const topicQuestions = {
         'product-research': 'What are the best strategies for finding winning products?',
-        'pricing': 'How should I price my products for maximum profit?',
-        'marketing': 'What are the most effective marketing strategies for dropshipping?',
-        'scaling': 'How do I scale my dropshipping business from $1K to $10K/month?',
-        'suppliers': 'How do I find and work with reliable suppliers?',
-        'store': 'How do I optimize my store for better conversions?'
+        pricing: 'How should I price my products for maximum profit?',
+        marketing: 'What are the most effective marketing strategies for dropshipping?',
+        scaling: 'How do I scale my dropshipping business from $1K to $10K/month?',
+        suppliers: 'How do I find and work with reliable suppliers?',
+        store: 'How do I optimize my store for better conversions?',
       };
 
       const input = document.getElementById('acChatInput');
@@ -344,10 +344,12 @@
         { name: 'Posture Corrector', change: '+180%', icon: '🧘', hot: true },
         { name: 'LED Strip Lights', change: '+120%', icon: '💡', hot: false },
         { name: 'Portable Blender', change: '+95%', icon: '🥤', hot: false },
-        { name: 'Car Phone Mount', change: '+88%', icon: '📱', hot: false }
+        { name: 'Car Phone Mount', change: '+88%', icon: '📱', hot: false },
       ];
 
-      grid.innerHTML = trends.map((t, i) => `
+      grid.innerHTML = trends
+        .map(
+          (t, i) => `
         <div class="ac-trending-card" style="animation: fadeUp 0.4s ease ${i * 0.08}s both;">
           <span class="ac-trending-icon">${t.icon}</span>
           <div class="ac-trending-info">
@@ -356,7 +358,9 @@
           </div>
           ${t.hot ? '<span class="ac-trending-badge">🔥 Hot</span>' : ''}
         </div>
-      `).join('');
+      `
+        )
+        .join('');
     },
 
     loadLearningCenter() {
@@ -364,15 +368,17 @@
       if (!grid) return;
 
       const articles = [
-        { title: 'Beginner\'s Guide to Dropshipping', category: 'Getting Started', readTime: '8 min', icon: '📖' },
+        { title: "Beginner's Guide to Dropshipping", category: 'Getting Started', readTime: '8 min', icon: '📖' },
         { title: 'How to Find Winning Products', category: 'Product Research', readTime: '12 min', icon: '🔍' },
         { title: 'Facebook Ads Mastery', category: 'Marketing', readTime: '15 min', icon: '📢' },
         { title: 'Pricing Psychology 101', category: 'Strategy', readTime: '10 min', icon: '💰' },
         { title: 'Supplier Negotiation Tips', category: 'Sourcing', readTime: '7 min', icon: '🤝' },
-        { title: 'Scaling to $10K/Month', category: 'Growth', readTime: '11 min', icon: '📈' }
+        { title: 'Scaling to $10K/Month', category: 'Growth', readTime: '11 min', icon: '📈' },
       ];
 
-      grid.innerHTML = articles.map((a, i) => `
+      grid.innerHTML = articles
+        .map(
+          (a, i) => `
         <div class="ac-learning-card" style="animation: fadeUp 0.4s ease ${i * 0.08}s both;">
           <span class="ac-learning-icon">${a.icon}</span>
           <div class="ac-learning-info">
@@ -381,7 +387,9 @@
             <span class="ac-learning-time">${a.readTime} read</span>
           </div>
         </div>
-      `).join('');
+      `
+        )
+        .join('');
     },
 
     loadRecommendations() {
@@ -392,17 +400,20 @@
         { title: 'Optimize your product descriptions', priority: 'high', icon: '✍️' },
         { title: 'Add customer reviews to your store', priority: 'high', icon: '⭐' },
         { title: 'Set up email abandoned cart recovery', priority: 'medium', icon: '📧' },
-        { title: 'Test new ad creatives this week', priority: 'medium', icon: '🎨' }
+        { title: 'Test new ad creatives this week', priority: 'medium', icon: '🎨' },
       ];
 
-      container.innerHTML = recs.map((r, i) => `
+      container.innerHTML = recs
+        .map(
+          (r, i) => `
         <div class="ac-rec-card" style="animation: fadeUp 0.4s ease ${i * 0.1}s both;">
           <span class="ac-rec-icon">${r.icon}</span>
           <span class="ac-rec-title">${r.title}</span>
           <span class="unified-tag ${r.priority === 'high' ? 'red' : 'yellow'}">${r.priority}</span>
         </div>
-      `).join('');
-    }
+      `
+        )
+        .join('');
+    },
   });
-
 })();

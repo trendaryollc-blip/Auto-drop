@@ -2,7 +2,7 @@
    STORE BUILDER — Unified Store Creation Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -158,7 +158,6 @@
           </div>
         `;
       }
-    }
+    },
   });
-
 })();

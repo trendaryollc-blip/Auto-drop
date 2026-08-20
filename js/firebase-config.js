@@ -2,20 +2,20 @@
    Firebase Configuration — Reads from env-config.js
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   function initFirebase() {
-    var HD = window.HuntDrop = window.HuntDrop || {};
+    var HD = (window.HuntDrop = window.HuntDrop || {});
 
     // Get Firebase config from env-config.js
     var config = HD.firebaseConfig || {
-      apiKey: "AIzaSyAspYJzwBTe7g_msKELnkJYZLNtb7Ssdns",
-      authDomain: "auto-drop-3d8b6.firebaseapp.com",
-      projectId: "auto-drop-3d8b6",
-      storageBucket: "auto-drop-3d8b6.firebasestorage.app",
-      messagingSenderId: "",
-      appId: ""
+      apiKey: 'AIzaSyAspYJzwBTe7g_msKELnkJYZLNtb7Ssdns',
+      authDomain: 'auto-drop-3d8b6.firebaseapp.com',
+      projectId: 'auto-drop-3d8b6',
+      storageBucket: 'auto-drop-3d8b6.firebasestorage.app',
+      messagingSenderId: '',
+      appId: '',
     };
 
     // Initialize Firebase
@@ -30,7 +30,7 @@
     // Export for use in other files
     HD.firebase = { auth, db };
 
-    console.log("[Firebase] Initialized for project:", config.projectId);
+    console.log('[Firebase] Initialized for project:', config.projectId);
   }
 
   // Initialize when DOM is ready
@@ -43,5 +43,4 @@
   // Retry if firebase SDK loads later
   setTimeout(initFirebase, 100);
   setTimeout(initFirebase, 500);
-
 })();

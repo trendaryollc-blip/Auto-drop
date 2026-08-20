@@ -2,7 +2,7 @@
    AUTH — Login, Signup, Forgot Password, Google Auth
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { auth, db } = window.HuntDrop.firebase;
@@ -38,29 +38,29 @@
   }
 
   // ===== Check if already logged in =====
-  auth.onAuthStateChanged(user => {
+  auth.onAuthStateChanged((user) => {
     if (user) {
       window.location.href = 'index.html';
     }
   });
 
   // ===== Form Switching =====
-  showSignup.addEventListener('click', e => {
+  showSignup.addEventListener('click', (e) => {
     e.preventDefault();
     showSignupForm();
   });
 
-  showLogin.addEventListener('click', e => {
+  showLogin.addEventListener('click', (e) => {
     e.preventDefault();
     showLoginForm();
   });
 
-  forgotPasswordLink.addEventListener('click', e => {
+  forgotPasswordLink.addEventListener('click', (e) => {
     e.preventDefault();
     showForgotForm();
   });
 
-  backToLogin.addEventListener('click', e => {
+  backToLogin.addEventListener('click', (e) => {
     e.preventDefault();
     showLoginForm();
   });
@@ -99,7 +99,7 @@
   }
 
   // ===== Login =====
-  loginFormEl.addEventListener('submit', async e => {
+  loginFormEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors();
 
@@ -142,7 +142,7 @@
   });
 
   // ===== Signup =====
-  signupFormEl.addEventListener('submit', async e => {
+  signupFormEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors();
 
@@ -184,7 +184,7 @@
         plan: 'free',
         credits: 5000,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
       // Redirect handled by onAuthStateChanged
@@ -209,7 +209,7 @@
   });
 
   // ===== Forgot Password =====
-  forgotFormEl.addEventListener('submit', async e => {
+  forgotFormEl.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearErrors();
 
@@ -249,17 +249,20 @@
       // Save user data to Firestore if new user
       const userDoc = await db.collection('users').doc(user.uid).get();
       if (!userDoc.exists) {
-        await db.collection('users').doc(user.uid).set({
-          name: user.displayName || 'User',
-          email: user.email,
-          plan: 'free',
-          credits: 5000,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await db
+          .collection('users')
+          .doc(user.uid)
+          .set({
+            name: user.displayName || 'User',
+            email: user.email,
+            plan: 'free',
+            credits: 5000,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+          });
       } else {
         await db.collection('users').doc(user.uid).update({
-          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
         });
       }
 
@@ -277,7 +280,7 @@
   // ===== Password Strength Checker =====
   const signupPassword = document.getElementById('signupPassword');
   if (signupPassword) {
-    signupPassword.addEventListener('input', e => {
+    signupPassword.addEventListener('input', (e) => {
       const password = e.target.value;
       const strength = checkPasswordStrength(password);
 
@@ -305,15 +308,16 @@
   }
 
   // ===== Toggle Password Visibility =====
-  window.togglePassword = function(inputId, btn) {
+  window.togglePassword = function (inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
       input.type = 'text';
-      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+      btn.innerHTML =
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
     } else {
       input.type = 'password';
-      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+      btn.innerHTML =
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
     }
   };
-
 })();

@@ -2,12 +2,12 @@
    LANDING PAGE — Animations & Interactions
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   // ===== Smooth Scroll for Anchor Links =====
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+  document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener('click', function (e) {
       e.preventDefault();
       const target = document.querySelector(this.getAttribute('href'));
       if (target) {
@@ -31,11 +31,11 @@
   // ===== Intersection Observer for Scroll Animations =====
   const observerOptions = {
     threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
+    rootMargin: '0px 0px -50px 0px',
   };
 
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         entry.target.style.opacity = '1';
         entry.target.style.transform = 'translateY(0)';
@@ -45,7 +45,7 @@
   }, observerOptions);
 
   // Observe feature cards, steps, testimonials
-  document.querySelectorAll('.landing-feature-card, .landing-step, .testimonial-card, .landing-stat').forEach(el => {
+  document.querySelectorAll('.landing-feature-card, .landing-step, .testimonial-card, .landing-stat').forEach((el) => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(24px)';
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -81,16 +81,19 @@
   }
 
   // Observe stat values
-  const statObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        animateCounter(entry.target);
-        statObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.5 });
+  const statObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          statObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.5 }
+  );
 
-  document.querySelectorAll('.stat-value').forEach(el => {
+  document.querySelectorAll('.stat-value').forEach((el) => {
     statObserver.observe(el);
   });
 
@@ -101,7 +104,7 @@
       'Trending products on TikTok for summer 2026...',
       'Best selling beauty products on Amazon...',
       'Winning dropshipping products in fitness...',
-      'High margin products under $20...'
+      'High margin products under $20...',
     ];
     let phraseIndex = 0;
     let charIndex = 0;
@@ -147,5 +150,4 @@
   document.querySelectorAll('.landing-stats-grid .landing-stat').forEach((stat, i) => {
     stat.style.transitionDelay = `${i * 0.1}s`;
   });
-
 })();

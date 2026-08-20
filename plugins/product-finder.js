@@ -2,7 +2,7 @@
    PRODUCT FINDER — Unified Product Search & Discovery Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config, DataLayer } = window.HuntDrop;
@@ -169,7 +169,7 @@
         });
       }
 
-      suggestions.forEach(btn => {
+      suggestions.forEach((btn) => {
         btn.addEventListener('click', () => {
           const query = btn.dataset.query;
           if (searchInput) searchInput.value = query;
@@ -185,7 +185,7 @@
     performSearch(query) {
       const searchInput = document.getElementById('pfSearchInput');
       const platformSelect = document.getElementById('pfPlatformSelect');
-      
+
       const searchQuery = query || (searchInput ? searchInput.value : '');
       const platform = platformSelect ? platformSelect.value : 'all';
 
@@ -195,7 +195,7 @@
       const resultsSection = document.getElementById('pfResultsSection');
       const emptyState = document.getElementById('pfEmptyState');
       const resultsGrid = document.getElementById('pfResultsGrid');
-      
+
       if (emptyState) emptyState.style.display = 'none';
       if (resultsSection) resultsSection.style.display = 'block';
       if (resultsGrid) {
@@ -218,7 +218,7 @@
     renderResults(results) {
       const resultsGrid = document.getElementById('pfResultsGrid');
       const resultCount = document.getElementById('pfResultCount');
-      
+
       if (!resultsGrid) return;
 
       if (results.length === 0) {
@@ -235,7 +235,9 @@
 
       if (resultCount) resultCount.textContent = `${results.length} products`;
 
-      resultsGrid.innerHTML = results.map((product, index) => `
+      resultsGrid.innerHTML = results
+        .map(
+          (product, index) => `
         <div class="pf-product-card" data-id="${product.id}" style="animation: fadeUp 0.4s ease ${index * 0.05}s both;">
           <div class="pf-product-image">
             <img src="${product.image || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22><rect fill=%22%231a1a2e%22 width=%22200%22 height=%22200%22/></svg>'}" alt="${product.title}" />
@@ -256,10 +258,12 @@
             </button>
           </div>
         </div>
-      `).join('');
+      `
+        )
+        .join('');
 
       // Add click handlers
-      resultsGrid.querySelectorAll('.pf-product-card').forEach(card => {
+      resultsGrid.querySelectorAll('.pf-product-card').forEach((card) => {
         card.addEventListener('click', (e) => {
           if (!e.target.classList.contains('pf-select-btn')) {
             this.selectProduct(card.dataset.id);
@@ -269,7 +273,7 @@
     },
 
     selectProduct(productId) {
-      const product = this.searchResults.find(p => p.id === productId);
+      const product = this.searchResults.find((p) => p.id === productId);
       if (!product) return;
 
       this.selectedProduct = product;
@@ -282,7 +286,7 @@
       const selectedSection = document.getElementById('pfSelectedSection');
       const selectedBanner = document.getElementById('pfSelectedBanner');
       const resultsSection = document.getElementById('pfResultsSection');
-      
+
       if (selectedSection) selectedSection.style.display = 'block';
       if (resultsSection) resultsSection.style.display = 'none';
 
@@ -310,13 +314,12 @@
     clearSelection() {
       this.selectedProduct = null;
       window.HuntDrop.selectedProduct = null;
-      
+
       const selectedSection = document.getElementById('pfSelectedSection');
       const resultsSection = document.getElementById('pfResultsSection');
-      
+
       if (selectedSection) selectedSection.style.display = 'none';
       if (resultsSection) resultsSection.style.display = 'block';
-    }
+    },
   });
-
 })();

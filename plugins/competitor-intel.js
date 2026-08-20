@@ -2,7 +2,7 @@
    COMPETITOR INTEL — Unified Competitor Analysis Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, PluginRegistry, UI, Config } = window.HuntDrop;
@@ -119,7 +119,9 @@
       }
 
       if (emptyState) emptyState.style.display = 'none';
-      [competitorsSection, techSection, personaSection].forEach(s => { if (s) s.style.display = 'block'; });
+      [competitorsSection, techSection, personaSection].forEach((s) => {
+        if (s) s.style.display = 'block';
+      });
 
       if (display) {
         display.innerHTML = `
@@ -144,11 +146,13 @@
       const competitors = [
         { name: 'TrendStore.com', revenue: '$45K/mo', products: 12, tech: ['Shopify', 'Klaviyo'], traffic: '125K/mo' },
         { name: 'DropPro.io', revenue: '$28K/mo', products: 8, tech: ['WooCommerce', 'Mailchimp'], traffic: '89K/mo' },
-        { name: 'WinProduct.co', revenue: '$18K/mo', products: 15, tech: ['Shopify', 'Oberlo'], traffic: '62K/mo' }
+        { name: 'WinProduct.co', revenue: '$18K/mo', products: 15, tech: ['Shopify', 'Oberlo'], traffic: '62K/mo' },
       ];
 
       if (competitorList) {
-        competitorList.innerHTML = competitors.map((c, i) => `
+        competitorList.innerHTML = competitors
+          .map(
+            (c, i) => `
           <div class="ci-competitor-card" style="animation: fadeUp 0.4s ease ${i * 0.1}s both;">
             <h3 class="ci-competitor-name">${c.name}</h3>
             <div class="ci-competitor-stats">
@@ -157,12 +161,14 @@
               <div class="unified-stat"><div class="unified-stat-value">${c.traffic}</div><div class="unified-stat-label">Traffic</div></div>
             </div>
           </div>
-        `).join('');
+        `
+          )
+          .join('');
       }
 
       const techs = ['Shopify', 'Klaviyo', 'Facebook Pixel', 'TikTok Pixel', 'Google Analytics', 'Hotjar'];
       if (techTags) {
-        techTags.innerHTML = techs.map(t => `<span class="unified-tag cyan">${t}</span>`).join('');
+        techTags.innerHTML = techs.map((t) => `<span class="unified-tag cyan">${t}</span>`).join('');
       }
 
       if (personaGrid) {
@@ -173,7 +179,6 @@
           <div class="unified-stat"><div class="unified-stat-value">Fitness</div><div class="unified-stat-label">Top Interest</div></div>
         `;
       }
-    }
+    },
   });
-
 })();

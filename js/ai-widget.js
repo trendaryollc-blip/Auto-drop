@@ -2,7 +2,7 @@
    FLOATING AI WIDGET — Quick Ask AI on Every Page
    =================================================================== */
 
-(function() {
+(function () {
   'use strict';
 
   const { EventBus, UI } = window.HuntDrop;
@@ -138,23 +138,23 @@
 
     function generateResponse(query) {
       const lower = query.toLowerCase();
-      
+
       if (lower.includes('product') || lower.includes('find') || lower.includes('trending')) {
-        return "I can help you find winning products! Try using the Product Finder page to search across multiple platforms. You can filter by price, margin, and competition level.";
+        return 'I can help you find winning products! Try using the Product Finder page to search across multiple platforms. You can filter by price, margin, and competition level.';
       }
       if (lower.includes('profit') || lower.includes('margin') || lower.includes('price')) {
-        return "For profit calculations, check out the Profit Hub. You can input your product cost, selling price, and shipping to see your exact margins.";
+        return 'For profit calculations, check out the Profit Hub. You can input your product cost, selling price, and shipping to see your exact margins.';
       }
       if (lower.includes('supplier') || lower.includes('source')) {
-        return "The Supplier Center shows verified suppliers with ratings, delivery times, and reliability scores. You can compare multiple suppliers side by side.";
+        return 'The Supplier Center shows verified suppliers with ratings, delivery times, and reliability scores. You can compare multiple suppliers side by side.';
       }
       if (lower.includes('ad') || lower.includes('marketing') || lower.includes('campaign')) {
-        return "The Marketing Hub can generate ad copy for Facebook, TikTok, and Instagram. It also includes budget allocation and content calendar planning.";
+        return 'The Marketing Hub can generate ad copy for Facebook, TikTok, and Instagram. It also includes budget allocation and content calendar planning.';
       }
       if (lower.includes('competitor') || lower.includes('spy')) {
-        return "Use the Competitor Intel page to spy on competitor stores, see their revenue, tech stack, and ad strategies.";
+        return 'Use the Competitor Intel page to spy on competitor stores, see their revenue, tech stack, and ad strategies.';
       }
-      
+
       return "That's a great question! I can help with product research, profit calculations, supplier verification, competitor analysis, and marketing strategies. What specific area would you like to explore?";
     }
 
@@ -172,5 +172,4 @@
   } else {
     initWidget();
   }
-
 })();

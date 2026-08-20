@@ -4,7 +4,7 @@ const path = require('path');
 const outDir = 'dist';
 const files = [
   'index.html',
-  'landing.html',
+  'app.html',
   'login.html',
   'core.js',
   'app.js',

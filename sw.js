@@ -16,7 +16,7 @@ const MAX_CACHE_ITEMS = 100; // LRU limit to prevent unbounded cache growth
 // Only core files that are needed on every page load
 const CORE_ASSETS = [
   '/',
-  '/index.html',
+  '/app.html',
   '/core.js',
   '/app.js',
   '/css/base.css',

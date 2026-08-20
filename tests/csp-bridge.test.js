@@ -21,7 +21,7 @@ describe('CSP nonce bridge', () => {
   });
 
   it('keeps the CSP policy secure and avoids hardcoded nonces', () => {
-    const htmlPath = resolve(process.cwd(), 'index.html');
+    const htmlPath = resolve(process.cwd(), 'app.html');
     const html = readFileSync(htmlPath, 'utf8');
 
     expect(html).toContain('Content-Security-Policy');

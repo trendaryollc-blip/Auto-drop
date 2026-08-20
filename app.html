@@ -568,7 +568,15 @@
         </button>
 
         <nav class="sidebar-nav" id="sidebarNav">
-          <a href="#" class="sidebar-dashboard" data-section="dashboard" data-tooltip="Dashboard">
+          <a
+            href="#"
+            class="sidebar-dashboard"
+            data-route="dashboard"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('dashboard');
+            "
+          >
             <span class="sidebar-dashboard-icon">
               <svg
                 viewBox="0 0 24 24"
@@ -584,628 +592,168 @@
             </span>
             <span class="sidebar-dashboard-label">Dashboard</span>
           </a>
-
           <div class="sidebar-divider"></div>
-
-          <!-- Research -->
-          <div class="sidebar-cat" data-cat="research">
-            <div class="sidebar-cat-header" data-tooltip="Research">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Research</span>
-              <span class="sidebar-cat-count">4</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="product-finder"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('product-finder');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="product-hunt" data-tooltip="AI Hunt">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
-                ></span>
-                <span class="sidebar-item-label">AI Hunt</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="niche-radar" data-tooltip="Niche Finder">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polygon
-                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                    /></svg
-                ></span>
-                <span class="sidebar-item-label">Niche Finder</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="market-gaps" data-tooltip="Market Gaps">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                    />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" /></svg
-                ></span>
-                <span class="sidebar-item-label">Market Gaps</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="lifecycle" data-tooltip="Product Lifecycle">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg
-                ></span>
-                <span class="sidebar-item-label">Product Lifecycle</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Intelligence -->
-          <div class="sidebar-cat" data-cat="intelligence">
-            <div class="sidebar-cat-header" data-tooltip="Intelligence">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M12 2a7 7 0 0 0-7 7c0 3 2 5.5 4 7.5L12 22l3-5.5c2-2 4-4.5 4-7.5a7 7 0 0 0-7-7z" />
-                  <circle cx="12" cy="9" r="2.5" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Intelligence</span>
-              <span class="sidebar-cat-count">3</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg
+            ></span>
+            <span class="sidebar-item-label">Find Products</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="profit-hub"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('profit-hub');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="ai-analyst" data-tooltip="AI Analysis">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M12 2a7 7 0 0 0-7 7c0 3 2 5.5 4 7.5L12 22l3-5.5c2-2 4-4.5 4-7.5a7 7 0 0 0-7-7z" />
-                    <circle cx="12" cy="9" r="2.5" /></svg
-                ></span>
-                <span class="sidebar-item-label">AI Analysis</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="spy-center" data-tooltip="Store Spy">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" /></svg
-                ></span>
-                <span class="sidebar-item-label">Store Spy</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="battlefield" data-tooltip="Rival Check">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" /></svg
-                ></span>
-                <span class="sidebar-item-label">Rival Check</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Financial -->
-          <div class="sidebar-cat" data-cat="financial">
-            <div class="sidebar-cat-header" data-tooltip="Financial">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Financial</span>
-              <span class="sidebar-cat-count">2</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
+            ></span>
+            <span class="sidebar-item-label">Profit Hub</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="supplier-center"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('supplier-center');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="profit-lab" data-tooltip="Profit Calculator">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg
-                ></span>
-                <span class="sidebar-item-label">Profit Calculator</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="budget" data-tooltip="Budget Planner">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                    <line x1="1" y1="10" x2="23" y2="10" /></svg
-                ></span>
-                <span class="sidebar-item-label">Budget Planner</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Sourcing -->
-          <div class="sidebar-cat" data-cat="sourcing">
-            <div class="sidebar-cat-header" data-tooltip="Sourcing">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                  />
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                  <line x1="12" y1="22.08" x2="12" y2="12" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Sourcing</span>
-              <span class="sidebar-cat-count">3</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" /></svg
+            ></span>
+            <span class="sidebar-item-label">Supplier Center</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="competitor-intel"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('competitor-intel');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="supplier-hub" data-tooltip="Find Suppliers">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" /></svg
-                ></span>
-                <span class="sidebar-item-label">Find Suppliers</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="supplier-intel" data-tooltip="Supplier Check">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg
-                ></span>
-                <span class="sidebar-item-label">Supplier Check</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="shipping-calc" data-tooltip="Shipping Calculator">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="1" y="3" width="15" height="13" />
-                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                    <circle cx="5.5" cy="18.5" r="2.5" />
-                    <circle cx="18.5" cy="18.5" r="2.5" /></svg
-                ></span>
-                <span class="sidebar-item-label">Shipping Calculator</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Operations -->
-          <div class="sidebar-cat" data-cat="operations">
-            <div class="sidebar-cat-header" data-tooltip="Operations">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path
-                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-                  />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Operations</span>
-              <span class="sidebar-cat-count">4</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" /></svg
+            ></span>
+            <span class="sidebar-item-label">Competitor Intel</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="marketing-hub"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('marketing-hub');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="order-tracker" data-tooltip="Order Tracker">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                    />
-                    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-                    <line x1="12" y1="22.08" x2="12" y2="12" /></svg
-                ></span>
-                <span class="sidebar-item-label">Order Tracker</span>
-              </a>
-
-              <a href="#" class="sidebar-item" data-section="refund-shield" data-tooltip="Refund Shield">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg
-                ></span>
-                <span class="sidebar-item-label">Refund Shield</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="cash-flow" data-tooltip="Cash Flow">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                    <line x1="1" y1="10" x2="23" y2="10" /></svg
-                ></span>
-                <span class="sidebar-item-label">Cash Flow</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Marketing -->
-          <div class="sidebar-cat" data-cat="marketing">
-            <div class="sidebar-cat-header" data-tooltip="Marketing">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Marketing</span>
-              <span class="sidebar-cat-count">2</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg
+            ></span>
+            <span class="sidebar-item-label">Marketing Hub</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="store-builder"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('store-builder');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="listing-optimizer" data-tooltip="Listing Optimizer">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg
-                ></span>
-                <span class="sidebar-item-label">Listing Optimizer</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="ad-studio" data-tooltip="Ad Creator">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polygon points="23 7 16 12 23 17 23 7" />
-                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg
-                ></span>
-                <span class="sidebar-item-label">Ad Creator</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Store -->
-          <div class="sidebar-cat" data-cat="store">
-            <div class="sidebar-cat-header" data-tooltip="Store">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Store</span>
-              <span class="sidebar-cat-count">2</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" /></svg
+            ></span>
+            <span class="sidebar-item-label">Store Builder</span>
+          </a>
+          <a
+            href="#"
+            class="sidebar-item"
+            data-route="ai-coach"
+            onclick="
+              event.preventDefault();
+              window.HuntDrop.Router.navigate('ai-coach');
+            "
+          >
+            <span class="sidebar-item-icon"
+              ><svg
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2.5"
+                stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="health" data-tooltip="Store Health">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                    /></svg
-                ></span>
-                <span class="sidebar-item-label">Store Health</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="store-connect" data-tooltip="Connect Store">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg
-                ></span>
-                <span class="sidebar-item-label">Connect Store</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Strategy -->
-          <div class="sidebar-cat" data-cat="strategy">
-            <div class="sidebar-cat-header" data-tooltip="Strategy">
-              <span class="sidebar-cat-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <circle cx="12" cy="12" r="6" />
-                  <circle cx="12" cy="12" r="2" />
-                </svg>
-              </span>
-              <span class="sidebar-cat-label">Strategy</span>
-              <span class="sidebar-cat-count">3</span>
-              <svg
-                class="sidebar-cat-chevron"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-            <div class="sidebar-cat-items">
-              <a href="#" class="sidebar-item" data-section="coach" data-tooltip="AI Coach">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg
-                ></span>
-                <span class="sidebar-item-label">AI Coach</span>
-              </a>
-              <a href="#" class="sidebar-item" data-section="ai-settings" data-tooltip="AI Settings">
-                <span class="sidebar-item-icon"
-                  ><svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="3" />
-                    <path
-                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-                    /></svg
-                ></span>
-                <span class="sidebar-item-label">AI Settings</span>
-              </a>
-            </div>
-          </div>
+                <path d="M12 2a7 7 0 0 0-7 7c0 3 2 5.5 4 7.5L12 22l3-5.5c2-2 4-4.5 4-7.5a7 7 0 0 0-7-7z" />
+                <circle cx="12" cy="9" r="2.5" /></svg
+            ></span>
+            <span class="sidebar-item-label">AI Coach</span>
+          </a>
         </nav>
 
         <!-- Profile Footer -->
@@ -1288,7 +836,7 @@
                   class="hero-ai-hunt-link"
                   onclick="
                     event.preventDefault();
-                    window.HuntDrop.navigateTo('section-product-hunt');
+                    window.HuntDrop.Router.navigate('product-finder');
                   "
                   >AI Hunt</a
                 >.
@@ -1386,19 +934,40 @@
           <!-- AI Signal Bar — auto-rotating intelligence signals -->
           <div class="ai-signal-bar" id="aiSignalBar">
             <div class="signal-track" id="signalTrack">
-              <div class="signal-item" data-section="section-product-hunt">
+              <div
+                class="signal-item"
+                data-section="product-finder"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('product-finder');
+                "
+              >
                 <span class="signal-pulse"></span>
                 <span class="signal-label">Intel</span>
                 <span class="signal-msg">Wireless earbuds demand up 340% on TikTok Shop this week</span>
                 <span class="signal-action">Open AI Hunt →</span>
               </div>
-              <div class="signal-item" data-section="section-market-gaps">
+              <div
+                class="signal-item"
+                data-section="competitor-intel"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('competitor-intel');
+                "
+              >
                 <span class="signal-pulse"></span>
                 <span class="signal-label">Gap</span>
                 <span class="signal-msg">Pet grooming niche shows low competition across 3 platforms</span>
                 <span class="signal-action">Explore Gaps →</span>
               </div>
-              <div class="signal-item" data-section="section-profit-lab">
+              <div
+                class="signal-item"
+                data-section="profit-hub"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('profit-hub');
+                "
+              >
                 <span class="signal-pulse"></span>
                 <span class="signal-label">Margin</span>
                 <span class="signal-msg">Top 10 products average 43% margin after fees right now</span>
@@ -1424,7 +993,7 @@
 
           <!-- #1: KPI Stats Bar -->
           <div class="kpi-bar" id="kpiBar">
-            <a href="#" class="kpi-card" data-section="section-search">
+            <a href="#" class="kpi-card" data-section="product-finder">
               <div class="kpi-head">
                 <div class="kpi-icon-wrap kpi-icon-cyan">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1477,7 +1046,7 @@
                 />
               </svg>
             </a>
-            <a href="#" class="kpi-card" data-section="section-profit-lab">
+            <a href="#" class="kpi-card" data-section="profit-hub">
               <div class="kpi-head">
                 <div class="kpi-icon-wrap kpi-icon-orange">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1503,7 +1072,7 @@
                 />
               </svg>
             </a>
-            <a href="#" class="kpi-card" data-platform="tiktok" data-section="section-search">
+            <a href="#" class="kpi-card" data-platform="tiktok" data-section="product-finder">
               <div class="kpi-head">
                 <div class="kpi-icon-wrap kpi-icon-purple">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1538,32 +1107,7 @@
               <h2 class="quick-tools-title">
                 <span class="qt-title-glow"></span>
                 Mission Control
-                <button class="qt-collapse-toggle" id="qtCollapseToggle" title="Toggle Mission Control">
-                  <svg
-                    class="qt-chevron"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
               </h2>
-              <div class="quick-tools-tabs">
-                <button class="qt-tab active" data-cat="all">All</button>
-                <button class="qt-tab" data-cat="research">Research</button>
-                <button class="qt-tab" data-cat="intelligence">Intelligence</button>
-                <button class="qt-tab" data-cat="financial">Financial</button>
-                <button class="qt-tab" data-cat="sourcing">Sourcing</button>
-                <button class="qt-tab" data-cat="marketing">Marketing</button>
-                <button class="qt-tab" data-cat="store">Store</button>
-                <button class="qt-tab" data-cat="strategy">Strategy</button>
-              </div>
             </div>
             <div class="quick-launch">
               <a
@@ -1571,7 +1115,7 @@
                 class="ql-card ql-search"
                 onclick="
                   event.preventDefault();
-                  window.HuntDrop.navigateTo('section-search');
+                  window.HuntDrop.Router.navigate('product-finder');
                 "
               >
                 <div class="ql-icon">
@@ -1581,8 +1125,8 @@
                   </svg>
                 </div>
                 <div class="ql-body">
-                  <span class="ql-name">Deep Search</span>
-                  <span class="ql-desc">Scan 19 platforms instantly</span>
+                  <span class="ql-name">Find Products</span
+                  ><span class="ql-desc">Search 10 platforms, AI scoring, niche discovery</span>
                 </div>
                 <span class="ql-arrow">→</span>
               </a>
@@ -1591,7 +1135,7 @@
                 class="ql-card ql-profit"
                 onclick="
                   event.preventDefault();
-                  window.HuntDrop.navigateTo('section-profit-lab');
+                  window.HuntDrop.Router.navigate('profit-hub');
                 "
               >
                 <div class="ql-icon">
@@ -1601,8 +1145,8 @@
                   </svg>
                 </div>
                 <div class="ql-body">
-                  <span class="ql-name">Profit Lab</span>
-                  <span class="ql-desc">Real-time margin calculator</span>
+                  <span class="ql-name">Profit Hub</span
+                  ><span class="ql-desc">Calculator, time machine, budget allocator</span>
                 </div>
                 <span class="ql-arrow">→</span>
               </a>
@@ -1611,545 +1155,101 @@
                 class="ql-card ql-ai"
                 onclick="
                   event.preventDefault();
-                  window.HuntDrop.navigateTo('section-ai-analyst');
+                  window.HuntDrop.Router.navigate('supplier-center');
                 "
               >
                 <div class="ql-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                    <path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z" />
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
                   </svg>
                 </div>
                 <div class="ql-body">
-                  <span class="ql-name">AI Analyst</span>
-                  <span class="ql-desc">Deep-dive product scoring</span>
+                  <span class="ql-name">Supplier Center</span
+                  ><span class="ql-desc">Compare suppliers, risk scoring, verification</span>
                 </div>
                 <span class="ql-arrow">→</span>
               </a>
-            </div>
-            <div class="qt-categories" id="qtCategories">
-              <!-- Research -->
-              <div class="qt-category qt-visible" data-cat="research">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-research"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></span
-                  ><span class="qt-cat-name">Research</span><span class="qt-cat-count">4</span>
+              <a
+                href="#"
+                class="ql-card"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('competitor-intel');
+                "
+              >
+                <div class="ql-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
                 </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="product-hunt" data-cat="research"
-                    ><div class="qt-icon qt-icon-research">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">AI Hunt</span
-                    ><span class="qt-desc">Advanced hunting with Kill Zone, arbitrage & validation</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="niche-radar" data-cat="research"
-                    ><div class="qt-icon qt-icon-research">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
-                        />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Niche Finder</span
-                    ><span class="qt-desc">Discover untapped niches with low competition</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="market-gaps" data-cat="research"
-                    ><div class="qt-icon qt-icon-research">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
-                        />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Market Gaps</span
-                    ><span class="qt-desc">Find underserved markets and opportunities</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="lifecycle" data-cat="research"
-                    ><div class="qt-icon qt-icon-research">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                        <polyline points="17 6 23 6 23 12" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Product Life Cycle</span
-                    ><span class="qt-desc">Track where products are in their lifecycle</span></a
-                  >
+                <div class="ql-body">
+                  <span class="ql-name">Competitor Intel</span
+                  ><span class="ql-desc">Spy on stores, rival analysis, personas</span>
                 </div>
-              </div>
-
-              <!-- Intelligence -->
-              <div class="qt-category qt-visible" data-cat="intelligence">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-intelligence"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                      <path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z" /></svg></span
-                  ><span class="qt-cat-name">Intelligence</span><span class="qt-cat-count">3</span>
+                <span class="ql-arrow">→</span>
+              </a>
+              <a
+                href="#"
+                class="ql-card"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('marketing-hub');
+                "
+              >
+                <div class="ql-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="23 7 16 12 23 17 23 7" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                  </svg>
                 </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="ai-analyst" data-cat="intelligence"
-                    ><div class="qt-icon qt-icon-intelligence">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                        <path d="M20.66 6A10 10 0 0 0 12 2v10h10a10 10 0 0 0-1.34-6z" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">AI Analysis</span
-                    ><span class="qt-desc">Deep AI-powered product analysis and scoring</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="spy-center" data-cat="intelligence"
-                    ><div class="qt-icon qt-icon-intelligence">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Store Spy</span
-                    ><span class="qt-desc">Spy on competitor stores and their best products</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="battlefield" data-cat="intelligence"
-                    ><div class="qt-icon qt-icon-intelligence">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                        <polyline points="14 2 14 8 20 8" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Rival Check</span
-                    ><span class="qt-desc">Compare your products against competitors</span></a
-                  >
+                <div class="ql-body">
+                  <span class="ql-name">Marketing Hub</span
+                  ><span class="ql-desc">Ad copy, budget planner, objection handlers</span>
                 </div>
-              </div>
-
-              <!-- Financial -->
-              <div class="qt-category qt-visible" data-cat="financial">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-financial"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="1" x2="12" y2="23" />
-                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg></span
-                  ><span class="qt-cat-name">Financial</span><span class="qt-cat-count">2</span>
+                <span class="ql-arrow">→</span>
+              </a>
+              <a
+                href="#"
+                class="ql-card"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('store-builder');
+                "
+              >
+                <div class="ql-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
                 </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="profit-lab" data-cat="financial"
-                    ><div class="qt-icon qt-icon-financial">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="12" y1="1" x2="12" y2="23" />
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Profit Calculator</span
-                    ><span class="qt-desc">Calculate exact profit margins with all fees included</span></a
-                  >
-
-                  <a href="#" class="qt-card" data-section="budget" data-cat="financial"
-                    ><div class="qt-icon qt-icon-financial">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Budget Planner</span
-                    ><span class="qt-desc">Plan ad spend and inventory investment</span></a
-                  >
+                <div class="ql-body">
+                  <span class="ql-name">Store Builder</span
+                  ><span class="ql-desc">Setup, health audit, smart bundles</span>
                 </div>
-              </div>
-
-              <!-- Sourcing -->
-              <div class="qt-category qt-visible" data-cat="sourcing">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-sourcing"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" /></svg></span
-                  ><span class="qt-cat-name">Sourcing</span><span class="qt-cat-count">2</span>
+                <span class="ql-arrow">→</span>
+              </a>
+              <a
+                href="#"
+                class="ql-card"
+                onclick="
+                  event.preventDefault();
+                  window.HuntDrop.Router.navigate('ai-coach');
+                "
+              >
+                <div class="ql-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a7 7 0 0 0-7 7c0 3 2 5.5 4 7.5L12 22l3-5.5c2-2 4-4.5 4-7.5a7 7 0 0 0-7-7z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                  </svg>
                 </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="supplier-hub" data-cat="sourcing"
-                    ><div class="qt-icon qt-icon-sourcing">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                        <polyline points="9 22 9 12 15 12 15 22" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Find Suppliers</span
-                    ><span class="qt-desc">Search verified suppliers across all platforms</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="supplier-intel" data-cat="sourcing"
-                    ><div class="qt-icon qt-icon-sourcing">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Supplier Check</span
-                    ><span class="qt-desc">Verify supplier reliability and shipping times</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="shipping-calc" data-cat="sourcing"
-                    ><div class="qt-icon qt-icon-sourcing">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <rect x="1" y="3" width="15" height="13" />
-                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                        <circle cx="5.5" cy="18.5" r="2.5" />
-                        <circle cx="18.5" cy="18.5" r="2.5" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Shipping Calculator</span
-                    ><span class="qt-desc">Estimate shipping costs from 10 origins to 12 countries</span></a
-                  >
+                <div class="ql-body">
+                  <span class="ql-name">AI Coach</span
+                  ><span class="ql-desc">Strategy mentor, trending, learning center</span>
                 </div>
-              </div>
-
-              <!-- Operations -->
-              <div class="qt-category qt-visible" data-cat="operations">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-operations"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <rect x="1" y="3" width="15" height="13" />
-                      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                      <circle cx="5.5" cy="18.5" r="2.5" />
-                      <circle cx="18.5" cy="18.5" r="2.5" /></svg></span
-                  ><span class="qt-cat-name">Operations</span><span class="qt-cat-count">4</span>
-                </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="order-tracker" data-cat="operations"
-                    ><div class="qt-icon qt-icon-operations">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <rect x="1" y="3" width="15" height="13" />
-                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-                        <circle cx="5.5" cy="18.5" r="2.5" />
-                        <circle cx="18.5" cy="18.5" r="2.5" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Order Tracker</span
-                    ><span class="qt-desc"
-                      >Track every order from placement to delivery with AI WISMO responses</span
-                    ></a
-                  >
-
-                  <a href="#" class="qt-card" data-section="refund-shield" data-cat="operations"
-                    ><div class="qt-icon qt-icon-operations">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Refund Shield</span
-                    ><span class="qt-desc"
-                      >Track refund patterns, root causes, and profit impact across all platforms</span
-                    ></a
-                  >
-                  <a href="#" class="qt-card" data-section="cash-flow" data-cat="operations"
-                    ><div class="qt-icon qt-icon-operations">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <line x1="12" y1="1" x2="12" y2="23" />
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Cash Flow</span
-                    ><span class="qt-desc"
-                      >Track platform payouts, supplier payments, and working capital across stores</span
-                    ></a
-                  >
-                </div>
-              </div>
-
-              <!-- Marketing -->
-              <div class="qt-category qt-visible" data-cat="marketing">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-marketing"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polygon points="23 7 16 12 23 17 23 7" />
-                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg></span
-                  ><span class="qt-cat-name">Marketing</span><span class="qt-cat-count">2</span>
-                </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="listing-optimizer" data-cat="marketing"
-                    ><div class="qt-icon qt-icon-marketing">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Listing Optimizer</span
-                    ><span class="qt-desc"
-                      >AI-powered listing intelligence — optimize titles, images & keywords across 6 platforms</span
-                    ></a
-                  >
-                  <a href="#" class="qt-card" data-section="ad-studio" data-cat="marketing"
-                    ><div class="qt-icon qt-icon-marketing">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <polygon points="23 7 16 12 23 17 23 7" />
-                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Ad Creator</span
-                    ><span class="qt-desc">Generate high-converting ad copy for any platform</span></a
-                  >
-                </div>
-              </div>
-
-              <!-- Store -->
-              <div class="qt-category qt-visible" data-cat="store">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-store"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" /></svg
-                  ></span>
-                  <span class="qt-cat-name">Store</span><span class="qt-cat-count">2</span>
-                </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="health" data-cat="store"
-                    ><div class="qt-icon qt-icon-store">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path
-                          d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                        />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Store Health</span
-                    ><span class="qt-desc">Audit your store for speed, SEO and conversion</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="store-connect" data-cat="store"
-                    ><div class="qt-icon qt-icon-store">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">Connect Store</span
-                    ><span class="qt-desc">Connect Shopify, WooCommerce & custom stores</span></a
-                  >
-                </div>
-              </div>
-
-              <!-- Strategy -->
-              <div class="qt-category qt-visible" data-cat="strategy">
-                <div class="qt-cat-header">
-                  <span class="qt-cat-icon qt-icon-strategy"
-                    ><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg></span
-                  ><span class="qt-cat-name">Strategy</span><span class="qt-cat-count">2</span>
-                </div>
-                <div class="qt-grid">
-                  <a href="#" class="qt-card" data-section="coach" data-cat="strategy"
-                    ><div class="qt-icon qt-icon-strategy">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-                      </svg>
-                    </div>
-                    <span class="qt-name">AI Coach</span
-                    ><span class="qt-desc">Get personalized strategy advice from AI mentor</span></a
-                  >
-                  <a href="#" class="qt-card" data-section="ai-settings" data-cat="strategy"
-                    ><div class="qt-icon qt-icon-strategy">
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      >
-                        <circle cx="12" cy="12" r="3" />
-                        <path
-                          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-                        />
-                      </svg>
-                    </div>
-                    <span class="qt-name">AI Settings</span
-                    ><span class="qt-desc">Configure API keys, preferences and AI provider settings</span></a
-                  >
-                </div>
-              </div>
+                <span class="ql-arrow">→</span>
+              </a>
             </div>
           </section>
 

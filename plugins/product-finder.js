@@ -34,10 +34,14 @@
       `;
     }
 
-    setTimeout(() => {
-      const results = DataLayer.searchAll ? DataLayer.searchAll(searchQuery, { platform }) : [];
-      searchResults = results;
-      renderResults(results);
+    setTimeout(async () => {
+      try {
+        const results = DataLayer.searchAll ? await DataLayer.searchAll(searchQuery, { platform }) : [];
+        searchResults = Array.isArray(results) ? results : [];
+      } catch (e) {
+        searchResults = [];
+      }
+      renderResults(searchResults);
     }, 800);
   }
 

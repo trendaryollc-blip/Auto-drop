@@ -1778,9 +1778,7 @@
     <script defer src="plugins/auth-modal.js"></script>
     <!-- PLUGINS: Loaded dynamically by app.js lazy loader for code splitting -->
     <script defer src="plugins/settings-page.js"></script>
-    <!-- APP: Wires everything together -->
-    <script defer src="app.js"></script>
-    <!-- NEW: Unified Pages Router & Plugins -->
+    <!-- NEW: Unified Pages Router & Plugins (must load BEFORE app.js) -->
     <script defer src="js/router.js"></script>
     <script defer src="plugins/product-finder.js"></script>
     <script defer src="plugins/profit-hub.js"></script>
@@ -1789,6 +1787,8 @@
     <script defer src="plugins/marketing-hub.js"></script>
     <script defer src="plugins/store-builder.js"></script>
     <script defer src="plugins/ai-coach.js"></script>
+    <!-- APP: Wires everything together (mounts all registered plugins) -->
+    <script defer src="app.js"></script>
     <script defer src="js/ai-widget.js"></script>
   </body>
 </html>

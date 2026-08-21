@@ -205,6 +205,11 @@
 
     try {
       await auth.signInWithEmailAndPassword(email, password);
+      btn.classList.remove('loading');
+      btn.innerHTML = '<span>Welcome back!</span>';
+      setTimeout(function () {
+        window.location.href = 'app.html';
+      }, 300);
     } catch (error) {
       if (btn) {
         btn.classList.remove('loading');
